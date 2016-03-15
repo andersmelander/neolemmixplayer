@@ -260,11 +260,6 @@ type             (*
     MiscOptions         : TMiscOptions;
 
     fZoomFactor          : Integer;
-    fLevelPack           : String;
-    fExternalPrefix      : String;
-    fForceGimmick        : LongWord;
-    fForceGimmick2       : LongWord;
-    fForceGimmick3       : LongWord;
     fForceSkillset       : Word;
     fLevelOverride       : Integer;
     fPercentOption       : Integer;
@@ -429,9 +424,6 @@ begin
   inherited Create;
 
   MiscOptions := DEF_MISCOPTIONS;
-  fLevelPack := 'LEVELPAK.DAT';
-  fExternalPrefix := '';
-  fForceGimmick := 0;
   fForceSkillset := 0;
   fSteelOverride := 0;
   fPercentOption := -1;

@@ -126,8 +126,6 @@ begin
     p.SteelOverride := SteelOption;
     p.fTestScreens := TestOption;
     p.SoundOptions := TGameSoundOptions(SoundOption);
-    p.fLevelPack := Trim(PackName);
-    p.fExternalPrefix := Trim(PrefixName);
   end;
 end;
 
