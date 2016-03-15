@@ -304,6 +304,7 @@ type             (*
     property IgnoreReplaySelection: boolean Index moIgnoreReplaySelection read GetOptionFlag write SetOptionFlag;
     property EnableOnline: boolean Index moEnableOnline read GetOptionFlag write SetOptionFlag;
     property CheckUpdates: boolean Index moCheckUpdates read GetOptionFlag write SetOptionFlag;
+    property NoAutoReplayMode: boolean Index moNoAutoReplayMode read GetOptionFlag write SetOptionFlag;
 
     property DumpMode: boolean read fDumpMode write fDumpMode;
     property OneLevelMode: boolean read fOneLevelMode write fOneLevelMode;
@@ -361,6 +362,7 @@ begin
   SaveBoolean('AlwaysTimestampReplays', AlwaysTimestamp);
   SaveBoolean('ConfirmReplayOverwrite', ConfirmOverwrite);
   SaveBoolean('ExplicitReplayCancel', ExplicitCancel);
+  SaveBoolean('NoAutoReplay', NoAutoReplayMode);
   SaveBoolean('LemmingCountBlink', LemmingBlink);
   SaveBoolean('TimerBlink', TimerBlink);
   SaveBoolean('WhiteOutZero', WhiteOutZero);
@@ -403,6 +405,7 @@ begin
   AlwaysTimestamp := LoadBoolean('AlwaysTimestampReplays');
   ConfirmOverwrite := LoadBoolean('ConfirmReplayOverwrite');
   ExplicitCancel := LoadBoolean('ExplicitReplayCancel');
+  NoAutoReplayMode := LoadBoolean('NoAutoReplay');
   WhiteOutZero := LoadBoolean('WhiteOutZero');
   IgnoreReplaySelection := LoadBoolean('IgnoreReplaySelection');
   EnableOnline := LoadBoolean('EnableOnline');

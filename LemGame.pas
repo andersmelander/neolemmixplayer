@@ -689,6 +689,7 @@ type
     fUseGradientBridges        : Boolean;
     fExplodingGraphics         : Boolean;
     fDoTimePause               : Boolean;
+    fCancelReplayAfterSkip     : Boolean;
   { sound vars }
     fSoundOpts                 : TGameSoundOptions;
     SoundMgr                   : TSoundMgr;
@@ -952,6 +953,7 @@ type
     property SoundOpts: TGameSoundOptions read fSoundOpts write SetSoundOpts;
     property SpeedingUpReleaseRate: Boolean read fSpeedingUpReleaseRate;
     property TargetIteration: Integer read fTargetIteration write fTargetIteration;
+    property CancelReplayAfterSkip: Boolean read fCancelReplayAfterSkip write fCancelReplayAfterSkip;
     property DoTimePause: Boolean read fDoTimePause write fDoTimePause;
     property HitTestAutoFail: Boolean read fHitTestAutoFail write fHitTestAutoFail;
     property LastReplayDir: String read fLastReplayDir write fLastReplayDir;
@@ -10147,6 +10149,11 @@ begin
     if fHyperSpeedCounter = 0 then
     begin
       fLeavingHyperSpeed := True;
+      if CancelReplayAfterSkip then
+      begin
+        RegainControl;
+        CancelReplayAfterSkip := false;
+      end;
       RefreshAllPanelInfo;
       //fHyperSpeed := False;
     end;

@@ -54,6 +54,7 @@ type
     TabSheet3: TTabSheet;
     cbEnableOnline: TCheckBox;
     cbUpdateCheck: TCheckBox;
+    cbNoAutoReplay: TCheckBox;
     procedure btnApplyClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure btnHotkeysClick(Sender: TObject);
@@ -125,6 +126,7 @@ begin
   cbWhiteOut.Checked := fGameParams.WhiteOutZero;
   cbAutoSaveReplay.Checked := fGameParams.AutoSaveReplay;
   cbExplicitCancel.Checked := fGameParams.ExplicitCancel;
+  cbNoAutoReplay.Checked := fGameParams.NoAutoReplayMode;
 
   // Zoom Dropdown
   cbZoom.Items.Clear;
@@ -205,6 +207,7 @@ begin
   fGameParams.WhiteOutZero := cbWhiteOut.Checked;
   fGameParams.AutoSaveReplay := cbAutoSaveReplay.Checked;
   fGameParams.ExplicitCancel := cbExplicitCancel.Checked;
+  fGameParams.NoAutoReplayMode := cbNoAutoReplay.Checked;
 
   // Zoom Dropdown
   if fGameParams.ZoomLevel <> cbZoom.ItemIndex then

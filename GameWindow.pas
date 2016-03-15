@@ -538,7 +538,10 @@ begin
                         fLastNukeKeyTime := CurrTime;
                     end;
           lka_SaveState : fSaveStateFrame := fGame.CurrentIteration;
-          lka_LoadState : GotoSaveState(fSaveStateFrame);
+          lka_LoadState : begin
+                            GotoSaveState(fSaveStateFrame);
+                            if GameParams.NoAutoReplayMode then Game.CancelReplayAfterSkip := true;
+                          end;
           lka_Cheat: if GameParams.CheatCodesEnabled or ((GameParams.SysDat.Options3 and 8) <> 0) then Game.Cheat;
           lka_FastForward: if not Paused then FastForward := not FastForward;
           lka_SaveImage: SaveShot;
@@ -554,7 +557,8 @@ begin
           lka_Restart: begin
                          Game.Paused := false;          
                          GotoSaveState(0);
-                       end;  
+                         if GameParams.NoAutoReplayMode then Game.CancelReplayAfterSkip := true;
+                       end;
           lka_Sound: if gsoSound in SoundOpts then
                      begin
                        SoundOpts := SoundOpts - [gsoSound];
@@ -587,6 +591,7 @@ begin
                           GotoSaveState((CurrentIteration + func.Modifier) - 1)
                         else
                           GotoSaveState(0);
+                        if GameParams.NoAutoReplayMode then Game.CancelReplayAfterSkip := true;
                       end else if func.Modifier > 1 then
                       begin
                         HyperSpeedBegin;
