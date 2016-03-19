@@ -4937,6 +4937,7 @@ begin
   if fGameParams.UsePercentages <> 0 then
     InfoPainter.SetInfoLemmingsIn(Num, Max, CheckRescueBlink)
     else}
+  Num := Num - Level.Info.RescueCount;
     InfoPainter.SetInfoLemmingsIn(Num, 0, CheckRescueBlink);
 end;
 
