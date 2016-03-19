@@ -237,6 +237,15 @@ type             (*
 
     LevelString : String;
 
+    // Merging from a newer, gimmick-free version deleted some needed
+    // variables. Let's put them back in a kludgey form.
+    ForceGimmick: LongWord;
+    ForceGimmick2: LongWord;
+    ForceGimmick3: LongWord;
+    Rickrolled: Boolean;
+    UsePercentages: Integer;
+    
+
     // this is initialized by the window in which the game will be played
     TargetBitmap : TBitmap32;
 

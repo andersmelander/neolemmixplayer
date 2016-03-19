@@ -19,7 +19,6 @@ type
     btnApply: TButton;
     GroupBox2: TGroupBox;
     cbOneClickHighlight: TCheckBox;
-    cbFixedKeys: TCheckBox;
     btnHotkeys: TButton;
     GroupBox3: TGroupBox;
     cbLemmingBlink: TCheckBox;
@@ -119,7 +118,6 @@ begin
   cbMusic.Checked := fGameParams.MusicEnabled;
   cbSound.Checked := fGameParams.SoundEnabled;
   cbOneClickHighlight.Checked := fGameParams.ClickHighlight;
-  cbFixedKeys.Checked := fGameParams.FixedKeys;
   cbIgnoreReplaySelection.Checked := fGameParams.IgnoreReplaySelection;
   cbLemmingBlink.Checked := fGameParams.LemmingBlink;
   cbTimerBlink.Checked := fGameParams.TimerBlink;
@@ -200,7 +198,6 @@ begin
   fGameParams.MusicEnabled := cbMusic.Checked;
   fGameParams.SoundEnabled := cbSound.Checked;
   fGameParams.ClickHighlight := cbOneClickHighlight.Checked;
-  fGameParams.FixedKeys := cbFixedKeys.Checked;
   fGameParams.IgnoreReplaySelection := cbIgnoreReplaySelection.Checked;
   fGameParams.LemmingBlink := cbLemmingBlink.Checked;
   fGameParams.TimerBlink := cbTimerBlink.Checked;

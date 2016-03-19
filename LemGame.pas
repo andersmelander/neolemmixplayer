@@ -2066,8 +2066,8 @@ begin
   ExplodeMaskBmp.DrawMode := dmCustom;
   ExplodeMaskBmp.OnPixelCombine := CombineMaskPixels;
 
-  if not fGameParams.NoAdjustBomberMask then
-  begin
+  //if not fGameParams.NoAdjustBomberMask then
+  //begin
     with ExplodeMaskBmp do
     begin
       for y := 21 downto 0 do
@@ -2079,7 +2079,7 @@ begin
       {for y := 0 to 21 do
         PixelS[0, y] := 0;}
     end;
-  end;
+  //end;
 
   if (fGameParams.Level.Info.GimmickSet and $40000) <> 0 then
   begin
@@ -4927,16 +4927,16 @@ procedure TLemmingGame.UpdateLemmingsIn(Num, Max: Integer);
 var
   i: Integer;
 begin
-  if (fGameParams.UsePercentages = 2) and ((Level.Info.SkillTypes and 1) <> 0) then
+  {if (fGameParams.UsePercentages = 2) and ((Level.Info.SkillTypes and 1) <> 0) then
   begin
     Max := Max + Level.Info.ClonerCount;
     for i := 0 to ObjectInfos.Count-1 do
       if (ObjectInfos[i].MetaObj.TriggerEffect = 14) and (ObjectInfos[i].Obj.Skill = 15) then Max := Max + 1;
   end;
-  {if fGameParams.ShowNeeded then} Num := Num - Level.Info.RescueCount;
+  {if fGameParams.ShowNeeded then Num := Num - Level.Info.RescueCount;
   if fGameParams.UsePercentages <> 0 then
     InfoPainter.SetInfoLemmingsIn(Num, Max, CheckRescueBlink)
-    else
+    else}
     InfoPainter.SetInfoLemmingsIn(Num, 0, CheckRescueBlink);
 end;
 
@@ -9987,13 +9987,13 @@ begin
     gToRescue           := Level.Info.RescueCount;
     gRescued            := LemmingsIn;
     gLemCap             := Level.Info.LemmingsCount;
-    if (fGameParams.UsePercentages = 2) and ((Level.Info.SkillTypes and $1) <> 0) then
+    {if (fGameParams.UsePercentages = 2) and ((Level.Info.SkillTypes and $1) <> 0) then
     begin
      gLemCap            := gLemCap + Level.Info.ClonerCount;
      for i := 0 to Level.InteractiveObjects.Count-1 do
        if Graph.MetaObjects[Level.InteractiveObjects[i].Identifier].TriggerEffect = 14 then
          if Level.InteractiveObjects[i].Skill = 15 then Inc(gLemCap);
-    end;
+    end;}
     gSecretGoto         := fSecretGoto;
 
     gGotTalisman        := fTalismanReceived;
@@ -10510,11 +10510,11 @@ end;
 function TLemmingGame.CheckRescueBlink: Boolean;
 begin
   Result := false;
-  if not (fGameParams.RescueBlink) then Exit;
+  {if not (fGameParams.RescueBlink) then Exit;
   if (((LemmingsIn < Level.Info.RescueCount) and not fGameParams.AltRescueBlink)
   or ((LemmingsIn >= Level.Info.RescueCount) and fGameParams.AltRescueBlink))
-  and (CurrentIteration mod 17 > 8) {and (CurrentIteration mod 34 < 27)} then
-    Result := true;
+  and (CurrentIteration mod 17 > 8) {and (CurrentIteration mod 34 < 27) then
+    Result := true;}
 end;
 
 function TLemmingGame.CheckTimerBlink: Boolean;

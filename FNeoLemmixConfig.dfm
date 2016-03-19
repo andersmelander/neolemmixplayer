@@ -6,7 +6,7 @@ object FormNXConfig: TFormNXConfig
   BorderIcons = []
   BorderStyle = bsToolWindow
   Caption = 'NeoLemmix Configuration'
-  ClientHeight = 433
+  ClientHeight = 449
   ClientWidth = 273
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -22,8 +22,8 @@ object FormNXConfig: TFormNXConfig
     Left = 0
     Top = 0
     Width = 273
-    Height = 393
-    ActivePage = TabSheet3
+    Height = 409
+    ActivePage = TabSheet1
     TabOrder = 0
     object TabSheet1: TTabSheet
       Caption = 'Global Options'
@@ -62,20 +62,11 @@ object FormNXConfig: TFormNXConfig
         TabOrder = 1
         object cbOneClickHighlight: TCheckBox
           Left = 16
-          Top = 16
+          Top = 24
           Width = 129
           Height = 17
           Caption = 'One-Click Highlighting'
           TabOrder = 0
-          OnClick = OptionChanged
-        end
-        object cbFixedKeys: TCheckBox
-          Left = 16
-          Top = 32
-          Width = 137
-          Height = 17
-          Caption = 'Use Fixed Skill Hotkeys'
-          TabOrder = 1
           OnClick = OptionChanged
         end
         object btnHotkeys: TButton
@@ -84,7 +75,7 @@ object FormNXConfig: TFormNXConfig
           Width = 73
           Height = 25
           Caption = 'Hotkeys'
-          TabOrder = 2
+          TabOrder = 1
           OnClick = btnHotkeysClick
         end
         object cbIgnoreReplaySelection: TCheckBox
@@ -93,7 +84,7 @@ object FormNXConfig: TFormNXConfig
           Width = 177
           Height = 17
           Caption = 'Ignore Replay Skill Selection'
-          TabOrder = 3
+          TabOrder = 2
           OnClick = OptionChanged
         end
       end
@@ -157,12 +148,12 @@ object FormNXConfig: TFormNXConfig
         Left = 8
         Top = 256
         Width = 249
-        Height = 97
+        Height = 121
         Caption = 'Replay Options'
         TabOrder = 3
         object Label2: TLabel
           Left = 16
-          Top = 48
+          Top = 72
           Width = 154
           Height = 13
           Caption = 'Manually-Saved Replay Naming:'
@@ -178,7 +169,7 @@ object FormNXConfig: TFormNXConfig
         end
         object cbReplayNaming: TComboBox
           Left = 32
-          Top = 64
+          Top = 88
           Width = 177
           Height = 21
           Style = csDropDownList
@@ -201,6 +192,14 @@ object FormNXConfig: TFormNXConfig
           Caption = 'Only Cancel Replay On Cancel Key'
           TabOrder = 2
           OnClick = OptionChanged
+        end
+        object cbNoAutoReplay: TCheckBox
+          Left = 16
+          Top = 48
+          Width = 209
+          Height = 17
+          Caption = 'Don'#39't Replay After Backwards Skip'
+          TabOrder = 3
         end
       end
     end
@@ -441,7 +440,7 @@ object FormNXConfig: TFormNXConfig
   end
   object btnOK: TButton
     Left = 24
-    Top = 400
+    Top = 416
     Width = 65
     Height = 25
     Caption = 'OK'
@@ -450,7 +449,7 @@ object FormNXConfig: TFormNXConfig
   end
   object btnCancel: TButton
     Left = 104
-    Top = 400
+    Top = 416
     Width = 65
     Height = 25
     Caption = 'Cancel'
@@ -459,7 +458,7 @@ object FormNXConfig: TFormNXConfig
   end
   object btnApply: TButton
     Left = 184
-    Top = 400
+    Top = 416
     Width = 65
     Height = 25
     Caption = 'Apply'

@@ -491,7 +491,7 @@ begin
 
         if func.Action = lka_Skill then
         begin
-          if GameParams.FixedKeys then
+          {if GameParams.FixedKeys then
             case func.Modifier of
               0: SetSelectedSkill(spbWalker, True);
               1: SetSelectedSkill(spbClimber, True);
@@ -510,7 +510,7 @@ begin
               14: SetSelectedSkill(spbDigger, True);
               15: SetSelectedSkill(spbCloner, True);
             end
-          else
+          else}
             case func.Modifier of
               1: SetSelectedSkill(fActiveSkills[0], True);
               3: SetSelectedSkill(fActiveSkills[1], True);
