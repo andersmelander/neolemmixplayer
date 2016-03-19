@@ -562,7 +562,7 @@ begin
           lka_Restart: begin
                          Game.Paused := false;          
                          GotoSaveState(0);
-                         if GameParams.NoAutoReplayMode then Game.CancelReplayAfterSkip := true;
+                         //if GameParams.NoAutoReplayMode then Game.CancelReplayAfterSkip := true;
                        end;
           lka_Sound: if gsoSound in SoundOpts then
                      begin
