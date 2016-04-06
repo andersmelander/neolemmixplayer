@@ -180,31 +180,8 @@ begin
     Sleep(fCloseDelay);
   end;
 
-  if GameParams.ZoomLevel <> 0 then
-  begin
-    GameParams.MainForm.Left := Left;
-    GameParams.MainForm.Top := Top;
-    GameParams.MainForm.BorderStyle := bsToolWindow;
-    GameParams.MainForm.WindowState := wsNormal;
-    //GameParams.MainForm.Visible := true;
-    //BringToFront;
-  end else begin
-    GameParams.MainForm.Left := 0;
-    GameParams.MainForm.Top := 0;
-    GameParams.MainForm.WindowState := wsMaximized;
-  end;
-
   if GameParams.ReplayCheckIndex = -2 then
     FadeOut;
-
-  if GameParams.ZoomLevel = 0 then
-  begin
-    //GameParams.MainForm.Visible := true;
-    GameParams.MainForm.BorderStyle := bsNone;
-    //BringToFront;
-  end;
-  if not GameParams.MainForm.Visible then
-    GameParams.MainForm.Show;
 
   if GameParams <> nil then
     GameParams.NextScreen := aNextScreen;
@@ -596,13 +573,9 @@ begin
 
   dec(Steps);
   end;
-  //GameParams.MainForm.Visible := true;
-  //GameParams.MainForm.BringToFront;
-  //GameParams.MainForm.Update;
+
 //  Invalidate;
   //Update;
-
-  GameParams.MainForm.Show;
 
   Application.ProcessMessages;
 end;

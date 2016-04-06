@@ -72,17 +72,6 @@ begin
     Caption := 'NeoLemmix - Single Level'
   else
     Caption := Trim(fGameParams.SysDat.PackName);
-
-  if fGameParams.ZoomLevel <> 0 then
-  begin
-    BorderStyle := bsToolWindow;
-    WindowState := wsNormal;
-    ClientWidth := 320 * fGameParams.ZoomLevel;
-    ClientHeight := 200 * fGameParams.ZoomLevel;
-    Left := fGameParams.MainForm.Left;
-    Top := fGameParams.MainForm.Top;
-  end;
-
 end;
 
 function TBaseDosForm.ShowScreen(Params: TDosGameParams): Integer;
@@ -96,10 +85,7 @@ procedure TBaseDosForm.HideMainForm(var msg : TMessage);
 begin
   // Tried a hundred different ways to prevent the between-screen flickering in windowed mode.
   // Nothing seems to work, but this way seems to have the least-noticable flickering.
-  if (GameParams <> nil) and (GameParams.ZoomLevel <> 0) and (GameParams.MainForm <> self) then
-  begin
-    GameParams.MainForm.Visible := false;
-  end;
+
 end;
 
 procedure TBaseDosForm.OnShowForm(Sender: TObject);

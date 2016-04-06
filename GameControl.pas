@@ -153,7 +153,6 @@ type             (*
     fZoomLevel: Integer;
     {fWindowX: Integer;
     fWindowY: Integer;}
-    fMainForm: TForm; // link to the FMain form
 
     function GetOptionFlag(aFlag: TMiscOption): Boolean;
     procedure SetOptionFlag(aFlag: TMiscOption; aValue: Boolean);
@@ -327,7 +326,6 @@ type             (*
     property ZoomLevel: Integer read fZoomLevel write fZoomLevel;
     {property WindowX: Integer read fWindowX write fWindowX;
     property WindowY: Integer read fWindowY write fWindowY;}
-    property MainForm: TForm read fMainForm write fMainForm;
 
     property Talismans: TTalismans read fTalismans;
     property TalismanPage: Integer read fTalismanPage write fTalismanPage;

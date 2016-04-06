@@ -126,6 +126,7 @@ object FormNXConfig: TFormNXConfig
           Width = 177
           Height = 21
           Style = csDropDownList
+          Enabled = False
           ItemHeight = 13
           ItemIndex = 0
           TabOrder = 2
