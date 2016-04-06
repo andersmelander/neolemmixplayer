@@ -8,9 +8,6 @@ uses
   UMisc, Gr32,
   GameControl;
 
-const
-  WM_AFTERSHOW = WM_USER + $1;
-
 type
   {-------------------------------------------------------------------------------
     abstract black, fullscreen, ancestor form
@@ -18,8 +15,6 @@ type
   TBaseDosForm = class(TForm)
   private
     fGameParams: TDosGameParams;
-    procedure OnShowForm(Sender: TObject);
-    procedure HideMainForm(var msg : TMessage); message WM_AFTERSHOW;
   protected
     procedure CreateParams(var Params: TCreateParams); override;
     procedure BuildScreen; virtual;
@@ -53,7 +48,6 @@ begin
   BorderIcons := [{biSystemMenu, biMinimize, biMaximize}];
   WindowState := {wsNormal} wsMaximized;
   Cursor := crNone;
-  //OnActivate := OnShowForm;
 end;
 
 procedure TBaseDosForm.CreateParams(var Params: TCreateParams);
@@ -68,10 +62,7 @@ end;
 procedure TBaseDosForm.PrepareGameParams(Params: TDosGameParams);
 begin
   fGameParams := Params;
-  if fGameParams.fTestMode then
-    Caption := 'NeoLemmix - Single Level'
-  else
-    Caption := Trim(fGameParams.SysDat.PackName);
+  Caption := Trim(fGameParams.SysDat.PackName);
 end;
 
 function TBaseDosForm.ShowScreen(Params: TDosGameParams): Integer;
@@ -79,19 +70,6 @@ begin
   PrepareGameParams(Params);
   BuildScreen;
   Result := ShowModal;
-end;
-
-procedure TBaseDosForm.HideMainForm(var msg : TMessage);
-begin
-  // Tried a hundred different ways to prevent the between-screen flickering in windowed mode.
-  // Nothing seems to work, but this way seems to have the least-noticable flickering.
-
-end;
-
-procedure TBaseDosForm.OnShowForm(Sender: TObject);
-begin
-  //HideMainForm;
-  PostMessage(Handle, WM_AFTERSHOW, 0, 0);
 end;
 
 end.

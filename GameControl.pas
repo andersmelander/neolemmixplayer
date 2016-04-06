@@ -418,7 +418,7 @@ begin
   EnableOnline := LoadBoolean('EnableOnline');
   CheckUpdates := LoadBoolean('UpdateCheck');
 
-  ZoomLevel := StrToIntDef(SL.Values['ZoomLevel'], 0);
+  ZoomLevel := 0; // always fullscreen in this version
 
   if StrToIntDef(SL.Values['LastVersion'], 0) < 1421 then
     EnableOnline := true;
