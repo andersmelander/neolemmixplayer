@@ -375,7 +375,7 @@ begin
   CheckUpdates := LoadBoolean('UpdateCheck');
   UpdateStyles := LoadBoolean('UpdateStyles');
 
-  ZoomLevel := StrToIntDef(SL.Values['ZoomLevel'], 0);
+  ZoomLevel := 0; // always fullscreen in this version
 
   PostLevelVictorySound := LoadBoolean('VictoryJingle');
   PostLevelFailureSound := LoadBoolean('FailureJingle');

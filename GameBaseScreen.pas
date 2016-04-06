@@ -547,10 +547,8 @@ begin
 
   dec(Steps);
   end;
-
 //  Invalidate;
   //Update;
-
   Application.ProcessMessages;
 end;
 

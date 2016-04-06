@@ -11,7 +11,6 @@ object BaseDosForm: TBaseDosForm
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
-  WindowState = wsMaximized
   PixelsPerInch = 96
   TextHeight = 13
 end

@@ -723,11 +723,11 @@ begin
         end;
 
         case func.Action of
-          lka_ReleaseMouse: if GameParams.ZoomLevel <> 0 then
+          {lka_ReleaseMouse: if GameParams.ZoomLevel <> 0 then
                             begin
                               fMouseTrapped := false;
                               ClipCursor(nil);
-                            end;
+                            end;}
           lka_ReleaseRateDown: SetSelectedSkill(spbSlower, True);
           lka_ReleaseRateUp: SetSelectedSkill(spbFaster, True);
           lka_Pause: SetSelectedSkill(spbPause);
@@ -1079,12 +1079,12 @@ begin
 //  fSystemCursor := GameParams.UseSystemCursor;
 
   // set the final displayscale
-  if GameParams.ZoomLevel = 0 then
-    Sca := DisplayScale
-  else begin
+  //if GameParams.ZoomLevel = 0 then
+    Sca := DisplayScale;
+  {else begin
     Sca := GameParams.ZoomLevel;
     DisplayScale := Sca;
-  end;
+  end;}
 
   GameParams.TargetBitmap := Img.Bitmap;
   fGame.PrepareParams(Params);
@@ -1099,25 +1099,25 @@ begin
   Img.Scale := Sca;
   Img.OffsetHorz := -GameParams.Level.Info.ScreenPosition * Sca;
   Img.OffsetVert := -GameParams.Level.Info.ScreenYPosition * Sca;
-  if GameParams.ZoomLevel = 0 then
-  begin
+  {if GameParams.ZoomLevel = 0 then
+  begin}
     Img.Left := (Screen.Width - Img.Width) div 2;
     Img.Top := (Screen.Height - 200 * Sca) div 2;
-  end else begin
+  {end else begin
     Img.Left := 0;
     Img.Top := 0;
-  end;
+  end;}
 
   SkillPanel.Top := Img.Top + Img.Height;
   SkillPanel.left := Img.Left;
   SkillPanel.Width := Img.Width;
   SkillPanel.Height := 40 * Sca;
 
-  if GameParams.ZoomLevel = 0 then
+  //if GameParams.ZoomLevel = 0 then
     MouseClipRect := Rect(Img.Left, Img.Top, Img.Left + Img.Width,
-                          SkillPanel.Top + SkillPanel.Height)
-  else
-    MouseClipRect := Rect(ClientToScreen(Point(0, 0)), ClientToScreen(Point(Img.Width, Img.Height + SkillPanel.Height)));
+                          SkillPanel.Top + SkillPanel.Height);
+  {else
+    MouseClipRect := Rect(ClientToScreen(Point(0, 0)), ClientToScreen(Point(Img.Width, Img.Height + SkillPanel.Height)));}
 
   SkillPanel.GameParams := GameParams;
   SkillPanel.SetStyleAndGraph(Gameparams.Style, Sca);

@@ -138,7 +138,7 @@ begin
   ZeroMemory(@Input, SizeOf(Input));
   SendInput(1, Input, SizeOf(Input)); // don't send anyting actually to another app..
   SetForegroundWindow(Application.Handle);
-  DoneBringToFront := true;
+  //DoneBringToFront := true;
 end;
 
 constructor TAppController.Create(aOwner: TComponent);
@@ -406,6 +406,7 @@ var
 begin
   F := TGameLevelCodeScreen.Create(nil);
   try
+    BringToFront;
     F.ShowScreen(fGameParams);
   finally
     F.Free;
@@ -418,7 +419,7 @@ var
 begin
   F := TGameMenuScreen.Create(nil);
   try
-    if not DoneBringToFront then BringToFront;
+    BringToFront;
     F.ShowScreen(fGameParams);
   finally
     F.Free;
@@ -431,6 +432,7 @@ var
 begin
   F := TGameWindow.Create(nil);
   try
+    BringToFront;
     F.ShowScreen(fGameParams);
   finally
     F.Free;
@@ -449,7 +451,11 @@ begin
   F := TGameTextScreen.Create(nil);
   HasTextToShow := F.HasScreenText(fGameParams);
   try
-    if HasTextToShow then F.ShowScreen(fGameParams);
+    if HasTextToShow then
+    begin
+      BringToFront;
+      F.ShowScreen(fGameParams);
+    end;
   finally
     F.Free;
   end;
@@ -461,6 +467,7 @@ var
 begin
   F := TGamePostviewScreen.Create(nil);
   try
+    BringToFront;
     F.ShowScreen(fGameParams);
   finally
     F.Free;
@@ -473,6 +480,7 @@ var
 begin
   F := TGameTalismanScreen.Create(nil);
   try
+    BringToFront;
     F.ShowScreen(fGameParams);
   finally
     F.Free;
@@ -815,7 +823,7 @@ begin
     end else begin
       // In the case of loading a single level file, menu screen will never be displayed.
       // Therefore, bringing to front must be done here.
-      if not DoneBringToFront then BringToFront;
+      BringToFront;
       F.ShowScreen(fGameParams);
     end;
   finally

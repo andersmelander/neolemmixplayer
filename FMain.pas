@@ -61,7 +61,7 @@ begin
   inherited;
   //ProgramSettings := TProgramSettings.Create;
   GlobalGame := TLemmingGame.Create(nil);
-  AppController := TAppController.Create(self);
+  AppController := TAppController.Create(nil);
 end;
 
 destructor TMainForm.Destroy;
