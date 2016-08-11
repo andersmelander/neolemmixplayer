@@ -8,6 +8,7 @@ interface
 
 uses
   Dialogs,
+  LemBCGraphicSet,
   LemNeoParser, PngInterface, LemNeoTheme,
   LemMetaTerrain, LemMetaObject, LemTypes, GR32, LemStrings,
   StrUtils, Classes, SysUtils;
@@ -32,6 +33,9 @@ type
       function FindObjectIndexByIdentifier(Identifier: String): Integer;
       function ObtainTerrain(Identifier: String): Integer;
       function ObtainObject(Identifier: String): Integer;
+
+      procedure ObtainGraphicSet(aName: String; aAsTheme: Boolean = false);
+      function CheckForGraphicSet(aName: String): Boolean;
 
       function GetMetaTerrain(Identifier: String): TMetaTerrain;
       function GetMetaObject(Identifier: String): TMetaObject;
@@ -93,11 +97,12 @@ begin
   inherited;
   fTerrains := TMetaTerrains.Create;
   fObjects := TMetaObjects.Create;
-  fTheme := nil;
+  fTheme := TNeoTheme.Create;
 end;
 
 destructor TNeoPieceManager.Destroy;
 begin
+  fTheme.Free;
   fTerrains.Free;
   fObjects.Free;
   inherited;
@@ -153,6 +158,8 @@ var
   TerrainLabel: TLabelRecord;
   T: TMetaTerrain;
 begin
+  raise Exception.Create('ObtainTerrain called for "' + Identifier + '". Please report this occurance.');
+
   TerrainLabel := SplitIdentifier(Identifier);
 
   Result := fTerrains.Count;
@@ -172,10 +179,56 @@ var
   ObjectLabel: TLabelRecord;
   MO: TMetaObject;
 begin
+  raise Exception.Create('ObtainObject called for "' + Identifier + '". Please report this occurance.');
+
   ObjectLabel := SplitIdentifier(Identifier);
   Result := fObjects.Count;
   MO := fObjects.Add;
   MO.Load(ObjectLabel.GS, ObjectLabel.Piece, fTheme);
+end;
+
+// Backwards-comaptibility code; load entire graphic sets.
+
+procedure TNeoPieceManager.ObtainGraphicSet(aName: String; aAsTheme: Boolean = false);
+var
+  BcSet: TBcGraphicSet;
+  AlreadyHasSet: Boolean;
+  i: Integer;
+begin
+  AlreadyHasSet := CheckForGraphicSet(aName);
+
+  if AlreadyHasSet and not aAsTheme then Exit;
+
+  BcSet := TBcGraphicSet.Create;
+  try
+    BcSet.LoadGraphicSet(aName);
+
+    if aAsTheme then
+      fTheme.Load(BcSet);
+
+    if AlreadyHasSet then Exit;
+
+    for i := 0 to BcSet.ObjectCount-1 do
+    begin
+      with fObjects.Add do
+        Load(BcSet, i);
+    end;
+  finally
+    BcSet.Free;
+  end;
+end;
+
+function TNeoPieceManager.CheckForGraphicSet(aName: String): Boolean;
+var
+  i: Integer;
+begin
+  Result := false;
+  for i := 0 to fTerrains.Count-1 do
+    if Lowercase(fTerrains[i].GS) = Lowercase(aName) then
+    begin
+      Result := true;
+      Exit;
+    end;
 end;
 
 // Functions to get the metainfo
@@ -200,6 +253,7 @@ end;
 
 procedure TNeoPieceManager.SetTheme(aTheme: TNeoTheme);
 begin
+  raise Exception.Create('SetTheme called. Please report this occurance.');
   fTheme := aTheme;
   Tidy;
 end;

@@ -8,6 +8,7 @@ interface
 
 uses
   Dialogs,
+  LemBCGraphicSet,
   LemNeoParser,
   GR32, LemTypes, LemStrings, PngInterface,
   StrUtils, Classes, SysUtils;
@@ -38,7 +39,8 @@ type
       constructor Create;
       destructor Destroy; override;
       procedure Clear;
-      procedure Load(aSet: String);
+      procedure Load(aSet: String); overload;
+      procedure Load(aBc: TBcGraphicSet); overload;
 
       property HasImageBackground: Boolean read fHasImageBackground;
       property Background: TBitmap32 read fBackgroundImage;
@@ -65,6 +67,25 @@ procedure TNeoTheme.Clear;
 begin
   fLemmings := 'lemming';
   SetLength(fColors, 0);
+end;
+
+procedure TNeoTheme.Load(aBc: TBcGraphicSet);
+begin
+  fHasImageBackground := false;
+  fBackgroundImage.Clear;
+
+  SetLength(fColors, 3);
+  fColors[0].Name := 'MASK';
+  fColors[0].Color := aBc.MaskColor;
+  fColors[1].Name := 'MINIMAP';
+  fColors[1].Color := aBc.MaskColor;
+  fColors[2].Name := 'BACKGROUND';
+  fColors[2].Color := $FF000000;
+
+  if aBc.XmasLemmings then
+    fLemmings := 'xmas'
+  else
+    fLemmings := 'default';
 end;
 
 procedure TNeoTheme.Load(aSet: String);

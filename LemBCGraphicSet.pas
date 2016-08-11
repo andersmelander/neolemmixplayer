@@ -61,14 +61,14 @@ type
     STriggerH: SmallInt;
     Reserved2: Array[0..7] of Byte;
   end;
-  TObjectDataArray: array of TNeoLemmixObjectData;
+  TObjectDataArray = array of TNeoLemmixObjectData;
 
   TNeoLemmixTerrainData = packed record
     TerrainFlags: Word;
     BaseLoc: LongWord;
     Reserved: Array[0..9] of Byte;
   end;
-  TTerrainDataArray: array of TNeoLemmixTerrainData;
+  TTerrainDataArray = array of TNeoLemmixTerrainData;
 
   TBcGraphicSet = class
     private
@@ -95,10 +95,40 @@ type
       property ObjectCount: Integer read fObjectCount;
       property TerrainCount: Integer read fTerrainCount;
       property ObjectData: TObjectDataArray read fObjectData;
-      property TerrainData: TObjectDataArray read fTerrainData;
+      property TerrainData: TTerrainDataArray read fTerrainData;
   end;
 
+  procedure LoadNeoLemmixImage(aStream: TStream; aBmp: TBitmap32);
+
 implementation
+
+procedure LoadNeoLemmixImage(aStream: TStream; aBmp: TBitmap32);
+var
+  x, y, w, h: LongWord;
+  c: TColor32;
+  a, r, g, b: Byte;
+begin
+  aStream.Read(w, 4);
+  aStream.Read(h, 4);
+  aBmp.SetSize(w, h);
+  aBmp.Clear(0);
+  for y := 0 to h-1 do
+    for x := 0 to w-1 do
+    begin
+      c := 0;
+      aStream.Read(a, 1);
+      if a <> 0 then
+      begin
+        aStream.Read(r, 1);
+        aStream.Read(g, 1);
+        aStream.Read(b, 1);
+      end else begin
+        r := 0;
+        g := 0;
+        b := 0;
+      end;
+    end;
+end;
 
 constructor TBcGraphicSet.Create;
 begin

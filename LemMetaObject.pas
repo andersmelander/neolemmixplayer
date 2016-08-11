@@ -5,7 +5,7 @@ unit LemMetaObject;
 interface
 
 uses
-  GR32, LemTypes, LemNeoParser,
+  GR32, LemTypes, LemBCGraphicSet, LemNeoParser,
   PngInterface, LemStrings, LemNeoTheme,
   Classes, SysUtils, StrUtils,
   Contnrs, UTools;
@@ -75,13 +75,7 @@ type
     fGeneratedVariableInfo: array[0..ALIGNMENT_COUNT-1] of Boolean;
     fGeneratedVariableImage: array[0..ALIGNMENT_COUNT-1] of Boolean;
     fInterfaces: array[0..ALIGNMENT_COUNT-1] of TMetaObjectInterface;
-    fFrameCount                   : Integer; // number of animations
-    fWidth                        : Integer; // the width of the bitmap
-    fHeight                       : Integer; // the height of the bitmap
-    fTriggerLeft                  : Integer; // x-offset of triggerarea (if triggered)
-    fTriggerTop                   : Integer; // y-offset of triggerarea (if triggered)
-    fTriggerWidth                 : Integer; // width of triggerarea (if triggered)
-    fTriggerHeight                : Integer; // height of triggerarea (if triggered)
+    fFrameCount                   : Integer;
     fTriggerEffect                : Integer; // ote_xxxx see dos doc
     fKeyFrame                     : Integer;
     fPreviewFrameIndex            : Integer; // index of preview (previewscreen)
@@ -104,7 +98,8 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    procedure Load(aCollection, aPiece: String; aTheme: TNeoTheme);
+    procedure Load(aCollection, aPiece: String; aTheme: TNeoTheme); overload;
+    procedure Load(aSet: TBcGraphicSet; aIndex: Integer); overload;
 
     function GetInterface(Flip, Invert, Rotate: Boolean): TMetaObjectInterface;
 
@@ -369,6 +364,58 @@ begin
     BMP.Free;
     if MaskBMP <> nil then MaskBMP.Free;
   end;
+end;
+
+procedure TMetaObject.Load(aSet: TBcGraphicSet; aIndex: Integer);
+var
+  OI: TNeoLemmixObjectData;
+  DS: TMemoryStream;
+  O: TMetaObjectInterface;
+
+  TempBmp, ResizeBmp: TBitmap32;
+
+  b: Byte;
+
+  i: Integer;
+begin
+  TempBmp := TBitmap32.Create;
+  ResizeBmp := TBitmap32.Create;
+  O := GetInterface(false, false, false);
+
+  try
+    OI := aSet.ObjectData[aIndex];
+    DS := aSet.DataStream;
+
+    DS.Position := OI.BaseLoc;
+
+    for i := 0 to OI.FrameCount-1 do
+    begin
+      LoadNeoLemmixImage(DS, TempBmp);
+      ResizeBmp.SetSize(TempBmp.Width div aSet.Resolution, TempBmp.Height div aSet.Resolution);
+      TempBmp.DrawTo(ResizeBmp, ResizeBmp.BoundsRect, TempBmp.BoundsRect);
+      Images[false, false, false].Add(ResizeBmp);
+      ResizeBmp := TBitmap32.Create;
+    end;
+
+    fGS := aSet.Name;
+    fPiece := 'O' + IntToStr(aIndex);
+
+    O.FrameCount := OI.FrameCount;
+    O.TriggerLeft := OI.PTriggerX div aSet.Resolution;
+    O.TriggerTop := OI.PTriggerY div aSet.Resolution;
+    O.TriggerWidth := OI.PTriggerW div aSet.Resolution;
+    O.TriggerHeight := OI.PTriggerH div aSet.Resolution;
+    O.TriggerEffect := OI.TriggerEff;
+    O.KeyFrame := OI.KeyFrame;
+    O.PreviewFrame := OI.PreviewFrame;
+    O.RandomStartFrame := (OI.ObjectFlags and 2 <> 0);
+    O.SoundEffect := OI.TriggerSound;
+
+  finally
+    TempBmp.Free;
+    ResizeBmp.Free;
+  end;
+
 end;
 
 function TMetaObject.GetIdentifier: String;
