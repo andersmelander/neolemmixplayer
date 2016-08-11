@@ -39,7 +39,13 @@ type
       class procedure SavePngStream(aStream: TStream; Bmp: TBitmap32; NoAlpha: Boolean = false); overload;
   end;
 
+var
+  DebugSL: TStringList;
+
 implementation
+
+uses
+  LemTypes;
 
 class procedure TPngInterface.MaskImageFromFile(Bmp: TBitmap32; fn: String; C: TColor32);
 var
@@ -98,12 +104,16 @@ end;
 
 class procedure TPngInterface.LoadPngFile(fn: String; Bmp: TBitmap32);
 var
-  TempStream: TFileStream;
+  TempStream: TMemoryStream;
 begin
-  TempStream := TFileStream.Create(fn, fmOpenRead);
+  if DebugSL = nil then
+    DebugSL := TStringList.Create;
+  DebugSL.Add(fn);
+  TempStream := CreateDataStream(fn, ldtLemmings);
   try
     LoadPngStream(TempStream, Bmp);
   finally
+    DebugSL.SaveToFile(AppPath + 'pngdebug.txt');
     TempStream.Free;
   end;
 end;

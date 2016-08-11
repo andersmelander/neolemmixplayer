@@ -1533,7 +1533,7 @@ begin
     if i <> -1 then
       ClearStringListItemWithObject(TempList, i);
     if TempList.Count = 0 then
-      ZipErrorFmt(Self, ERR_ZIP_NO_MATCHING_FILES, SZipNoMatchingFiles, [AWildCard]);
+      Exit; // edit by namida: we don't need to raise an error here
     TempList.Sorted := True;
     AddFiles(TempList, BaseDir);
 {    if zoDeleteAfterZip in fZipOptions then

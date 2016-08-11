@@ -268,10 +268,18 @@ var
         Exit;
       end;
   end;
+
+  procedure FixFileName;
+  var
+    i: Integer;
+  begin
+    for i := 1 to Length(aFilename) do
+      if aFilename[i] = '/' then aFilename[i] := '\'; //fix for some coding that uses / instead of \ in paths and breaks ExtractFileName
+    aFilename := ExtractFileName(aFilename);
+  end;
 begin
 
-  aFilename := ExtractFileName(aFilename); // there should never be a call to this with a path;
-                                           // but just in case.
+  FixFileName;
 
   IsSingleLevelMode := LowerCase(ExtractFileExt(GameFile)) <> '.nxp'; // need a tidier way, but this does work
 

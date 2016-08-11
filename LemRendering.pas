@@ -16,7 +16,7 @@ unit LemRendering;
 
   This is done to optimize the drawing of (funny enough) static and triggered
   objects. mmm how are we going to do that????
-
+                         
   (Other ideas: pixel builder-brick, pixel erased by basher/miner/digger, triggerarea)
 -------------------------------------------------------------------------------}
 
