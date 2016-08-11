@@ -132,9 +132,21 @@ var
   MO: TNeoLemmixObjectData;
   L: TPreplacedLemming;
 
-  lw: LongWord;
+  Vgaspec: String;
 begin
   // Needs to convert preplaced lemmings and vgaspecs appropriately
+
+  Vgaspec := ChangeFileExt(Lowercase(aLevel.Info.VgaspecFile), '');
+
+  if Vgaspec = 'none' then Vgaspec := '';
+  if Vgaspec <> '' then
+    with aLevel.Terrains.Insert(0) do
+    begin
+      GS := 'special';
+      Piece := Vgaspec;
+      Left := aLevel.Info.VgaspecX;
+      Top := aLevel.Info.VgaspecY;
+    end;
 
   GS := TBcGraphicSet.Create;
   try

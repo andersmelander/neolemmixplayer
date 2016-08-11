@@ -36,6 +36,7 @@ type
       function ObtainObject(Identifier: String): Integer;
 
       procedure ObtainGraphicSet(aName: String; aAsTheme: Boolean = false);
+      procedure ObtainVgaspec(aName: String);
       function CheckForGraphicSet(aName: String): Boolean;
 
       function GetMetaTerrain(Identifier: String): TMetaTerrain;
@@ -163,7 +164,10 @@ begin
   if fIsObtaining then raise Exception.Create('ObtainTerrain loop on + "' + Identifier + '". Please report this.');
 
   TerrainLabel := SplitIdentifier(Identifier);
-  ObtainGraphicSet(TerrainLabel.GS);
+  if Lowercase(TerrainLabel.GS) = 'special' then
+    ObtainVgaspec(TerrainLabel.Piece)
+  else
+    ObtainGraphicSet(TerrainLabel.GS);
   fIsObtaining := true;
   Result := FindTerrainIndexByIdentifier(Identifier);
   fIsObtaining := false;
@@ -197,6 +201,20 @@ begin
 end;
 
 // Backwards-comaptibility code; load entire graphic sets.
+
+procedure TNeoPieceManager.ObtainVgaspec(aName: String);
+var
+  BcSet: TBcGraphicSet;
+begin
+  BcSet := TBcGraphicSet.Create;
+  try
+    BcSet.LoadGraphicSet('x_' + aName);
+    with fTerrains.Add do
+      LoadVgaspec(BcSet);
+  finally
+    BcSet.Free;
+  end;
+end;
 
 procedure TNeoPieceManager.ObtainGraphicSet(aName: String; aAsTheme: Boolean = false);
 var
