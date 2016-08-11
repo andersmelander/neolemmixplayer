@@ -152,10 +152,10 @@ begin
   try
     for i := aLevel.InteractiveObjects.Count-1 downto 0 do
     begin
-      if Lowercase(GS.Name) <> Lowercase(aLevel.Info.GraphicSetName) then
-        GS.LoadGraphicSet(aLevel.Info.GraphicSetName);
+      if Lowercase(GS.Name) <> Lowercase(aLevel.InteractiveObjects[i].GS) then
+        GS.LoadGraphicSet(aLevel.InteractiveObjects[i].GS);
 
-      MO := GS.ObjectData[aLevel.InteractiveObjects[i].ID];
+      MO := GS.ObjectData[StrToInt(RightStr(aLevel.InteractiveObjects[i].Piece, Length(aLevel.InteractiveObjects[i].Piece)-1))];
 
       if MO.TriggerEff = 13 then
       begin
