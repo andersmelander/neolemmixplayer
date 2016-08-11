@@ -5,6 +5,7 @@ interface
 
 uses
   Dialogs,
+  LemBcGraphicSet,
   Classes, SysUtils, GR32,
   LemRenderHelpers,
   LemNeoParser, PngInterface, LemStrings, LemTypes, Contnrs,
@@ -42,7 +43,8 @@ type
     procedure SetGraphic(aImage: TBitmap32);
     procedure ClearImages;
 
-    procedure Load(aCollection, aPiece: String); virtual;
+    procedure Load(aCollection, aPiece: String); overload; virtual;
+    procedure Load(aSet: TBcGraphicSet; aIndex: Integer); overload;
 
     property Identifier : String read GetIdentifier;
     property GraphicImage[Flip, Invert, Rotate: Boolean]: TBitmap32 read GetGraphicImage;
@@ -123,6 +125,39 @@ begin
     fGeneratedGraphicImage[0] := true;
   finally
     Parser.Free;
+  end;
+end;
+
+procedure TMetaTerrain.Load(aSet: TBcGraphicSet; aIndex: Integer);
+var
+  TI: TNeoLemmixTerrainData;
+  DS: TMemoryStream;
+
+  TempBmp, ResizeBmp: TBitmap32;
+begin
+  TempBmp := TBitmap32.Create;
+  ResizeBmp := TBitmap32.Create;
+  try
+    ClearImages;
+
+    fGS := aSet.Name;
+    fPiece := 'T' + IntToStr(aIndex);
+
+    TI := aSet.TerrainData[aIndex];
+    DS := aSet.DataStream;
+    DS.Position := TI.BaseLoc;
+
+    LoadNeoLemmixImage(DS, TempBmp);
+    ResizeBmp.SetSize(TempBmp.Width div aSet.Resolution, TempBmp.Height div aSet.Resolution);
+    TempBmp.DrawTo(ResizeBmp, ResizeBmp.BoundsRect, TempBmp.BoundsRect);
+
+    fGraphicImages[0].Assign(TempBmp);
+    fGeneratedGraphicImage[0] := true;
+
+    fIsSteel := TI.TerrainFlags and 1 <> 0;
+  finally
+    TempBmp.Free;
+    ResizeBmp.Free;
   end;
 end;
 

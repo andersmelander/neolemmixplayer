@@ -907,6 +907,7 @@ begin
   TempBitmap := TBitmap32.Create;
   fPieceManager := TNeoPieceManager.Create;
   fTheme := TNeoTheme.Create;
+  fPieceManager.SetTheme(fTheme); 
   fLayers := TRenderBitmaps.Create;
   fPhysicsMap := TBitmap32.Create;
   fBgColor := $00000000;
@@ -1184,8 +1185,7 @@ begin
 
   fXmasPal := XmasPal;
 
-  fTheme.Load(Info.Level.Info.GraphicSetName);
-  fPieceManager.SetTheme(fTheme);
+  fPieceManager.ApplyTheme(Info.Level.Info.GraphicSetName);
 
   LowPal := DosPaletteToArrayOfColor32(DosInLevelPalette);
   if fXmasPal then

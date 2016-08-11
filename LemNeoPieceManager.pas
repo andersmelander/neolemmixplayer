@@ -22,6 +22,7 @@ type
 
   TNeoPieceManager = class
     private
+      fIsObtaining: Boolean;
       fTheme: TNeoTheme;
       fTerrains: TMetaTerrains;
       fObjects: TMetaObjects;
@@ -52,6 +53,7 @@ type
       procedure Tidy;
 
       procedure SetTheme(aTheme: TNeoTheme);
+      procedure ApplyTheme(aSet: String);
 
       property Terrains[Identifier: String]: TMetaTerrain read GetMetaTerrain;
       property Objects[Identifier: String]: TMetaObject read GetMetaObject;
@@ -97,12 +99,10 @@ begin
   inherited;
   fTerrains := TMetaTerrains.Create;
   fObjects := TMetaObjects.Create;
-  fTheme := TNeoTheme.Create;
 end;
 
 destructor TNeoPieceManager.Destroy;
 begin
-  fTheme.Free;
   fTerrains.Free;
   fObjects.Free;
   inherited;
@@ -158,20 +158,24 @@ var
   TerrainLabel: TLabelRecord;
   T: TMetaTerrain;
 begin
-  raise Exception.Create('ObtainTerrain called for "' + Identifier + '". Please report this occurance.');
+  //raise Exception.Create('ObtainTerrain called for "' + Identifier + '". Please report this occurance.');
+
+  if fIsObtaining then raise Exception.Create('ObtainTerrain loop on + "' + Identifier + '". Please report this.');
 
   TerrainLabel := SplitIdentifier(Identifier);
+  ObtainGraphicSet(TerrainLabel.GS);
+  fIsObtaining := true;
+  Result := FindTerrainIndexByIdentifier(Identifier);
+  fIsObtaining := false;
 
-  Result := fTerrains.Count;
-
-  BasePath := AppPath + SFStylesPieces + TerrainLabel.GS + SFPiecesTerrain + TerrainLabel.Piece;
+  (*BasePath := AppPath + SFStylesPieces + TerrainLabel.GS + SFPiecesTerrain + TerrainLabel.Piece;
 
   if FileExists(BasePath + '.png') then  // .nxtp is optional, but .png is not :)
     T := TMetaTerrain.Create
   else if FileExists(BasePath + '.nxcs') then
     T := TMetaConstruct.Create;
   fTerrains.Add(T);
-  T.Load(TerrainLabel.GS, TerrainLabel.Piece);
+  T.Load(TerrainLabel.GS, TerrainLabel.Piece);*)
 end;
 
 function TNeoPieceManager.ObtainObject(Identifier: String): Integer;
@@ -179,12 +183,17 @@ var
   ObjectLabel: TLabelRecord;
   MO: TMetaObject;
 begin
-  raise Exception.Create('ObtainObject called for "' + Identifier + '". Please report this occurance.');
+  //raise Exception.Create('ObtainObject called for "' + Identifier + '". Please report this occurance.');
+
+  if fIsObtaining then raise Exception.Create('ObtainObject loop on + "' + Identifier + '". Please report this.');
 
   ObjectLabel := SplitIdentifier(Identifier);
-  Result := fObjects.Count;
-  MO := fObjects.Add;
-  MO.Load(ObjectLabel.GS, ObjectLabel.Piece, fTheme);
+  ObtainGraphicSet(ObjectLabel.GS);
+  fIsObtaining := true;
+  Result := FindObjectIndexByIdentifier(Identifier);
+  fIsObtaining := false;
+  //MO := fObjects.Add;
+  //MO.Load(ObjectLabel.GS, ObjectLabel.Piece, fTheme);
 end;
 
 // Backwards-comaptibility code; load entire graphic sets.
@@ -209,10 +218,12 @@ begin
     if AlreadyHasSet then Exit;
 
     for i := 0 to BcSet.ObjectCount-1 do
-    begin
       with fObjects.Add do
         Load(BcSet, i);
-    end;
+
+    for i := 0 to BcSet.TerrainCount-1 do
+      with fTerrains.Add do
+        Load(BcSet, i);
   finally
     BcSet.Free;
   end;
@@ -253,9 +264,13 @@ end;
 
 procedure TNeoPieceManager.SetTheme(aTheme: TNeoTheme);
 begin
-  raise Exception.Create('SetTheme called. Please report this occurance.');
   fTheme := aTheme;
   Tidy;
+end;
+
+procedure TNeoPieceManager.ApplyTheme(aSet: String);
+begin
+  ObtainGraphicSet(aSet, true);
 end;
 
 function TNeoPieceManager.GetThemeColor(Index: String): TColor32;

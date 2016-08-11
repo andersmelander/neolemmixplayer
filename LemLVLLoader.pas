@@ -6,6 +6,7 @@ interface
 uses
   Classes, SysUtils, StrUtils,
   //Dialogs, Controls,
+  LemBcGraphicSet,
   LemNeoLevelLoader,
   Dialogs,
   UMisc,
@@ -119,7 +120,57 @@ type
     class procedure StoreLevelInStream(aLevel: TLevel; aStream: TStream);
   end;
 
+  procedure BcTranslate(aLevel: TLevel);
+
 implementation
+
+procedure BcTranslate(aLevel: TLevel);
+var
+  i: Integer;
+  GS: TBcGraphicSet;
+  O: TInteractiveObject;
+  MO: TNeoLemmixObjectData;
+  L: TPreplacedLemming;
+
+  lw: LongWord;
+begin
+  // Needs to convert preplaced lemmings and vgaspecs appropriately
+
+  GS := TBcGraphicSet.Create;
+  try
+    for i := aLevel.InteractiveObjects.Count-1 downto 0 do
+    begin
+      if Lowercase(GS.Name) <> Lowercase(aLevel.Info.GraphicSetName) then
+        GS.LoadGraphicSet(aLevel.Info.GraphicSetName);
+
+      MO := GS.ObjectData[aLevel.InteractiveObjects[i].ID];
+
+      if MO.TriggerEff = 13 then
+      begin
+        O := aLevel.InteractiveObjects[i];
+        L := aLevel.PreplacedLemmings.Add;
+        L.X := O.Left + MO.PTriggerX;
+        L.Y := O.Top + MO.PTriggerY;
+        if O.DrawingFlags and odf_FlipLem <> 0 then
+          L.Dx := -1
+        else
+          L.Dx := 1;
+        L.IsClimber := (O.TarLev and 1) <> 0;
+        L.IsSwimmer := (O.TarLev and 2) <> 0;
+        L.IsFloater := (O.TarLev and 4) <> 0;
+        L.IsGlider := ((O.TarLev and 8) <> 0) and not L.IsFloater;
+        L.IsDisarmer := (O.TarLev and 16) <> 0;
+        L.IsBlocker := (O.TarLev and 32) <> 0;
+        L.IsZombie := (O.TarLev and 64) <> 0;
+        aLevel.InteractiveObjects.Delete(i);
+        Continue;
+      end;
+
+    end;
+  finally
+    GS.Free;
+  end;
+end;
 
 { TTranslationTable }
 
@@ -195,6 +246,7 @@ var
     NewRec.MorePieces := false;
   end;
 begin
+
   Parser := TNeoLemmixParser.Create;
   ObjLen := Length(fObjectArray);
   TerLen := Length(fTerrainArray);
@@ -292,6 +344,7 @@ var
   i: Integer;
   Item: TIdentifiedPiece;
 begin
+
   if (aLevel.Info.VgaspecFile <> '') then
   begin
     Item := aLevel.Terrains.Insert(0);
@@ -791,7 +844,7 @@ begin
   end;
 
   // Apply translation table if one exists
-  if FileExists(AppPath + SFStylesTranslation + Trim(aLevel.Info.GraphicSetName) + '.nxtt') then
+  (*if FileExists(AppPath + SFStylesTranslation + Trim(aLevel.Info.GraphicSetName) + '.nxtt') then
   begin
     Trans := TTranslationTable.Create;
     Trans.LoadFromFile(AppPath + SFStylesTranslation + Trim(aLevel.Info.GraphicSetName) + '.nxtt');
@@ -802,7 +855,9 @@ begin
 
     Trans.Apply(aLevel);
     Trans.Free;
-  end;
+  end;*)
+
+  BcTranslate(aLevel);
 
 end;
 

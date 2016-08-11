@@ -9,6 +9,7 @@ unit LemBCGraphicSet;
 interface
 
 uses
+  Dialogs,
   LemDosCmp, GR32, LemTypes, Classes, SysUtils;
 
 const
@@ -115,7 +116,6 @@ begin
   for y := 0 to h-1 do
     for x := 0 to w-1 do
     begin
-      c := 0;
       aStream.Read(a, 1);
       if a <> 0 then
       begin
@@ -127,6 +127,9 @@ begin
         g := 0;
         b := 0;
       end;
+
+      c := (a shl 24) + (r shl 16) + (g shl 8) + b;
+      aBmp.Pixel[x, y] := c;
     end;
 end;
 
@@ -164,10 +167,12 @@ var
   Header: TNeoLemmixHeader;
 
   w: Word;
-  c: Char;
+  b: Byte;
   s: String;
 
   function ReadString(aStream: TStream): String;
+  var
+    c: Char;
   begin
     Result := '';
     aStream.Read(c, 1);
@@ -207,38 +212,41 @@ begin
       MetaStream.Position := 0;
 
       MetaStream.Read(w, 2);
-      while w <> $FF00 do
+      while w <> $00FF do
       begin
-
         case w of
-          $FF01: repeat // comment
-                   MetaStream.Read(c, 1);
-                 until c = #0;
-          $FF02: begin // header
+          $01FF: begin // comment
+                   repeat
+                     MetaStream.Read(b, 1);
+                   until b = $FF;
+                   MetaStream.Position := MetaStream.Position - 1;
+                 end;
+          $02FF: begin // header
                    MetaStream.Read(Header, SizeOf(TNeoLemmixHeader));
                    fResolution := Header.Resolution div 8;
+                   if fResolution = 0 then fResolution := 1;
                    fMaskColor := Header.KeyColors[0].ARGB;
                  end;
-          $FF03: begin // object data
+          $03FF: begin // object data
                    Inc(fObjectCount);
                    EnsureObjectLength;
                    MetaStream.Read(fObjectData[fObjectCount-1], SizeOf(TNeoLemmixObjectData));
                  end;
-          $FF04: begin // terrain data
+          $04FF: begin // terrain data
                    Inc(fTerrainCount);
                    EnsureTerrainLength;
                    MetaStream.Read(fTerrainData[fTerrainCount-1], SizeOf(TNeoLemmixTerrainData));
                  end;
-          $FF05: begin // sound data
+          $05FF: begin // sound data
                  end;
-          $FF06: begin
+          $06FF: begin
                    s := ReadString(MetaStream);
                    fXmasLemmings := (LowerCase(s) = 'xlemming');
                  end;
         end;
 
         if MetaStream.Read(w, 2) <> 2 then
-          w := $FF00; //this would signal EOF, hence treat it as if a $FF00 was found
+          w := $00FF; //this would signal EOF, hence treat it as if a $FF00 was found
       end;
     except
       raise Exception.Create('The graphic  set "' + aName + '.dat" failed to load.');

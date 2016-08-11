@@ -116,6 +116,7 @@ var
   Line: TParserLine;
   Mode: TColorSwapType;
   SwapCount: Integer;
+  TempStream: TMemoryStream;
 
   procedure CheckExpand;
   begin
@@ -127,7 +128,9 @@ begin
   SwapCount := 0;
   Parser := TNeoLemmixParser.Create;
   try
-    Parser.LoadFromFile(AppPath + 'gfx/sprites/' + aName + '/scheme.nxmi');
+    TempStream := CreateDataStream(aName + '_scheme.nxmi', ldtLemmings);
+    Parser.LoadFromStream(TempStream);
+    TempStream.Free;
     repeat
       Line := Parser.NextLine;
       if Line.Keyword = 'SELECTED' then Mode := rcl_Selected;

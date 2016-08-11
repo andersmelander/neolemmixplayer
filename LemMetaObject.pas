@@ -374,8 +374,6 @@ var
 
   TempBmp, ResizeBmp: TBitmap32;
 
-  b: Byte;
-
   i: Integer;
 begin
   TempBmp := TBitmap32.Create;
@@ -397,10 +395,13 @@ begin
       ResizeBmp := TBitmap32.Create;
     end;
 
+    fVariableInfo[0].Width := O.Images[0].Width;   //TMetaObjectInterface's Width property is read-only
+    fVariableInfo[0].Height := O.Images[0].Height;
+
     fGS := aSet.Name;
     fPiece := 'O' + IntToStr(aIndex);
 
-    O.FrameCount := OI.FrameCount;
+    fFrameCount := OI.FrameCount;
     O.TriggerLeft := OI.PTriggerX div aSet.Resolution;
     O.TriggerTop := OI.PTriggerY div aSet.Resolution;
     O.TriggerWidth := OI.PTriggerW div aSet.Resolution;
@@ -702,7 +703,7 @@ begin
     ov_KeyFrame: Result := fMetaObject.fKeyFrame;
     ov_PreviewFrame: Result := fMetaObject.fPreviewFrameIndex;
     ov_SoundEffect: Result := fMetaObject.fSoundEffect;
-    else raise Exception.Create('TMetaObjectInterface.GetIntegerProperty called with invalid index!');
+    else raise Exception.Create('TMetaObjectInterface.GetIntegerProperty called with invalid index: ' + IntToStr(Integer(aProp)));
   end;
 end;
 
@@ -717,7 +718,7 @@ begin
     ov_KeyFrame: fMetaObject.fKeyFrame := aValue;
     ov_PreviewFrame: fMetaObject.fPreviewFrameIndex := aValue;
     ov_SoundEffect: fMetaObject.fSoundEffect := aValue;
-    else raise Exception.Create('TMetaObjectInterface.GetIntegerProperty called with invalid index!');
+    else raise Exception.Create('TMetaObjectInterface.SetIntegerProperty called with invalid index: ' + IntToStr(Integer(aProp)));
   end;
 end;
 

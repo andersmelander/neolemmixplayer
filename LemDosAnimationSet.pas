@@ -312,9 +312,9 @@ begin
           else
             X := MLA.Width;
           //MainExtractor.ExtractBitmapByName(TempBitmap, Fn, Pal[7]);
-          TPngInterface.LoadPngFile(AppPath + 'gfx/sprites/' + fLemmingPrefix + '/' + Fn + '.png', TempBitmap);
-          if FileExists(AppPath + 'gfx/sprites/' + fLemmingPrefix + '/' + Fn + '_mask.png') then
-            TPngInterface.MaskImageFromFile(TempBitmap, AppPath + 'gfx/sprites/' + fLemmingPrefix + '/' + Fn + '_mask.png', Pal[7]);
+          TPngInterface.LoadPngFile(AppPath + 'gfx/sprites/' + fLemmingPrefix + '_' + Fn + '.png', TempBitmap);
+          //if FileExists(AppPath + 'gfx/sprites/' + fLemmingPrefix + '/' + Fn + '_mask.png') then
+            TPngInterface.MaskImageFromFile(TempBitmap, AppPath + 'gfx/sprites/' + fLemmingPrefix + '_' + Fn + '_mask.png', Pal[7]);
           MLA.Width := TempBitmap.Width div 2;
           MLA.Height := TempBitmap.height div MLA.FrameCount;
           Bmp := TBitmap32.Create;
