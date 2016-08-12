@@ -75,9 +75,10 @@ var
 
   IsOut: Boolean;
 const
-  // Lowest version numbers that are compatible
+  // Lowest version numbers that are compatible. Note that this isn't nessecerially the exact
+  // current version; this should only be changed when a backwards compatibility issue arises.
   Min_MainVer = 1;    // 1.bb-c
-  Min_SubVer = 47;    // a.37-c
+  Min_SubVer = 47;    // a.47-c
   Min_MinorVer = 1;   // a.bb-A
 
   function GetTargetAsString(aMain, aSub, aMinor: Integer): String;
@@ -121,7 +122,7 @@ begin
     end;
 
     // If requirement is above the current version
-    if CombineTarget(MainVer, SubVer, MinorVer) > CombineTarget(Cur_MainVer, Cur_SubVer, Cur_MinorVer) then
+    if CombineTarget(MainVer, SubVer, MinorVer) > CombineTarget(Min_MainVer, Min_SubVer, Min_MinorVer) then
     begin
       ShowMessage('Warning: This pack may be incompatible with this version of NeoLemmix. Please use' + #13 +
                   'NeoLemmix ' + GetTargetAsString(MainVer, SubVer, MinorVer) + ' or higher.');
@@ -129,14 +130,13 @@ begin
     end;
 
     // If requirement is below lowest supported version
-    if CombineTarget(MainVer, MaxSubVer, MaxMinorVer) < CombineTarget(Cur_MainVer, Cur_SubVer, Cur_MinorVer) then
+    if CombineTarget(MainVer, MaxSubVer, MaxMinorVer) < CombineTarget(Min_MainVer, Min_SubVer, Min_MinorVer) then
     begin
       if SubVer < 44 then
       begin
-        //ShowMessage('This pack was built for an older version of NeoLemmix. Please be aware that' + #13 +
-        //            'full compatibility cannot be guaranteed. Using V1.43n-F to play this pack' + #13 +
-        //            'is recommended.');
-        // commented out so it doesn't get annoying while testing. restore before release.
+        ShowMessage('This pack was built for an older version of NeoLemmix. Please be aware that' + #13 +
+                    'full compatibility cannot be guaranteed. Using V1.43n-F to play this pack' + #13 +
+                    'is recommended.');
         Result := nxc_VersionError;
       end else if SubVer < 47 then
       begin
