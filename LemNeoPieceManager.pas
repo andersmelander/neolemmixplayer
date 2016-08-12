@@ -161,7 +161,7 @@ var
 begin
   //raise Exception.Create('ObtainTerrain called for "' + Identifier + '". Please report this occurance.');
 
-  if fIsObtaining then raise Exception.Create('ObtainTerrain loop on + "' + Identifier + '". Please report this.');
+  if fIsObtaining then raise Exception.Create('ObtainTerrain loop on "' + Identifier + '". Please report this.');
 
   TerrainLabel := SplitIdentifier(Identifier);
   if Lowercase(TerrainLabel.GS) = 'special' then
@@ -189,7 +189,7 @@ var
 begin
   //raise Exception.Create('ObtainObject called for "' + Identifier + '". Please report this occurance.');
 
-  if fIsObtaining then raise Exception.Create('ObtainObject loop on + "' + Identifier + '". Please report this.');
+  if fIsObtaining then raise Exception.Create('ObtainObject loop on "' + Identifier + '". Please report this.');
 
   ObjectLabel := SplitIdentifier(Identifier);
   ObtainGraphicSet(ObjectLabel.GS);

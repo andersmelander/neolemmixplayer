@@ -217,8 +217,9 @@ begin
         case w of
           $01FF: begin // comment
                    repeat
-                     MetaStream.Read(b, 1);
-                   until b = $FF;
+                     MetaStream.Read(w, 2);
+                     MetaStream.Position := MetaStream.Position - 1;
+                   until w = $02FF;
                    MetaStream.Position := MetaStream.Position - 1;
                  end;
           $02FF: begin // header
@@ -243,6 +244,7 @@ begin
                    s := ReadString(MetaStream);
                    fXmasLemmings := (LowerCase(s) = 'xlemming');
                  end;
+          else Break;
         end;
 
         if MetaStream.Read(w, 2) <> 2 then
