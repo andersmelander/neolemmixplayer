@@ -39,7 +39,8 @@ type
   TNeoLemmixHeader = packed record
     VersionNumber: Byte;
     Resolution: Byte;
-    Reserved: Array[0..13] of Byte;
+    IsUpdated: Byte;
+    Reserved: Array[0..12] of Byte;
     KeyColors: Array[0..7] of TNeoLemmixColorEntry;
   end;
 
@@ -77,6 +78,8 @@ type
       fName: String;
       fResolution: Integer;
       fMaskColor: TColor32;
+      fMinimapColor: TColor32;
+      fBackgroundColor: TColor32;
       fXmasLemmings: Boolean;
       fObjectCount: Integer;
       fTerrainCount: Integer;
@@ -92,6 +95,8 @@ type
       property Name: String read fName;
       property Resolution: Integer read fResolution;
       property MaskColor: TColor32 read fMaskColor;
+      property MinimapColor: TColor32 read fMinimapColor;
+      property BackgroundColor: TColor32 read fBackgroundColor;
       property XmasLemmings: Boolean read fXmasLemmings;
       property ObjectCount: Integer read fObjectCount;
       property TerrainCount: Integer read fTerrainCount;
@@ -226,7 +231,16 @@ begin
                    MetaStream.Read(Header, SizeOf(TNeoLemmixHeader));
                    fResolution := Header.Resolution div 8;
                    if fResolution = 0 then fResolution := 1;
-                   fMaskColor := Header.KeyColors[0].ARGB;
+                   if Header.IsUpdated = 1 then
+                   begin
+                     fMaskColor := Header.KeyColors[0].ARGB;
+                     fMinimapColor := Header.KeyColors[1].ARGB;
+                     fBackgroundColor := Header.KeyColors[2].ARGB;
+                   end else begin
+                     fMaskColor := Header.KeyColors[0].ARGB;
+                     fMinimapColor := fMaskColor;
+                     fBackgroundColor := $FF000000;
+                   end;
                  end;
           $03FF: begin // object data
                    Inc(fObjectCount);

@@ -78,9 +78,9 @@ begin
   fColors[0].Name := 'MASK';
   fColors[0].Color := aBc.MaskColor;
   fColors[1].Name := 'MINIMAP';
-  fColors[1].Color := aBc.MaskColor;
+  fColors[1].Color := aBc.MinimapColor;
   fColors[2].Name := 'BACKGROUND';
-  fColors[2].Color := $FF000000;
+  fColors[2].Color := aBc.BackgroundColor;
 
   if aBc.XmasLemmings then
     fLemmings := 'xmas'
