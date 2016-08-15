@@ -42,6 +42,7 @@ type
     public
       constructor Create;
       function Add: TPreplacedLemming;
+      function Insert(Index: Integer): TPreplacedLemming;
       property Items[Index: Integer]: TPreplacedLemming read GetItem; default;
       property List;
   end;
@@ -152,6 +153,12 @@ function TPreplacedLemmingList.Add: TPreplacedLemming;
 begin
   Result := TPreplacedLemming.Create;
   inherited Add(Result);
+end;
+
+function TPreplacedLemmingList.Insert(Index: Integer): TPreplacedLemming;
+begin
+  Result := TPreplacedLemming.Create;
+  inherited Insert(Index, Result);
 end;
 
 function TPreplacedLemmingList.GetItem(Index: Integer): TPreplacedLemming;

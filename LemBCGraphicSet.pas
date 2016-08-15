@@ -105,38 +105,51 @@ type
       property TerrainData: TTerrainDataArray read fTerrainData;
   end;
 
-  procedure LoadNeoLemmixImage(aStream: TStream; aBmp: TBitmap32);
+  procedure LoadNeoLemmixImage(aStream: TStream; aBmp: TBitmap32; aResolution: Integer = 1);
 
 implementation
 
-procedure LoadNeoLemmixImage(aStream: TStream; aBmp: TBitmap32);
+procedure LoadNeoLemmixImage(aStream: TStream; aBmp: TBitmap32; aResolution: Integer = 1);
 var
   x, y, w, h: LongWord;
   c: TColor32;
   a, r, g, b: Byte;
+  TempBMP: TBitmap32;
 begin
-  aStream.Read(w, 4);
-  aStream.Read(h, 4);
-  aBmp.SetSize(w, h);
-  aBmp.Clear(0);
-  for y := 0 to h-1 do
-    for x := 0 to w-1 do
-    begin
-      aStream.Read(a, 1);
-      if a <> 0 then
+  TempBMP := TBitmap32.Create;
+  try
+    aStream.Read(w, 4);
+    aStream.Read(h, 4);
+    TempBmp.SetSize(w, h);
+    TempBmp.Clear(0);
+    for y := 0 to h-1 do
+      for x := 0 to w-1 do
       begin
-        aStream.Read(r, 1);
-        aStream.Read(g, 1);
-        aStream.Read(b, 1);
-      end else begin
-        r := 0;
-        g := 0;
-        b := 0;
+        aStream.Read(a, 1);
+        if a <> 0 then
+        begin
+          aStream.Read(r, 1);
+          aStream.Read(g, 1);
+          aStream.Read(b, 1);
+        end else begin
+          r := 0;
+          g := 0;
+          b := 0;
+        end;
+
+        c := (a shl 24) + (r shl 16) + (g shl 8) + b;
+        TempBmp.Pixel[x, y] := c;
       end;
 
-      c := (a shl 24) + (r shl 16) + (g shl 8) + b;
-      aBmp.Pixel[x, y] := c;
+    if aResolution = 1 then
+      aBmp.Assign(TempBMP)
+    else begin
+      aBmp.SetSize(TempBMP.Width div aResolution, TempBMP.Height div aResolution);
+      TempBMP.DrawTo(aBmp, aBmp.BoundsRect, TempBmp.BoundsRect);
     end;
+  finally
+    TempBMP.Free;
+  end;
 end;
 
 constructor TBcGraphicSet.Create;
@@ -188,6 +201,20 @@ var
       aStream.Read(c, 1);
     end;
   end;
+
+  function ApplyResolutionPatch(aObject: TNeoLemmixObjectData): TNeoLemmixObjectData;
+  begin
+    Result := aObject;
+    if fResolution = 1 then Exit;
+    with Result do
+    begin
+      PTriggerX := PTriggerX div fResolution;
+      PTriggerY := PTriggerY div fResolution;
+      PTriggerW := PTriggerW div fResolution;
+      PTriggerH := PTriggerH div fResolution;
+      //STrigger is only used by no-longer-supported object types (eg. single-object teleporter)
+    end;
+  end;
 begin
   // Note: Should add compatibility with the experimental GSTool version's DAT files!
 
@@ -228,6 +255,7 @@ begin
                  end;
           $02FF: begin // header
                    MetaStream.Read(Header, SizeOf(TNeoLemmixHeader));
+                   ShowMessage(IntToStr(Header.Resolution));
                    fResolution := Header.Resolution div 8;
                    if fResolution = 0 then fResolution := 1;
                    if Header.IsUpdated = 1 then
@@ -245,6 +273,7 @@ begin
                    Inc(fObjectCount);
                    EnsureObjectLength;
                    MetaStream.Read(fObjectData[fObjectCount-1], SizeOf(TNeoLemmixObjectData));
+                   fObjectData[fObjectCount-1] := ApplyResolutionPatch(fObjectData[fObjectCount-1]);
                  end;
           $04FF: begin // terrain data
                    Inc(fTerrainCount);

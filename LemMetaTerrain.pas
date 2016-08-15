@@ -134,33 +134,20 @@ procedure TMetaTerrain.Load(aSet: TBcGraphicSet; aIndex: Integer);
 var
   TI: TNeoLemmixTerrainData;
   DS: TMemoryStream;
-
-  TempBmp, ResizeBmp: TBitmap32;
 begin
-  TempBmp := TBitmap32.Create;
-  ResizeBmp := TBitmap32.Create;
-  try
-    ClearImages;
+  ClearImages;
 
-    fGS := aSet.Name;
-    fPiece := 'T' + IntToStr(aIndex);
+  fGS := aSet.Name;
+  fPiece := 'T' + IntToStr(aIndex);
 
-    TI := aSet.TerrainData[aIndex];
-    DS := aSet.DataStream;
-    DS.Position := TI.BaseLoc;
+  TI := aSet.TerrainData[aIndex];
+  DS := aSet.DataStream;
+  DS.Position := TI.BaseLoc;
 
-    LoadNeoLemmixImage(DS, TempBmp);
-    ResizeBmp.SetSize(TempBmp.Width div aSet.Resolution, TempBmp.Height div aSet.Resolution);
-    TempBmp.DrawTo(ResizeBmp, ResizeBmp.BoundsRect, TempBmp.BoundsRect);
+  LoadNeoLemmixImage(DS, fGraphicImages[0], aSet.Resolution);
+  fGeneratedGraphicImage[0] := true;
 
-    fGraphicImages[0].Assign(ResizeBmp);
-    fGeneratedGraphicImage[0] := true;
-
-    fIsSteel := TI.TerrainFlags and 1 <> 0;
-  finally
-    TempBmp.Free;
-    ResizeBmp.Free;
-  end;
+  fIsSteel := TI.TerrainFlags and 1 <> 0;
 end;
 
 procedure TMetaTerrain.LoadVgaspec(aSet: TBcGraphicSet);

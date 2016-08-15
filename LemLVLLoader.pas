@@ -160,7 +160,7 @@ begin
       if MO.TriggerEff = 13 then
       begin
         O := aLevel.InteractiveObjects[i];
-        L := aLevel.PreplacedLemmings.Add;
+        L := aLevel.PreplacedLemmings.Insert(0);
         L.X := O.Left + MO.PTriggerX;
         L.Y := O.Top + MO.PTriggerY;
         if O.DrawingFlags and odf_FlipLem <> 0 then

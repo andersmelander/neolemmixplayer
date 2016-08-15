@@ -372,12 +372,11 @@ var
   DS: TMemoryStream;
   O: TMetaObjectInterface;
 
-  TempBmp, ResizeBmp: TBitmap32;
+  TempBmp: TBitmap32;
 
   i: Integer;
 begin
   TempBmp := TBitmap32.Create;
-  ResizeBmp := TBitmap32.Create;
   O := GetInterface(false, false, false);
 
   try
@@ -388,11 +387,9 @@ begin
 
     for i := 0 to OI.FrameCount-1 do
     begin
-      LoadNeoLemmixImage(DS, TempBmp);
-      ResizeBmp.SetSize(TempBmp.Width div aSet.Resolution, TempBmp.Height div aSet.Resolution);
-      TempBmp.DrawTo(ResizeBmp, ResizeBmp.BoundsRect, TempBmp.BoundsRect);
-      Images[false, false, false].Add(ResizeBmp);
-      ResizeBmp := TBitmap32.Create;
+      LoadNeoLemmixImage(DS, TempBmp, aSet.Resolution);
+      Images[false, false, false].Add(TempBmp);
+      TempBmp := TBitmap32.Create;
     end;
 
     fVariableInfo[0].Width := O.Images[0].Width;   //TMetaObjectInterface's Width property is read-only
@@ -402,10 +399,10 @@ begin
     fPiece := 'O' + IntToStr(aIndex);
 
     fFrameCount := OI.FrameCount;
-    O.TriggerLeft := OI.PTriggerX div aSet.Resolution;
-    O.TriggerTop := OI.PTriggerY div aSet.Resolution;
-    O.TriggerWidth := OI.PTriggerW div aSet.Resolution;
-    O.TriggerHeight := OI.PTriggerH div aSet.Resolution;
+    O.TriggerLeft := OI.PTriggerX;
+    O.TriggerTop := OI.PTriggerY;
+    O.TriggerWidth := OI.PTriggerW;
+    O.TriggerHeight := OI.PTriggerH;
     O.TriggerEffect := OI.TriggerEff;
     O.KeyFrame := OI.KeyFrame;
     O.PreviewFrame := OI.PreviewFrame;
@@ -414,7 +411,6 @@ begin
 
   finally
     TempBmp.Free;
-    ResizeBmp.Free;
   end;
 
 end;
