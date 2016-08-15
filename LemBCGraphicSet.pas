@@ -255,7 +255,6 @@ begin
                  end;
           $02FF: begin // header
                    MetaStream.Read(Header, SizeOf(TNeoLemmixHeader));
-                   ShowMessage(IntToStr(Header.Resolution));
                    fResolution := Header.Resolution div 8;
                    if fResolution = 0 then fResolution := 1;
                    if Header.IsUpdated = 1 then
