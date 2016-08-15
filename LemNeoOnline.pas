@@ -29,6 +29,9 @@ type
   // Specialty functions
   function GetLatestNeoLemmixVersion(const aApp: TNxAppType; var MainVer, SubVer, MinorVer: Integer): Boolean;
 
+var
+  OnlineEnabled: Boolean;
+
 implementation
 
 function GetLatestNeoLemmixVersion(const aApp: TNxAppType; var MainVer, SubVer, MinorVer: Integer): Boolean;
@@ -36,6 +39,12 @@ var
   SL: TStringList;
   TempString: String;
 begin
+  if not OnlineEnabled then
+  begin
+    Result := false;
+    Exit;
+  end;
+
   SL := TStringList.Create;
   try
     Result := DownloadToStringList(NX_VERSIONS_URL, SL);
@@ -73,6 +82,12 @@ end;
 
 function DownloadToFile(aURL: String; aFilename: String): Boolean;
 begin
+  if not OnlineEnabled then
+  begin
+    Result := false;
+    Exit;
+  end;
+
   // Simple enough.
   try
     ForceDirectories(ExtractFilePath(aFilename));
@@ -90,6 +105,12 @@ var  hrResult:   HRESULT;
      lpBuffer:   Pointer;
      dwRead:     Integer;
 begin
+  if not OnlineEnabled then
+  begin
+    Result := false;
+    Exit;
+  end;
+
   // Very complicated. I found this code (or very similar) in several places,
   // so I doubt the true original author can be found. So, thanks whoever you are.
 
@@ -135,6 +156,12 @@ function DownloadToStringList(aURL: String; aStringList: TStringList): Boolean;
 var
   TempStream: TMemoryStream;
 begin
+  if not OnlineEnabled then
+  begin
+    Result := false;
+    Exit;
+  end;
+  
   // We just go via DownloadToStream for this one. Easier that way.
   TempStream := TMemoryStream.Create;
   try

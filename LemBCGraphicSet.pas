@@ -9,7 +9,7 @@ unit LemBCGraphicSet;
 interface
 
 uses
-  Dialogs,
+  Dialogs, LemNeoOnline,
   LemDosCmp, GR32, LemTypes, Classes, SysUtils;
 
 const
@@ -87,6 +87,7 @@ type
       fTerrainData: TTerrainDataArray;
       procedure EnsureObjectLength;
       procedure EnsureTerrainLength;
+      function Acquire(aName: String): Boolean;
     public
       constructor Create;
       destructor Destroy; override;
@@ -193,12 +194,10 @@ begin
   CmpStream := CreateDataStream(aName + '.dat', ldtStyle);
   if CmpStream = nil then
   begin
-    // Insert code for handling download from online.neolemmix.com here
-  end;
-
-  if CmpStream = nil then
-  begin
-    raise Exception.Create('The graphic set "' + aName + '.dat" could not be found.');
+    if Acquire(aName) then
+      CmpStream := CreateDataStream(aName + '.dat', ldtStyle)
+    else
+      raise Exception.Create('The graphic set "' + aName + '.dat" could not be found.');
   end;
 
   MetaStream := TMemoryStream.Create;
@@ -271,6 +270,29 @@ begin
     Decompressor.Free;
     CmpStream.Free;
     MetaStream.Free;
+  end;
+end;
+
+function TBcGraphicSet.Acquire(aName: String): Boolean;
+var
+  SL: TStringList;
+  TempStream: TMemoryStream;
+begin
+  Result := false;
+  if not OnlineEnabled then
+    Exit;
+
+  SL := TStringList.Create;
+  TempStream := TMemoryStream.Create;
+  try
+    if not DownloadToStringList('http://online.neolemmix.com/styles.php', SL) then Exit;
+    if SL.Values[aName] = '' then Exit;
+    if not DownloadToStream('http://online.neolemmix.com/' + Lowercase(aName) + '.dat', TempStream) then Exit;
+    ForceDirectories(AppPath + 'styles\');
+    TempStream.SaveToFile(AppPath + 'styles\' + aName + '.dat');
+  finally
+    SL.Free;
+    TempStream.Free;
   end;
 end;
 

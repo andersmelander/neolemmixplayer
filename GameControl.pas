@@ -20,6 +20,7 @@ uses
   LemDosStructures,
   LemNeoEncryption, LemNeoSave, TalisData,
   LemLevelSystem, LemRendering,
+  LemNeoOnline,
   UZip; // only for checking whether some files actually exist
 
 type
@@ -281,7 +282,7 @@ begin
   SaveBoolean('LemmingCountBlink', LemmingBlink);
   SaveBoolean('TimerBlink', TimerBlink);
   SaveBoolean('BlackOutZero', BlackOutZero);
-  SaveBoolean('EnableOnline', EnableOnline);
+  SaveBoolean('EnableOnline', OnlineEnabled);
   SaveBoolean('UpdateCheck', CheckUpdates);
 
   SL.Add('ZoomLevel=' + IntToStr(ZoomLevel));
@@ -323,7 +324,7 @@ begin
   NoAutoReplayMode := LoadBoolean('NoAutoReplay');
   BlackOutZero := LoadBoolean('BlackOutZero');
   IgnoreReplaySelection := LoadBoolean('IgnoreReplaySelection');
-  EnableOnline := LoadBoolean('EnableOnline');
+  OnlineEnabled := LoadBoolean('EnableOnline');
   CheckUpdates := LoadBoolean('UpdateCheck');
 
   ZoomLevel := StrToIntDef(SL.Values['ZoomLevel'], 0);

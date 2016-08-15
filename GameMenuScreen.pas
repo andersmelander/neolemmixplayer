@@ -198,7 +198,7 @@ begin
   // one currently running. If running an experimental version, also checks if it's the
   // exact same version (as it would be a stable release).
   GameParams.DoneUpdateCheck := true;
-  if not (GameParams.EnableOnline and GameParams.CheckUpdates) then Exit;
+  if not (OnlineEnabled and GameParams.CheckUpdates) then Exit;
   if GetLatestNeoLemmixVersion(NxaPlayer, MainVer, SubVer, MinorVer) then
   begin
     if (MainVer > Cur_MainVer)

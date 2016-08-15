@@ -3,7 +3,7 @@ unit FNeoLemmixConfig;
 interface
 
 uses
-  GameControl, FEditHotkeys, LemDosStyle,
+  GameControl, FEditHotkeys, LemDosStyle, LemNeoOnline,
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ComCtrls, StdCtrls;
 
@@ -134,7 +134,7 @@ begin
 
   //// Page 2 (Online Options) ////
   cbUpdateCheck.Checked := fGameParams.CheckUpdates; // in reverse order as the next one may override this
-  cbEnableOnline.Checked := fGameParams.EnableOnline;
+  cbEnableOnline.Checked := OnlineEnabled;
 
   //// Page 3 (Game Options) ////
   // Checkboxes
@@ -210,7 +210,7 @@ begin
 
   //// Page 2 (Online Options) ////
   // Checkboxes
-  fGameParams.EnableOnline := cbEnableOnline.Checked;
+  OnlineEnabled := cbEnableOnline.Checked;
   fGameParams.CheckUpdates := cbUpdateCheck.Checked;
 
   //// Page 3 (Game Options) ////
