@@ -218,17 +218,11 @@ begin
   Decompressor := TDosDatDecompressor.Create;
 
 
-  if FileExists(GraphicSetFile) and (ParamStr(1) = 'testmode') then
+  DataStream := CreateDataStream(GraphicSetFile, ldtStyle, true); // Allow external
+  if (DataStream = nil) and (fOnlineEnabled) then
   begin
-    DataStream := TMemoryStream.Create;
-    DataStream.LoadFromFile(GraphicSetFile);
-  end else begin
-    DataStream := CreateDataStream(GraphicSetFile, ldtStyle, true); // Allow external
-    if (DataStream = nil) and (fOnlineEnabled) then
-    begin
-      ObtainGraphicSet(GraphicSetFile);
-      DataStream := CreateDataStream(GraphicSetFile, ldtStyle, true); // Allow external for sure here
-    end;
+    ObtainGraphicSet(GraphicSetFile);
+    DataStream := CreateDataStream(GraphicSetFile, ldtStyle, true); // Allow external for sure here
   end;
 
   fMetaDataStream.Clear;
@@ -457,17 +451,11 @@ begin
         SpecBmp := TVgaSpecBitmap.Create;
         try
 
-          if FileExists(GraphicExtFile) and (ParamStr(1) = 'testmode') then
+          DataStream := CreateDataStream(GraphicExtFile, ldtStyle, true); // Allow external
+          if (DataStream = nil) and (fOnlineEnabled) then
           begin
-            DataStream := TMemoryStream.Create;
-            DataStream.LoadFromFile(GraphicExtFile);
-          end else begin
-            DataStream := CreateDataStream(GraphicExtFile, ldtStyle, true); // Allow external
-            if (DataStream = nil) and (fOnlineEnabled) then
-            begin
-              ObtainGraphicSet(GraphicExtFile);
-              DataStream := CreateDataStream(GraphicExtFile, ldtStyle, true); // Allow external for sure here
-            end;
+            ObtainGraphicSet(GraphicExtFile);
+            DataStream := CreateDataStream(GraphicExtFile, ldtStyle, true); // Allow external for sure here
           end;
 
           try

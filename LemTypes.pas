@@ -114,6 +114,9 @@ function CreateDataStream(aFileName: string; aType: TLemDataType; aAllowExternal
 
 implementation
 
+uses
+  LemBCGraphicSet;
+
 var
   _AppPath: string;
 
@@ -339,6 +342,15 @@ begin
         ldtStyle: begin
                     // ldtStyle is used for graphic sets. This is similar to ldtLemmings, but also
                     // checks the /styles/ folder if all else fails.
+                    if PathOverride <> '' then
+                    begin
+                      SetCurrentDir(AppPath); // in case path is relative, the App Path is our best guess as to where from
+                      Result.LoadFromFile(PathOverride + aFilename);
+                      Result.Position := 0;
+                      Arc.Free;
+                      Exit;
+                    end;
+
                     if not IsSingleLevelMode then Arc.OpenArchive(GameFile, amOpen);
                     if not FileInArchive then Arc.OpenResource(HINSTANCE, 'lemdata', 'archive');
                     if FileInArchive then

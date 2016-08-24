@@ -5,7 +5,7 @@ interface
 
 uses
   SharedGlobals,
-  LemTypes, LemRendering, LemLevel, LemDosStyle,
+  LemTypes, LemRendering, LemLevel, LemDosStyle, LemBCGraphicSet,
   TalisData, LemDosMainDAT, LemNeoEncryption, LemStrings,
   GameControl, GameSound,
   FBaseDosForm,
@@ -183,6 +183,12 @@ var
 begin
   inherited;
 
+  if ParamStr(1) = 'testmode' then
+  begin
+    ShowMessage('ERROR: You have attempted to launch playtest mode from an older editor version.' + #13 +
+                'This version of NeoLemmix can only be used for playtest mode with editor V1.47n or higher.');
+  end;
+
   // Set to true as default; change to false if any failure.
   fLoadSuccess := true;
 
@@ -191,7 +197,7 @@ begin
   // case we can just get it from that; otherwise, we need to promt the user to select an
   // NXP or LVL file.
   DoSingleLevel := false;
-  if ParamStr(1) <> 'testmode' then
+  if ParamStr(1) <> 'testmode147' then
   begin
     if FileExists(ParamStr(1)) then
       GameFile := ParamStr(1)
@@ -251,17 +257,15 @@ begin
   fGameParams.Style := AutoCreateStyle(fGameParams.Directory, fGameParams.SysDat);
   fGameParams.NextScreen := gstMenu;
 
-  if ParamStr(1) = 'testmode' then
+  if ParamStr(1) = 'testmode147' then
   begin
     fGameParams.fTestMode := true;
     fGameParams.fTestLevelFile := ExtractFilePath(Application.ExeName) + ParamStr(2);
-    fGameParams.fTestGroundFile := ExtractFilePath(Application.ExeName) + ParamStr(3);
-    fGameParams.fTestVgagrFile := ExtractFilePath(Application.ExeName) + ParamStr(4);
-    fGameParams.fTestVgaspecFile := ExtractFilePath(Application.ExeName) + ParamStr(5);
-    if fGameParams.fTestVgaspecFile = 'none' then fGameParams.fTestVgaspecFile := '';
+    PathOverride := ParamStr(3);
     fGameParams.NextScreen := gstPreview;
     fGameParams.SaveSystem.DisableSave := true;
-  end;
+  end else
+    PathOverride := ''; //just in case
 
   if DoSingleLevel then
   begin
@@ -286,7 +290,7 @@ begin
 
   fGameParams.SaveSystem.LoadFile(@fGameParams);
 
-  if fGameParams.fTestMode and (ParamStr(6) <> '') then
+  if fGameParams.fTestMode then
   begin
     // Very old editor versions didn't specify a testplay mode in the commandline, it had to be
     // configured in the game's settings. I doubt anyone still uses versions this old, but...
@@ -294,7 +298,7 @@ begin
     if DoSingleLevel then
       fGameParams.QuickTestMode := 0
     else
-      fGameParams.QuickTestMode := s2i(ParamStr(6));
+      fGameParams.QuickTestMode := s2i(ParamStr(4));
   end;
 
   fGameParams.LoadFromIniFile;

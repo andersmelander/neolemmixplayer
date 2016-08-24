@@ -107,6 +107,9 @@ type
 
   procedure LoadNeoLemmixImage(aStream: TStream; aBmp: TBitmap32; aResolution: Integer = 1);
 
+var
+  PathOverride: String;
+
 implementation
 
 procedure LoadNeoLemmixImage(aStream: TStream; aBmp: TBitmap32; aResolution: Integer = 1);
