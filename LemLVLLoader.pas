@@ -1781,6 +1781,10 @@ begin
       if (SkillTypes and $0001 <> 0) then Buf.ClonerCount := ClonerCount;
 
       Buf.LevelOptions := LevelOptions;
+
+      if ReleaseRateLocked then
+        Buf.LevelOptions2 := Buf.LevelOptions2 or 1;
+
       //Buf.GraphicSetEx := GraphicSetEx;
       //Buf.GraphicSet   := GraphicSet;
       Buf.MusicNumber  := GraphicSet shr 8;
