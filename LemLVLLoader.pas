@@ -1735,9 +1735,25 @@ var
   Buf2: TNeoLVLSecondHeader;
   k: ShortString;
   //SFinder: TStyleFinder;
+  StyleList: array of String;
 
   b: Byte;
   //w: Word;
+
+  function GetStyleID(aLabel: String): Integer;
+  var
+    i: Integer;
+  begin
+    for i := 0 to Length(StyleList)-1 do
+      if Lowercase(aLabel) = Lowercase(StyleList[i]) then
+      begin
+        Result := i;
+        Exit;
+      end;
+    SetLength(StyleList, Length(StyleList)+1);
+    StyleList[Length(StyleList)-1] := aLabel;
+    Result := Length(StyleList)-1;
+  end;
 begin
 
 
@@ -1872,6 +1888,8 @@ begin
       if Obj.DrawingFlags and odf_Flip <> 0 then
         O.ObjectFlags := O.ObjectFlags or $40;
 
+      O.GSIndex := GetStyleID(Obj.GS);
+
       b := 1;
       aStream.Write(b, 1);
       aStream.Write(O, SizeOf(O));
@@ -1910,6 +1928,8 @@ begin
       end;
       if Ter.DrawingFlags and tdf_Rotate <> 0 then
         T.TerrainFlags := T.TerrainFlags or $20;
+
+      T.GSIndex := GetStyleID(Ter.GS);
 
       b := 2;
       aStream.Write(b, 1);
@@ -1965,6 +1985,18 @@ begin
     Buf2.BnsRedirectRank := Info.BnsRank;
     Buf2.BnsRedirectLevel := Info.BnsLevel;
     aStream.Write(Buf2, SizeOf(Buf2));
+
+    b := 6;
+    aStream.Write(b, 1);
+    w := Length(StyleList);
+    aStream.Write(w, 2);
+    for i := 0 to Length(StyleList)-1 do
+    begin
+      k := LeftStr(StyleList[i], 16);
+      while Length(k) < 16 do
+        k := k + ' ';
+      aStream.Write(k[1], 16);
+    end;
 
     //aStream.WriteBuffer(Buf, NEO_LVL_SIZE);
     b := 0;
