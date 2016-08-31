@@ -1337,12 +1337,13 @@ begin
 
   SL := TStringList.Create;
   TempStream := CreateDataStream('music.txt', ldtLemmings); // It's a text file, but should be loaded more similarly to data files.
-  if TempStream = nil then
+  (*if TempStream = nil then
   begin
     TempStream := TMemoryStream.Create;
     TempStream.LoadFromFile(AppPath + 'data\music.nxmi');
-  end;
-  SL.LoadFromStream(TempStream);
+  end;*)
+  if TempStream <> nil then
+    SL.LoadFromStream(TempStream);
   TempStream.Free;
 
   MusicNumber := -1;
@@ -1353,7 +1354,7 @@ begin
     Result := ''
   else begin
     if MusicNumber < 0 then
-      if fGameParams.fTestMode then
+      if fGameParams.fTestMode or (LowerCase(Level.Info.MusicFile) = '*random') then
       begin
         Randomize;
         MusicNumber := Random(SL.Count);
