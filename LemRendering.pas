@@ -1161,6 +1161,7 @@ procedure TRenderer.RenderWorld(World: TBitmap32); // Called only from Preview S
 var
   i: Integer;
   x, y: Integer;
+  MaxY: Integer;
 
   Lem: TPreplacedLemming;
   L: TLemming;
@@ -1226,6 +1227,19 @@ begin
 
     L.SetFromPreplaced(Lem);
     L.LemIsZombie := Lem.IsZombie;
+
+    // Move downwards up to 2 pixels to find solid ground, or unlimited distance if
+    // a blocker
+    if Lem.IsBlocker then
+      MaxY := fPhysicsMap.Height-1
+    else
+      MaxY := Lem.Y + 2;
+
+    for y := Lem.Y to MaxY do
+    begin
+      L.LemY := y;
+      if fPhysicsMap.PixelS[L.LemX, y] and PM_SOLID = 1 then Break;
+    end;
 
     if (fPhysicsMap.PixelS[L.LemX, L.LemY] and PM_SOLID = 0) then
       L.LemAction := baFalling
