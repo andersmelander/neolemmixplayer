@@ -1230,7 +1230,7 @@ begin
 
     // Move downwards up to 2 pixels to find solid ground, or unlimited distance if
     // a blocker
-    if Lem.IsBlocker then
+    (*if Lem.IsBlocker then
       MaxY := fPhysicsMap.Height-1
     else
       MaxY := Lem.Y + 2;
@@ -1239,7 +1239,7 @@ begin
     begin
       L.LemY := y;
       if fPhysicsMap.PixelS[L.LemX, y] and PM_SOLID = 1 then Break;
-    end;
+    end;*) // removed
 
     if (fPhysicsMap.PixelS[L.LemX, L.LemY] and PM_SOLID = 0) then
       L.LemAction := baFalling
