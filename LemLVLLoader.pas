@@ -133,6 +133,15 @@ var
   L: TPreplacedLemming;
 
   Vgaspec: String;
+
+  procedure PreplacedLemmingPatch(Removed: Integer);
+  var
+    i: Integer;
+  begin
+    for i := 0 to Length(aLevel.Info.WindowOrder)-1 do
+      if aLevel.Info.WindowOrder[i] >= Removed then
+        aLevel.Info.WindowOrder[i] := aLevel.Info.WindowOrder[i] - 1;
+  end;
 begin
   // Needs to convert preplaced lemmings and vgaspecs appropriately
 
@@ -175,6 +184,7 @@ begin
         L.IsBlocker := (O.TarLev and 32) <> 0;
         L.IsZombie := (O.TarLev and 64) <> 0;
         aLevel.InteractiveObjects.Delete(i);
+        PreplacedLemmingPatch(i);
         Continue;
       end;
 
