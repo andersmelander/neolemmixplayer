@@ -5279,7 +5279,7 @@ begin
   SrcPoint.X := aObject.Left + aObject.TriggerRect.Left;
   SrcPoint.Y := aObject.Top + aObject.TriggerRect.Top;
 
-  if aObject.MetaObj.SoundEffect <> -1 then
+  if aObject.MetaObj.InternalSoundEffect = -1 then
     CueSoundEffect(GetTrapSoundIndex(aObject.MetaObj.SoundEffect), SrcPoint)
   else
     CueSoundEffect(aObject.MetaObj.InternalSoundEffect, SrcPoint);

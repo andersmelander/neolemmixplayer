@@ -246,6 +246,8 @@ begin
 
   fName := aName;
 
+  ClearSoundLocations;
+
   try
     try
       CmpStream.Position := 0;
