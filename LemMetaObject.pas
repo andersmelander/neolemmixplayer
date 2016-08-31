@@ -69,6 +69,7 @@ type
 
   TMetaObject = class
   protected
+    fSoundStream: TMemoryStream;
     fGS    : String;
     fPiece  : String;
     fVariableInfo: array[0..ALIGNMENT_COUNT-1] of TObjectVariableProperties;
@@ -192,6 +193,7 @@ begin
     fVariableInfo[i].Image := TBitmaps.Create(true);
     fInterfaces[i] := nil;
   end;
+  fSoundStream := TMemoryStream.Create;
 end;
 
 destructor TMetaObject.Destroy;
@@ -203,6 +205,7 @@ begin
     fVariableInfo[i].Image.Free;
     fInterfaces[i].Free;
   end;
+  fSoundStream.Free;
   inherited;
 end;
 
@@ -375,6 +378,7 @@ var
   TempBmp: TBitmap32;
 
   i: Integer;
+  lw: LongWord;
 begin
   TempBmp := TBitmap32.Create;
   O := GetInterface(false, false, false);
@@ -408,6 +412,17 @@ begin
     O.PreviewFrame := OI.PreviewFrame;
     O.RandomStartFrame := (OI.ObjectFlags and 2 <> 0);
     O.SoundEffect := OI.TriggerSound;
+
+    if aSet.SoundPosition[O.SoundEffect] <> -1 then
+    begin
+      aSet.DataStream.Position := aSet.SoundPosition[O.SoundEffect];
+      fSoundStream.Clear;
+
+      aSet.DataStream.Read(lw, 4);
+      fSoundStream.CopyFrom(aSet.DataStream, lw);
+
+      O.SoundEffect := -1;
+    end;
 
   finally
     TempBmp.Free;

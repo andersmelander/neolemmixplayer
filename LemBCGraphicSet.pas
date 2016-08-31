@@ -28,7 +28,6 @@ type
     SoundID: Byte;
     SoundLoc: LongWord;
   end;
-  TSoundDataArray = array of TNeoLemmixSoundData;
 
   TNeoLemmixColorEntry = packed record
     case Byte of
@@ -85,9 +84,11 @@ type
       fTerrainCount: Integer;
       fObjectData: TObjectDataArray;
       fTerrainData: TTerrainDataArray;
+      fSoundPositions: array[0..255] of Integer;
       procedure EnsureObjectLength;
       procedure EnsureTerrainLength;
       function Acquire(aName: String): Boolean;
+      function GetSoundPosition(aIndex: Integer): Integer;
     public
       constructor Create;
       destructor Destroy; override;
@@ -103,6 +104,7 @@ type
       property TerrainCount: Integer read fTerrainCount;
       property ObjectData: TObjectDataArray read fObjectData;
       property TerrainData: TTerrainDataArray read fTerrainData;
+      property SoundPosition[aIndex: Integer]: Integer read GetSoundPosition;
   end;
 
   procedure LoadNeoLemmixImage(aStream: TStream; aBmp: TBitmap32; aResolution: Integer = 1);
@@ -187,10 +189,19 @@ var
   CmpStream, MetaStream: TMemoryStream;
 
   Header: TNeoLemmixHeader;
+  SoundRec: TNeoLemmixSoundData;
 
   w: Word;
   b: Byte;
   s: String;
+
+  procedure ClearSoundLocations;
+  var
+    i: Integer;
+  begin
+    for i := 0 to 255 do
+      fSoundPositions[i] := -1;
+  end;
 
   function ReadString(aStream: TStream): String;
   var
@@ -283,6 +294,8 @@ begin
                    MetaStream.Read(fTerrainData[fTerrainCount-1], SizeOf(TNeoLemmixTerrainData));
                  end;
           $05FF: begin // sound data
+                   MetaStream.Read(SoundRec, SizeOf(TNeoLemmixSoundData));
+                   fSoundPositions[SoundRec.SoundID] := SoundRec.SoundLoc;
                  end;
           $06FF: begin
                    s := ReadString(MetaStream);
@@ -325,6 +338,11 @@ begin
     SL.Free;
     TempStream.Free;
   end;
+end;
+
+function TBcGraphicSet.GetSoundPosition(aIndex: Integer): Integer;
+begin
+  Result := fSoundPositions[aIndex];
 end;
 
 end.

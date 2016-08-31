@@ -521,6 +521,7 @@ type
     procedure CheckUpdateNuking;
     procedure CueSoundEffect(aSoundId: Integer); overload;
     procedure CueSoundEffect(aSoundId: Integer; aOrigin: TPoint); overload;
+    procedure CueObjectSoundEffect(aObject: TInteractiveObjectInfo);
     function DigOneRow(PosX, PosY: Integer): Boolean;
     procedure DrawAnimatedObjects;
     procedure DrawDebugString(L: TLemming);
@@ -5262,6 +5263,16 @@ begin
 
   if Paused then
     CheckForPlaySoundEffect;
+end;
+
+procedure TLemmingGame.CueObjectSoundEffect(aObject: TInteractiveObject);
+var
+  SrcPoint: TPoint;
+begin
+  SrcPoint.X := aObject.Left + aObject.TriggerRect.Left;
+  SrcPoint.Y := aObject.Top + aObject.TriggerRect.Top;
+
+  
 end;
 
 procedure TLemmingGame.DrawDebugString(L: TLemming);
