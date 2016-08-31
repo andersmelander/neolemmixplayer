@@ -6005,6 +6005,7 @@ end;
 
 procedure TLemmingGame.SaveGameplayImage(Filename: String);
 begin
+  fRenderer.DrawLevel(fTargetBitmap);
   TPngInterface.SavePngFile(Filename, fTargetBitmap, true);
 end;
 
