@@ -70,6 +70,8 @@ begin
 end;
 
 procedure TNeoTheme.Load(aBc: TBcGraphicSet);
+var
+  i: Integer;
 begin
   fHasImageBackground := false;
   fBackgroundImage.Clear;
@@ -86,6 +88,14 @@ begin
     fLemmings := 'xmas'
   else
     fLemmings := 'default';
+
+  for i := 0 to aBc.ObjectCount-1 do
+    if aBc.ObjectData[i].TriggerEff = 32 then
+    begin
+      aBc.DataStream.Position := aBc.ObjectData[i].BaseLoc;
+      LoadNeoLemmixImage(aBc.DataStream, fBackgroundImage, aBc.Resolution);
+      fHasImageBackground := true;
+    end;
 end;
 
 procedure TNeoTheme.Load(aSet: String);
