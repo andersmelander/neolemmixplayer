@@ -64,7 +64,7 @@ type
 
   TMetaObjectProperty = (ov_Frames, ov_Width, ov_Height, ov_TriggerLeft, ov_TriggerTop,
                          ov_TriggerWidth, ov_TriggerHeight, ov_TriggerEffect,
-                         ov_KeyFrame, ov_PreviewFrame, ov_SoundEffect);
+                         ov_KeyFrame, ov_PreviewFrame, ov_SoundEffect, ov_InternalSoundEffect);
                          // Integer properties only.
 
   TMetaObject = class
@@ -81,6 +81,7 @@ type
     fKeyFrame                     : Integer;
     fPreviewFrameIndex            : Integer; // index of preview (previewscreen)
     fSoundEffect                  : Integer; // ose_xxxx what sound to play
+    fInternalSoundEffect          : Integer; // given by LemGame
     fRandomStartFrame             : Boolean;
     fResizability                 : TMetaObjectSizeSetting;
     function GetIdentifier: String;
@@ -144,6 +145,7 @@ type
       procedure SetResizability(aValue: TMetaObjectSizeSetting);
       function GetCanResize(aDir: TMetaObjectSizeSetting): Boolean;
       function GetImages: TBitmaps;
+      function GetSoundStream: TMemoryStream;
     public
       constructor Create(aMetaObject: TMetaObject; Flip, Invert, Rotate: Boolean);
 
@@ -161,10 +163,13 @@ type
       property PreviewFrame: Integer index ov_PreviewFrame read GetIntegerProperty write SetIntegerProperty;
       property RandomStartFrame: Boolean read GetRandomStartFrame write SetRandomStartFrame;
       property SoundEffect: Integer index ov_SoundEffect read GetIntegerProperty write SetIntegerProperty; // though sound effect shouldn't really be an integer, but we'll leave it as one until this new system works overall
+      property InternalSoundEffect: Integer index ov_InternalSoundEffect read GetIntegerProperty write SetIntegerProperty;
 
       property Resizability             : TMetaObjectSizeSetting read GetResizability write SetResizability;
       property CanResizeHorizontal      : Boolean index mos_Horizontal read GetCanResize;
       property CanResizeVertical        : Boolean index mos_Vertical read GetCanResize;
+
+      property SoundStream: TMemoryStream read GetSoundStream;
   end;
 
   TMetaObjects = class(TObjectList)
@@ -423,6 +428,7 @@ begin
 
       O.SoundEffect := -1;
     end;
+    O.InternalSoundEffect := -1;
 
   finally
     TempBmp.Free;
@@ -714,6 +720,7 @@ begin
     ov_KeyFrame: Result := fMetaObject.fKeyFrame;
     ov_PreviewFrame: Result := fMetaObject.fPreviewFrameIndex;
     ov_SoundEffect: Result := fMetaObject.fSoundEffect;
+    ov_InternalSoundEffect: Result := fMetaObject.fInternalSoundEffect;
     else raise Exception.Create('TMetaObjectInterface.GetIntegerProperty called with invalid index: ' + IntToStr(Integer(aProp)));
   end;
 end;
@@ -729,6 +736,7 @@ begin
     ov_KeyFrame: fMetaObject.fKeyFrame := aValue;
     ov_PreviewFrame: fMetaObject.fPreviewFrameIndex := aValue;
     ov_SoundEffect: fMetaObject.fSoundEffect := aValue;
+    ov_InternalSoundEffect: fMetaObject.fInternalSoundEffect := aValue;
     else raise Exception.Create('TMetaObjectInterface.SetIntegerProperty called with invalid index: ' + IntToStr(Integer(aProp)));
   end;
 end;
@@ -765,6 +773,11 @@ end;
 function TMetaObjectInterface.GetImages: TBitmaps;
 begin
   Result := fMetaObject.Images[fFlip, fInvert, fRotate];
+end;
+
+function TMetaObjectInterface.GetSoundStream: TMemoryStream;
+begin
+  Result := fMetaObject.fSoundStream;
 end;
 
 { TMetaObjects }

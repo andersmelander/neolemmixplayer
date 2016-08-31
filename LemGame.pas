@@ -1678,6 +1678,12 @@ begin
   ButtonsRemain := 0;
 
   // Create the list of interactive objects
+  (*for i := 0 to ObjectInfos.Count-1 do
+    if ObjectInfos[i].MetaObj.InternalSoundEffect <> -1 then
+    begin
+      SoundMgr.FreeSound(ObjectInfos[i].MetaObj.InternalSoundEffect);
+      ObjectInfos[i].MetaObj.InternalSoundEffect := -1;
+    end;*)
   ObjectInfos.Clear;
   fRenderer.CreateInteractiveObjectList(ObjectInfos);
 
@@ -1699,6 +1705,13 @@ begin
     // Update number of buttons
     if Inf.TriggerEffect = DOM_BUTTON then
       Inc(ButtonsRemain);
+
+    if Inf.MetaObj.SoundEffect = -1 then
+      if Inf.MetaObj.InternalSoundEffect = -1 then
+      begin
+        Inf.MetaObj.SoundStream.Position := 0;
+        Inf.MetaObj.InternalSoundEffect := SoundMgr.AddSoundFromStream(Inf.MetaObj.SoundStream);
+      end;
   end;
 
   ApplyLevelEntryOrder;
@@ -3006,7 +3019,7 @@ begin
     L.LemHasBlockerField := False;
     SetBlockerMap;
     RemoveLemming(L, RM_KILL);
-    CueSoundEffect(GetTrapSoundIndex(Inf.SoundEffect), L.Position);
+    CueObjectSoundEffect(Inf);
     DelayEndFrames := MaxIntValue([DelayEndFrames, Inf.AnimationFrameCount]);
   end;
 end;
@@ -3034,7 +3047,7 @@ begin
     L.LemHasBlockerField := False;
     SetBlockerMap;
     RemoveLemming(L, RM_KILL);
-    CueSoundEffect(GetTrapSoundIndex(Inf.SoundEffect), L.Position);
+    CueObjectSoundEffect(Inf);
     DelayEndFrames := MaxIntValue([DelayEndFrames, Inf.AnimationFrameCount]);
   end;
 end;
@@ -3046,20 +3059,21 @@ begin
   Result := False;
   Inf := ObjectInfos[ObjectID];
   Inf.Triggered := True;
-  CueSoundEffect(GetTrapSoundIndex(Inf.SoundEffect), L.Position);
+  CueObjectSoundEffect(Inf);
 end;
 
 function TLemmingGame.HandleTelepSingle(L: TLemming; ObjectID: Word): Boolean;
 var
   Inf: TInteractiveObjectInfo;
 begin
+  // does this handle single object teleporters? this shouldn't be here, they're being removed
   Result := True;
 
   Inf := ObjectInfos[ObjectID];
 
   Inf.Triggered := True;
   Inf.ZombieMode := L.LemIsZombie;
-  CueSoundEffect(GetTrapSoundIndex(Inf.SoundEffect), L.Position);
+  CueObjectSoundEffect(Inf);
   L.LemTeleporting := True;
   Inf.TeleLem := L.LemIndex;
   // Make sure to remove the blocker field!
@@ -3078,7 +3092,7 @@ begin
 
   Inf.Triggered := True;
   Inf.ZombieMode := L.LemIsZombie;
-  CueSoundEffect(GetTrapSoundIndex(Inf.SoundEffect), L.Position);
+  CueObjectSoundEffect(Inf);
   L.LemTeleporting := True;
   Inf.TeleLem := L.LemIndex;
   Inf.TwoWayReceive := false;
@@ -3132,7 +3146,7 @@ begin
   if not L.LemIsZombie then
   begin
     Inf := ObjectInfos[ObjectID];
-    CueSoundEffect(GetTrapSoundIndex(Inf.SoundEffect), L.Position);
+    CueObjectSoundEffect(Inf);
     Inf.Triggered := True;
     Dec(ButtonsRemain);
 
@@ -3143,7 +3157,7 @@ begin
         begin
           Inf := ObjectInfos[n];
           Inf.Triggered := True;
-          CueSoundEffect(GetTrapSoundIndex(Inf.SoundEffect), Inf.Center);
+          CueObjectSoundEffect(Inf);
         end;
     end;
   end;
@@ -5265,14 +5279,17 @@ begin
     CheckForPlaySoundEffect;
 end;
 
-procedure TLemmingGame.CueObjectSoundEffect(aObject: TInteractiveObject);
+procedure TLemmingGame.CueObjectSoundEffect(aObject: TInteractiveObjectInfo);
 var
   SrcPoint: TPoint;
 begin
   SrcPoint.X := aObject.Left + aObject.TriggerRect.Left;
   SrcPoint.Y := aObject.Top + aObject.TriggerRect.Top;
 
-  
+  if aObject.MetaObj.SoundEffect <> -1 then
+    CueSoundEffect(GetTrapSoundIndex(aObject.MetaObj.SoundEffect), SrcPoint)
+  else
+    CueSoundEffect(aObject.MetaObj.InternalSoundEffect, SrcPoint);
 end;
 
 procedure TLemmingGame.DrawDebugString(L: TLemming);
