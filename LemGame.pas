@@ -5604,7 +5604,8 @@ begin
   Assert(ObjID < ObjectInfos.Count, 'Teleporter associated to teleporting lemming not found');
 
   if      (ObjInfo.TriggerEffect = DOM_RECEIVER)
-      and (ObjInfo.CurrentFrame + 1 >= ObjInfo.AnimationFrameCount) then
+      and (((ObjInfo.CurrentFrame + 1 >= ObjInfo.AnimationFrameCount) and (ObjInfo.MetaObj.KeyFrame = 0))
+      or   ((ObjInfo.CurrentFrame + 1 = ObjInfo.MetaObj.KeyFrame) and (ObjInfo.MetaObj.KeyFrame <> 0))) then
   begin
     L.LemTeleporting := False; // Let lemming reappear
     ObjInfo.TeleLem := -1;
@@ -5750,7 +5751,9 @@ begin
        and (Inf.TriggerEffect <> DOM_PICKUP) then
       Inc(Inf.CurrentFrame);
 
-    if (Inf.TriggerEffect = DOM_TELEPORT) and (Inf.CurrentFrame >= Inf.AnimationFrameCount) then
+    if (Inf.TriggerEffect = DOM_TELEPORT)
+       and (((Inf.CurrentFrame >= Inf.AnimationFrameCount) and (Inf.MetaObj.KeyFrame = 0))
+       or ((Inf.CurrentFrame = Inf.MetaObj.KeyFrame) and (Inf.MetaObj.KeyFrame <> 0))) then
     begin
       MoveLemToReceivePoint(LemmingList.List^[Inf.TeleLem], i);
       Inf2 := ObjectInfos[Inf.ReceiverId];
