@@ -528,7 +528,7 @@ var
 //  InBuf, OutBuf: PBytes;
 //  CheckSum: Integer;
   Planar: TDosPlanarBitmap;
-  TempBitmap, TempBitmap2: TBitmap32;
+  TempBitmap: TBitmap32;
   Sec: Integer;
   DosPal: TDosVGAPalette8;
   Pal: TArrayOfColor32;

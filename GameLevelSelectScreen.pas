@@ -53,6 +53,14 @@ begin
 end;
 
 procedure TGameLevelSelectScreen.BuildScreen;
+
+  procedure EnsureLevelNames;
+  var
+    i: Integer;
+  begin
+    for i := 0 to fLevelSystem.GetLevelCount(fSection)-1 do
+      fLevelSystem.GetLevelName(fSection, i);
+  end;
 begin
   ScreenImg.BeginUpdate;
   try
@@ -73,6 +81,8 @@ begin
     fSelectedLevel := GameParams.Info.dLevel;
 
     MainDatExtractor.ExtractBitmapByName(fTick, 'tick.png');
+
+    EnsureLevelNames;
 
     DrawLevelList;
   finally
@@ -107,7 +117,7 @@ begin
       if i < 9 then
         S := S + ' ';
       if i < 99 then
-        S := S + '  '; // just in case someone actually makes a rank this big
+        S := S + ' '; // just in case someone actually makes a rank this big
       S := S + IntToStr(i + 1) + '.  ' + fLevelSystem.GetLevelName(fSection, i);
 
       if (i = MinLv) and (i <> 0) then
@@ -119,7 +129,7 @@ begin
       DrawPurpleText(ScreenImg.Bitmap, S, 10, Y);
 
       if GameParams.SaveSystem.CheckCompleted(fSection, i) then
-        fTick.DrawTo(ScreenImg.Bitmap, 110, Y);
+        fTick.DrawTo(ScreenImg.Bitmap, 94, Y);
 
       Inc(Y, 18);
     end;
