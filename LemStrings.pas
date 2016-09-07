@@ -69,15 +69,9 @@ resourcestring
     //'Version ' + PVersion;
 
   {-------------------------------------------------------------------------------
-    LevelCodeScreen
+    LevelSelectScreen
   -------------------------------------------------------------------------------}
-  SEnterCode = 'Enter Code';
-
-  SIncorrectCode = 'INCORRECT CODE';
-
-  SCodeForLevel_sd =
-    'Code for %s' + #13 +
-    'Level %d';
+  SLevelSelect = 'Level Selection';
 
   {-------------------------------------------------------------------------------
     PreviewScreen
