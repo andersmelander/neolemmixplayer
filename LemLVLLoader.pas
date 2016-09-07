@@ -927,8 +927,7 @@ begin
         ClearLevel;
         DisplayPercent   := 0;
         ReleaseRate      := Buf.ReleaseRate;
-        if (Buf.LevelOptions2 and 1) <> 0 then
-          ReleaseRateLocked := true;
+        ReleaseRateLocked := (Buf.LevelOptions2 and 1) <> 0;
 
         LemmingsCount    := Buf.LemmingsCount;
         RescueCount      := Buf.RescueCount;
