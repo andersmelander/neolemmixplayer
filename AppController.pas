@@ -6,7 +6,7 @@ interface
 uses
   SharedGlobals,
   LemTypes, LemRendering, LemLevel, LemDosStyle, LemBCGraphicSet,
-  TalisData, LemDosMainDAT, LemNeoEncryption, LemStrings,
+  TalisData, LemDosMainDAT, LemStrings,
   GameControl, GameSound,
   FBaseDosForm,
   Classes, SysUtils, StrUtils, UMisc, Windows, Forms, Dialogs;
