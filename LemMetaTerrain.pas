@@ -199,17 +199,24 @@ begin
     fGS := 'special';
     fPiece := RightStr(aSet.Name, Length(aSet.Name)-2);
 
-    LoadPiece(0);
-    fGraphicImages[0].Assign(ResizeBmp);
-    GeneratePhysicsImage;
-    fGeneratedGraphicImage[0] := true;
-    fGeneratedPhysicsImage[0] := true;
+    if aSet.SpecialBitmap <> nil then // older format
+    begin
+      fGraphicImages[0].Assign(aSet.SpecialBitmap);
+      fGeneratedGraphicImage[0] := true;
+      Exit;
+    end else begin
+      LoadPiece(0);
+      fGraphicImages[0].Assign(ResizeBmp);
+      GeneratePhysicsImage;
+      fGeneratedGraphicImage[0] := true;
+      fGeneratedPhysicsImage[0] := true;
 
-    if not LoadPiece(1) then Exit;
-    ModPhysicsMap(ResizeBmp, PM_STEEL);
+      if not LoadPiece(1) then Exit;
+      ModPhysicsMap(ResizeBmp, PM_STEEL);
 
-    if not LoadPiece(2) then Exit;
-    ModPhysicsMap(ResizeBmp, PM_ONEWAY);
+      if not LoadPiece(2) then Exit;
+      ModPhysicsMap(ResizeBmp, PM_ONEWAY);
+    end;
 
   finally
     TempBmp.Free;

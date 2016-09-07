@@ -9,7 +9,7 @@ unit LemBCGraphicSet;
 interface
 
 uses
-  Dialogs, LemNeoOnline,
+  Dialogs, LemNeoOnline, LemDosBmp,
   LemDosCmp, GR32, LemTypes, Classes, SysUtils;
 
 const
@@ -73,6 +73,7 @@ type
 
   TBcGraphicSet = class
     private
+      fSpecialBitmap: TBitmap32;
       fDataStream: TMemoryStream;
       fName: String;
       fResolution: Integer;
@@ -89,6 +90,7 @@ type
       procedure EnsureTerrainLength;
       function Acquire(aName: String): Boolean;
       function GetSoundPosition(aIndex: Integer): Integer;
+      procedure LoadSpecialBitmap(aStream: TStream);
     public
       constructor Create;
       destructor Destroy; override;
@@ -105,6 +107,7 @@ type
       property ObjectData: TObjectDataArray read fObjectData;
       property TerrainData: TTerrainDataArray read fTerrainData;
       property SoundPosition[aIndex: Integer]: Integer read GetSoundPosition;
+      property SpecialBitmap: TBitmap32 read fSpecialBitmap;
   end;
 
   procedure LoadNeoLemmixImage(aStream: TStream; aBmp: TBitmap32; aResolution: Integer = 1);
@@ -163,11 +166,13 @@ begin
   SetLength(fObjectData, 20);
   SetLength(fTerrainData, 60);
   fDataStream := TMemoryStream.Create;
+  fSpecialBitmap := nil;
 end;
 
 destructor TBcGraphicSet.Destroy;
 begin
   fDataStream.Free;
+  fSpecialBitmap.Free;
   inherited;
 end;
 
@@ -181,6 +186,20 @@ procedure TBcGraphicSet.EnsureTerrainLength;
 begin
   if Length(fTerrainData) = fTerrainCount then
     SetLength(fTerrainData, fTerrainCount + 60);
+end;
+
+procedure TBcGraphicSet.LoadSpecialBitmap(aStream: TStream);
+var
+  Vgaspec: TVgaspecBitmap;
+begin
+  Vgaspec := TVgaspecBitmap.Create;
+  try
+    fSpecialBitmap := TBitmap32.Create;
+    aStream.Position := 0;
+    Vgaspec.LoadFromStream(aStream, fSpecialBitmap);
+  finally
+    Vgaspec.Free;
+  end;
 end;
 
 procedure TBcGraphicSet.LoadGraphicSet(aName: String);
@@ -253,6 +272,14 @@ begin
       MetaStream.Position := 0;
       fDataStream.Position := 0;
       Decompressor.DecompressSection(CmpStream, MetaStream);
+
+      if CmpStream.Position = CmpStream.Size then
+      begin
+        // In this case, we're dealing with an old-format VGASPEC
+        LoadSpecialBitmap(CmpStream);
+        Exit;
+      end;
+
       Decompressor.DecompressSection(CmpStream, fDataStream);
 
       MetaStream.Position := 0;

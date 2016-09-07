@@ -58,8 +58,8 @@ type
   public
   { reading methods }
     function DecodeSection(var Src, Dst: PBytes; SrcSize: Integer): Integer;
-    procedure LoadFromFile(const aFileName: string; aBitmaps: TBitmaps);
-    procedure LoadFromStream(S: TStream; aBitmaps: TBitmaps);
+    procedure LoadFromFile(const aFileName: string; aBitmap: TBitmap32);
+    procedure LoadFromStream(S: TStream; aBitmap: TBitmap32);
     procedure LoadPaletteFromFile(const aFileName: string; var Pal: TDosVGAPalette8);
     procedure LoadPaletteFromStream(S: TStream; var Pal: TDosVGAPalette8);
   end;
@@ -493,24 +493,24 @@ begin
 end;
 
 
-procedure TVgaSpecBitmap.LoadFromFile(const aFileName: string; aBitmaps: TBitmaps);
+procedure TVgaSpecBitmap.LoadFromFile(const aFileName: string; aBitmap: TBitmap32);
 {-------------------------------------------------------------------------------
   method to load a bitmap from the vgaspec?.dat files
 -------------------------------------------------------------------------------}
 var
   F: TFileStream;
 begin
-  if aBitmaps = nil then
+  if aBitmap = nil then
     Exit;
   F := TFileStream.Create(aFileName, fmOpenRead);
   try
-    LoadFromStream(F, aBitmaps);
+    LoadFromStream(F, aBitmap);
   finally
     F.Free;
   end;
 end;
 
-procedure TVgaSpecBitmap.LoadFromStream(S: TStream; aBitmaps: TBitmaps);
+procedure TVgaSpecBitmap.LoadFromStream(S: TStream; aBitmap: TBitmap32);
 {-------------------------------------------------------------------------------
   So here we are at the decoding of vgaspec?.dat:
   o Step 1: Decompress with the "default" dos lemming decompression code
@@ -551,7 +551,7 @@ var
 
 
 begin
-  Assert(aBitmaps <> nil);
+  Assert(aBitmap <> nil);
 
   //Mem := nil;
   //Decompressor := nil;
@@ -567,37 +567,6 @@ begin
       Decompressor.Free;
     end;
 
-    if S.Position <> S.Size then // definite marker of a new-format graphic set
-    begin
-      {NeoGS := TBaseNeoGraphicSet.Create;
-      NeoGS.GraphicSetFile := '*'; //give it any value, so it doesn't try to default to old-format
-      NeoGS.LoadFromStream(S);
-      NeoGS.ReadMetaData;
-      NeoGS.ReadData;
-
-      TempBitmap := TBitmap32.Create;
-      TempBitmap.Assign(NeoGS.TerrainBitmaps[0]);
-      aBitmaps.Add(TempBitmap);
-
-      TempBitmap := TBitmap32.Create;
-      if NeoGS.TerrainBitmaps.Count > 1 then
-        TempBitmap.Assign(NeoGS.TerrainBitmaps[1])
-      else begin
-        TempBitmap.SetSize(aBitmaps[0].Width, aBitmaps[0].Height);
-        TempBitmap.Clear(0);
-      end;
-      aBitmaps.Add(TempBitmap);
-
-      TempBitmap := TBitmap32.Create;
-      if NeoGS.TerrainBitmaps.Count > 2 then
-        TempBitmap.Assign(NeoGS.TerrainBitmaps[2])
-      else
-        TempBitmap.Assign(aBitmaps[0]);
-      aBitmaps.Add(TempBitmap);
-
-      NeoGS.Free;}
-    end else begin
-
     PMem := TMemoryStream.Create;
     TempBitmap := TBitmap32.Create;
     try
@@ -611,39 +580,30 @@ begin
 
       Planar := TDosPlanarBitmap.Create;
       try
-      if normsize then
-      begin
-        TempBitmap2 := TBitmap32.Create;
-        TempBitmap2.SetSize(960, 160);
-        TempBitmap2.Clear(0); // clear with #transparent black
-        for Sec := 0 to 3 do
+        if normsize then
         begin
-          { step 4: read planar bitmap part from section }
-          TempBitmap.Clear(0); // clear with #transparent black
-          //Planar.LoadFromStream(PMem, TempBitmap, Sec * VGASPEC_SECTIONSIZE, 960, 40, 3, Pal, Pal);
+          aBitmap.SetSize(960, 160);
+          aBitmap.Clear(0); // clear with #transparent black
+          for Sec := 0 to 3 do
+          begin
+            { step 4: read planar bitmap part from section }
+            TempBitmap.Clear(0); // clear with #transparent black
+            //Planar.LoadFromStream(PMem, TempBitmap, Sec * VGASPEC_SECTIONSIZE, 960, 40, 3, Pal, Pal);
+            if DosPal[1].R = 255 then
+              Planar.LoadFromStream(PMem, TempBitmap, Sec * VGASPEC_SECTIONSIZE_EXT, 960, 40, 18, Pal)
+              else
+              Planar.LoadFromStream(PMem, TempBitmap, Sec * VGASPEC_SECTIONSIZE, 960, 40, 3, Pal);
+            { step 5: draw to bitmap }
+            aBitmap.Draw(0, Sec * 40, TempBitmap);
+          end;
+        end else begin
+          aBitmap.SetSize((PalInfo.UnknownPal[0] * 256) + PalInfo.UnknownPal[1], (PalInfo.UnknownPal[2] * 256) + PalInfo.UnknownPal[3]);
+          aBitmap.Clear(0);
           if DosPal[1].R = 255 then
-            Planar.LoadFromStream(PMem, TempBitmap, Sec * VGASPEC_SECTIONSIZE_EXT, 960, 40, 18, Pal)
-            else
-            Planar.LoadFromStream(PMem, TempBitmap, Sec * VGASPEC_SECTIONSIZE, 960, 40, 3, Pal);
-          { step 5: draw to bitmap }
-          TempBitmap2.Draw(0, Sec * 40, TempBitmap);
+              Planar.LoadFromStream(PMem, aBitmap, 0, aBitmap.Width, aBitmap.Height, 18, Pal)
+              else
+              Planar.LoadFromStream(PMem, aBitmap, 0, aBitmap.Width, aBitmap.Height, 3, Pal);
         end;
-      end else begin
-        TempBitmap2 := TBitmap32.Create;
-        TempBitmap2.SetSize((PalInfo.UnknownPal[0] * 256) + PalInfo.UnknownPal[1], (PalInfo.UnknownPal[2] * 256) + PalInfo.UnknownPal[3]);
-        TempBitmap2.Clear(0);
-        if DosPal[1].R = 255 then
-            Planar.LoadFromStream(PMem, TempBitmap2, 0, TempBitmap2.Width, TempBitmap2.Height, 18, Pal)
-            else
-            Planar.LoadFromStream(PMem, TempBitmap2, 0, TempBitmap2.Width, TempBitmap2.Height, 3, Pal);
-      end;
-      aBitmaps.Add(TempBitmap2);
-      TempBitmap2 := TBitmap32.Create;
-      TempBitmap2.SetSize(aBitmaps[0].Width, aBitmaps[0].Height);
-      aBitmaps.Add(TempBitmap2);
-      TempBitmap2 := TBitmap32.Create;
-      TempBitmap2.SetSize(aBitmaps[0].Width, aBitmaps[0].Height);
-      aBitmaps.Add(TempBitmap2);
       finally
         Planar.Free;
       end;
@@ -651,11 +611,10 @@ begin
       PMem.Free;
       TempBitmap.Free;
     end;
-    end;
 
-   finally
-     Mem.Free;
-   end;
+  finally
+    Mem.Free;
+  end;
 end;
 
 procedure TVgaSpecBitmap.LoadPaletteFromFile(const aFileName: string; var Pal: TDosVGAPalette8);
