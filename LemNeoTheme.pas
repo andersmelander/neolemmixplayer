@@ -102,7 +102,6 @@ procedure TNeoTheme.Load(aSet: String);
 var
   Parser: TNeoLemmixParser;
   Line: TParserLine;
-  i: Integer;
   RealColorCount: Integer;
   TempColor: TNeoThemeColor;
 

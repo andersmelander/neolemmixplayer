@@ -127,6 +127,7 @@ begin
   SetLength(fSwaps, 0);
   SwapCount := 0;
   Parser := TNeoLemmixParser.Create;
+  Mode := rcl_Selected;
   try
     TempStream := CreateDataStream(aName + '_scheme.nxmi', ldtLemmings);
     Parser.LoadFromStream(TempStream);
