@@ -41,12 +41,9 @@ type
 
       function GetMetaTerrain(Identifier: String): TMetaTerrain;
       function GetMetaObject(Identifier: String): TMetaObject;
-      function GetThemeColor(Index: String): TColor32;
 
       property TerrainCount: Integer read GetTerrainCount;
       property ObjectCount: Integer read GetObjectCount;
-
-      property ThemeColor[Index: String]: TColor32 read GetThemeColor;
     public
       constructor Create;
       destructor Destroy; override;
@@ -155,9 +152,7 @@ end;
 
 function TNeoPieceManager.ObtainTerrain(Identifier: String): Integer;
 var
-  BasePath: String;
   TerrainLabel: TLabelRecord;
-  T: TMetaTerrain;
 begin
   //raise Exception.Create('ObtainTerrain called for "' + Identifier + '". Please report this occurance.');
 
@@ -185,7 +180,6 @@ end;
 function TNeoPieceManager.ObtainObject(Identifier: String): Integer;
 var
   ObjectLabel: TLabelRecord;
-  MO: TMetaObject;
 begin
   //raise Exception.Create('ObtainObject called for "' + Identifier + '". Please report this occurance.');
 
@@ -289,17 +283,6 @@ end;
 procedure TNeoPieceManager.ApplyTheme(aSet: String);
 begin
   ObtainGraphicSet(aSet, true);
-end;
-
-function TNeoPieceManager.GetThemeColor(Index: String): TColor32;
-begin
-  if fTheme = nil then
-  begin
-    Result := DEFAULT_COLOR;
-    if Uppercase(Index) = 'BACKGROUND' then
-      Result := $FF000000;
-  end else
-    Result := fTheme.Colors[Index];
 end;
 
 end.

@@ -783,7 +783,6 @@ var
   i, i2: integer;
   TempStream: TMemoryStream;
   TempLevel: TLevel;
-  Trans: TTranslationTable;
 begin
   SetLength(aLevel.Info.WindowOrder, 0); //kludgy bug fix
 

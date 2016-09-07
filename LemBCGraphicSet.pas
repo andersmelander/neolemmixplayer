@@ -192,7 +192,6 @@ var
   SoundRec: TNeoLemmixSoundData;
 
   w: Word;
-  b: Byte;
   s: String;
 
   procedure ClearSoundLocations;

@@ -1164,7 +1164,6 @@ procedure TRenderer.RenderWorld(World: TBitmap32); // Called only from Preview S
 var
   i: Integer;
   x, y: Integer;
-  MaxY: Integer;
 
   Lem: TPreplacedLemming;
   L: TLemming;
