@@ -341,10 +341,10 @@ try
       LoadSingleLevel(aFileIndex, dS, dL, aLevel, SoftOddMode);
       FilePath :=   ExtractFilePath(ParamStr(0)) + 'Dump\'
                   + ChangeFileExt(ExtractFileName(GameFile), '')
-                  + '\' + LeadZeroStr(dS + 1, 2) + LeadZeroStr(dL + 1, 2) + '.nxlv';
+                  + '\' + LeadZeroStr(dS + 1, 2) + LeadZeroStr(dL + 1, 2) + '.lvl';
       FileStream := TFileStream.Create(FilePath, fmCreate);
       try
-        TNeoLevelLoader.StoreLevelInStream(aLevel, FileStream);
+        TLVLLoader.StoreLevelInStream(aLevel, FileStream);
       finally
         FileStream.Free;
       end;
