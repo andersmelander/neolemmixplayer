@@ -90,7 +90,8 @@ type
     moEnableOnline,
     moCheckUpdates,
     moNoAutoReplayMode,
-    moPauseAfterBackwards
+    moPauseAfterBackwards,
+    moNoBackgrounds
   );
 
   TMiscOptions = set of TMiscOption;
@@ -209,6 +210,7 @@ type
     property CheckUpdates: boolean Index moCheckUpdates read GetOptionFlag write SetOptionFlag;
     property NoAutoReplayMode: boolean Index moNoAutoReplayMode read GetOptionFlag write SetOptionFlag;
     property PauseAfterBackwardsSkip: boolean Index moPauseAfterBackwards read GetOptionFlag write SetOptionFlag;
+    property NoBackgrounds: boolean Index moNoBackgrounds read GetOptionFlag write SetOptionFlag;
 
     property DumpMode: boolean read fDumpMode write fDumpMode;
     property OneLevelMode: boolean read fOneLevelMode write fOneLevelMode;
@@ -270,6 +272,7 @@ begin
   SaveBoolean('TimerBlink', TimerBlink);
   SaveBoolean('BlackOutZero', BlackOutZero);
   SaveBoolean('EnableOnline', OnlineEnabled);
+  SaveBoolean('NoBackgrounds', NoBackgrounds);
   SaveBoolean('UpdateCheck', CheckUpdates);
 
   SL.Add('ZoomLevel=' + IntToStr(ZoomLevel));
@@ -322,6 +325,7 @@ begin
   PauseAfterBackwardsSkip := LoadBoolean('PauseAfterBackwardsSkip');
   BlackOutZero := LoadBoolean('BlackOutZero');
   OnlineEnabled := LoadBoolean('EnableOnline');
+  NoBackgrounds := LoadBoolean('NoBackgrounds');
   CheckUpdates := LoadBoolean('UpdateCheck');
 
   ZoomLevel := StrToIntDef(SL.Values['ZoomLevel'], 0);
