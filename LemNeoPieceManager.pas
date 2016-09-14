@@ -60,6 +60,9 @@ type
   function SplitIdentifier(Identifier: String): TLabelRecord;
   function CombineIdentifier(Identifier: TLabelRecord): String;
 
+var
+  GlobalPieceManager: TNeoPieceManager; // speedhack for backwards-compatible level loading
+
 implementation
 
 uses

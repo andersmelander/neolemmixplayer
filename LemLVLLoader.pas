@@ -21,6 +21,8 @@ uses
   LemDosStructures,
   LemLevel,
   LemLemming,
+  LemNeoPieceManager,
+  LemMetaObject,
   LemTypes;
 
 type
@@ -129,7 +131,8 @@ var
   i: Integer;
   GS: TBcGraphicSet;
   O: TInteractiveObject;
-  MO: TNeoLemmixObjectData;
+  MO: TNeoLemmixObjectData;     // for objects from TBcGraphicSet
+  MO_PM: TMetaObjectInterface;  // for objects from the piece manager
   L: TPreplacedLemming;
 
   Vgaspec: String;
@@ -157,21 +160,17 @@ begin
       Top := aLevel.Info.VgaspecY;
     end;
 
-  GS := TBcGraphicSet.Create;
-  try
+  if GlobalPieceManager <> nil then
+  begin
     for i := aLevel.InteractiveObjects.Count-1 downto 0 do
     begin
-      if Lowercase(GS.Name) <> Lowercase(aLevel.InteractiveObjects[i].GS) then
-        GS.LoadGraphicSet(aLevel.InteractiveObjects[i].GS);
-
-      MO := GS.ObjectData[StrToInt(RightStr(aLevel.InteractiveObjects[i].Piece, Length(aLevel.InteractiveObjects[i].Piece)-1))];
-
-      if MO.TriggerEff = 13 then
+      O := aLevel.InteractiveObjects[i];
+      MO_PM := GlobalPieceManager.Objects[O.GS + ':' + O.Piece].GetInterface(false, false, false);
+      if MO_PM.TriggerEffect = 13 then
       begin
-        O := aLevel.InteractiveObjects[i];
         L := aLevel.PreplacedLemmings.Insert(0);
-        L.X := O.Left + MO.PTriggerX;
-        L.Y := O.Top + MO.PTriggerY;
+        L.X := O.Left + MO_PM.TriggerLeft;
+        L.Y := O.Top + MO_PM.TriggerTop;
         if O.DrawingFlags and odf_FlipLem <> 0 then
           L.Dx := -1
         else
@@ -187,10 +186,43 @@ begin
         PreplacedLemmingPatch(i);
         Continue;
       end;
-
     end;
-  finally
-    GS.Free;
+  end else begin
+    GS := TBcGraphicSet.Create;
+    try
+      for i := aLevel.InteractiveObjects.Count-1 downto 0 do
+      begin
+        if Lowercase(GS.Name) <> Lowercase(aLevel.InteractiveObjects[i].GS) then
+          GS.LoadGraphicSet(aLevel.InteractiveObjects[i].GS);
+
+        MO := GS.ObjectData[StrToInt(RightStr(aLevel.InteractiveObjects[i].Piece, Length(aLevel.InteractiveObjects[i].Piece)-1))];
+
+        if MO.TriggerEff = 13 then
+        begin
+          O := aLevel.InteractiveObjects[i];
+          L := aLevel.PreplacedLemmings.Insert(0);
+          L.X := O.Left + MO.PTriggerX;
+          L.Y := O.Top + MO.PTriggerY;
+          if O.DrawingFlags and odf_FlipLem <> 0 then
+            L.Dx := -1
+          else
+            L.Dx := 1;
+          L.IsClimber := (O.TarLev and 1) <> 0;
+          L.IsSwimmer := (O.TarLev and 2) <> 0;
+          L.IsFloater := (O.TarLev and 4) <> 0;
+          L.IsGlider := ((O.TarLev and 8) <> 0) and not L.IsFloater;
+          L.IsDisarmer := (O.TarLev and 16) <> 0;
+          L.IsBlocker := (O.TarLev and 32) <> 0;
+          L.IsZombie := (O.TarLev and 64) <> 0;
+          aLevel.InteractiveObjects.Delete(i);
+          PreplacedLemmingPatch(i);
+          Continue;
+        end;
+
+      end;
+    finally
+      GS.Free;
+    end;
   end;
 end;
 

@@ -1048,6 +1048,7 @@ begin
   inherited Create;
   TempBitmap := TBitmap32.Create;
   fPieceManager := TNeoPieceManager.Create;
+  GlobalPieceManager := fPieceManager;
   fTheme := TNeoTheme.Create;
   fPieceManager.SetTheme(fTheme); 
   fLayers := TRenderBitmaps.Create;
