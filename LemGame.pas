@@ -679,6 +679,7 @@ type
   { properties }
     property CurrentCursor: Integer read fCurrentCursor;
     property CurrentIteration: Integer read fCurrentIteration;
+    property CurrentReleaseRate: Integer read CurrReleaseRate; // for skill panel's usage
     property ClockFrame: Integer read fClockFrame;
     property CursorPoint: TPoint read fCursorPoint write fCursorPoint;
     property DrawLemmingPixel: Boolean read fDrawLemmingPixel write fDrawLemmingPixel;
@@ -2348,7 +2349,11 @@ begin
 
   Result := DoSkillAssignment(L, Skill, IsReplayAssignment);
 
-  if Result then CueSoundEffect(SFX_ASSIGN_SKILL, L.Position);
+  if Result then
+  begin
+    CueSoundEffect(SFX_ASSIGN_SKILL, L.Position);
+    Inc(L.LemUsedSkillCount);
+  end;
 end;
 
 
@@ -2667,7 +2672,7 @@ begin
     Result := Result or not HasPixelAt(L.LemX + n*L.LemDx, L.LemY);
 
   // Test current action
-  Result := Result and (L.LemAction in ActionSet) // and LemCanPlatform(L);
+  Result := Result and (L.LemAction in ActionSet) and LemCanPlatform(L);
 end;
 
 function TLemmingGame.MayAssignStacker(L: TLemming): Boolean;
@@ -5443,8 +5448,6 @@ procedure TLemmingGame.RecordSkillAssignment(L: TLemming; aSkill: TBasicLemmingA
 var
   E: TReplaySkillAssignment;
 begin
-  L.LemUsedSkillCount := L.LemUsedSkillCount + 1;   // this is probably NOT where this should be
-
   if fFreezeRecording then Exit;
   if not fPlaying or fReplaying then
     Exit;
