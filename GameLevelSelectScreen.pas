@@ -129,7 +129,7 @@ begin
       DrawPurpleText(ScreenImg.Bitmap, S, 10, Y);
 
       if GameParams.SaveSystem.CheckCompleted(fSection, i) and (S <> '   .....') then
-        fTick.DrawTo(ScreenImg.Bitmap, 110, Y);
+        fTick.DrawTo(ScreenImg.Bitmap, 94, Y);
 
       Inc(Y, 18);
     end;
