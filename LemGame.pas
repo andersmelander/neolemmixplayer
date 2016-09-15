@@ -414,7 +414,6 @@ type
     fHighlightLemmingID        : Integer;
 
     fFallLimit                 : Integer;
-    fAssignedSkillThisFrame    : Boolean;
     fLastRecordedRR            : Integer;
 
     fCurrentlyDrawnLemming     : TLemming; // needed for pixelcombining bridges in combinebuilderpixels
@@ -1290,7 +1289,6 @@ begin
 
   ButtonsRemain := 0;
   fHitTestAutoFail := false;
-  fAssignedSkillThisFrame := false;
 
 end;
 
@@ -4771,8 +4769,6 @@ begin
     Exit;
   CheckForGameFinished;
 
-  fAssignedSkillThisFrame := false;
-
   // do not move this!
   if not Paused then // paused is handled by the GUI
     CheckAdjustReleaseRate;
@@ -5005,7 +5001,6 @@ var
   Sel: TBasicLemmingAction;
 begin
   Result := False;
-  if fAssignedSkillThisFrame then Exit;
 
   // convert buttontype to skilltype
   Sel := SkillPanelButtonToAction[fSelectedSkill];
@@ -5015,10 +5010,7 @@ begin
 
   fCheckWhichLemmingOnly := False;
   if Result then
-  begin
-    fAssignedSkillThisFrame := True;
-    CheckForNewShadow;
-  end;
+    CheckForNewShadow;        // probably unneeded now?
 end;
 
 function TLemmingGame.ProcessHighlightAssignment: Boolean;
@@ -5051,7 +5043,6 @@ var
   ass: TBasicLemmingAction;
   OldHighlightLemID: Integer;
 begin
-  if fAssignedSkillThisFrame then Exit;
   with aReplayItem do
   begin
     if (LemmingIndex < 0) or (LemmingIndex >= LemmingList.Count) then
@@ -5080,12 +5071,8 @@ begin
       // After having done the assignment, revert the hightlightning.
       OldHighlightLemID := fHighlightLemmingID;
       fHighlightLemmingID := L.LemIndex;
-      if AssignNewSkill(ass, true, true) then
-        fAssignedSkillThisFrame := true;
+      AssignNewSkill(ass, true, true);
       fHighlightLemmingID := OldHighlightLemID;
-
-      // if DoSkillAssignment(L, ass) then
-      //  fAssignedSkillThisFrame := true;
 
       if not HyperSpeed then
         L.LemHighlightReplay := True;
