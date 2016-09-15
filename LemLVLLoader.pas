@@ -1927,6 +1927,8 @@ begin
         O.ObjectFlags := O.ObjectFlags or $20;
       if Obj.DrawingFlags and odf_Flip <> 0 then
         O.ObjectFlags := O.ObjectFlags or $40;
+      if Obj.DrawingFlags and odf_Rotate <> 0 then
+        O.ObjectFlags := O.ObjectFlags or $100;
 
       O.GSIndex := GetStyleID(Obj.GS);
 

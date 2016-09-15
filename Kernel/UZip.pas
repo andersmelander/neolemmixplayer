@@ -1527,7 +1527,7 @@ begin
   FDirectAddList := True; { vlaggetje zie overloaded AddFiles }
   try
     { zoek files en voeg objecten toe aan templist }
-    CreateFileList(TempList, AWildCard, faAllFiles and not faDirectory, True, True, AddSearchEvent);
+    CreateFileList(TempList, AWildCard, faAllFiles and not faDirectory, True, False, AddSearchEvent); // modified - we DON'T want it recursive!
     { haal zipfile zelf uit de lijst }
     i := TempList.IndexOf(fFileName);
     if i <> -1 then
