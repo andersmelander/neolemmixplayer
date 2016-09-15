@@ -376,8 +376,6 @@ type
     ObjectInfos                : TInteractiveObjectInfoList; // list of objects excluding entrances
     Entries                    : TInteractiveObjectInfoList; // list of entrances (NOT USED ANYMORE)
     DosEntryTable              : array of Integer; // table for entrance release order
-    fSlowingDownReleaseRate    : Boolean;
-    fSpeedingUpReleaseRate     : Boolean;
     fPaused                    : Boolean;
     MaxNumLemmings             : Integer;
     LowestReleaseRate          : Integer;
@@ -489,7 +487,6 @@ type
     procedure AddConstructivePixel(X, Y: Integer);
     procedure ApplyLevelEntryOrder;
     function CalculateNextLemmingCountdown: Integer;
-    procedure CheckAdjustReleaseRate;
     procedure CheckForGameFinished;
     // The next few procedures are for checking the behavior of lems in trigger areas!
     procedure CheckTriggerArea(L: TLemming);
@@ -512,7 +509,7 @@ type
 
     function CheckForOverlappingField(L: TLemming): Boolean;
     procedure CheckForPlaySoundEffect;
-    procedure CheckForReplayAction(RRCheck: Boolean);
+    procedure CheckForReplayAction(PausedRRCheck: Boolean = false);
     procedure CheckLemmings;
     function CheckLemTeleporting(L: TLemming): Boolean;
     procedure CheckReleaseLemming;
@@ -539,7 +536,7 @@ type
 
     function ReadZombieMap(X, Y: Integer): Byte;
     procedure RecordNuke;
-    procedure RecordReleaseRate(aActionFlag: Byte);
+    procedure RecordReleaseRate(aRR: Integer);
     procedure RecordSkillAssignment(L: TLemming; aSkill: TBasicLemmingAction);
     //procedure RecordSkillSelection(aSkill: TSkillPanelButton);
     procedure RemoveLemming(L: TLemming; RemMode: Integer = 0);
@@ -613,7 +610,7 @@ type
                                   NewSkillOrig: TBasicLemmingAction;
                                   MousePos: TPoint;
                                   IsHighlight: Boolean = False): Integer;
-    function DoSkillAssignment(L: TLemming; NewSkill: TBasicLemmingAction; IsReplayAssignment: Boolean = false): Boolean;
+    function DoSkillAssignment(L: TLemming; NewSkill: TBasicLemmingAction): Boolean;
 
     function MayAssignWalker(L: TLemming): Boolean;
     function MayAssignClimber(L: TLemming): Boolean;
@@ -645,6 +642,7 @@ type
     fAssignEnabled                    : Boolean;
     InstReleaseRate            : Integer;
     fActiveSkills              : array[0..7] of TSkillPanelButton;
+    ReleaseRateModifier        : Integer; //negative = decrease each update, positive = increase each update, 0 = no change
 
     // Postview screen needs access to these two sounds and the sound manager now
     SoundMgr                   : TSoundMgr;
@@ -662,7 +660,9 @@ type
     procedure UpdateLemmings;
 
   { callable }
-    procedure AdjustReleaseRate(Delta: Integer);
+    procedure CheckAdjustReleaseRate;  
+    procedure AdjustReleaseRate(aRR: Integer);
+    function CheckIfLegalRR(aRR: Integer): Boolean;
     procedure CreateLemmingAtCursorPoint;
     procedure Finish;
     procedure Cheat;
@@ -706,9 +706,7 @@ type
     property ShiftButtonHeldDown: Boolean read fShiftButtonHeldDown write fShiftButtonHeldDown;
     property AltButtonHeldDown: Boolean read fAltButtonHeldDown write fAltButtonHeldDown;
     property CtrlButtonHeldDown: Boolean read fCtrlButtonHeldDown write fCtrlButtonHeldDown;
-    property SlowingDownReleaseRate: Boolean read fSlowingDownReleaseRate;
     property SoundOpts: TGameSoundOptions read fSoundOpts write SetSoundOpts;
-    property SpeedingUpReleaseRate: Boolean read fSpeedingUpReleaseRate;
     property TargetIteration: Integer read fTargetIteration write fTargetIteration;
     property CancelReplayAfterSkip: Boolean read fCancelReplayAfterSkip write fCancelReplayAfterSkip;
     property DoTimePause: Boolean read fDoTimePause write fDoTimePause;
@@ -1626,8 +1624,7 @@ begin
 
   SetLength(DosEntryTable, 0);
 
-  fSlowingDownReleaseRate := False;
-  fSpeedingUpReleaseRate := False;
+  ReleaseRateModifier := 0;
   fPaused := False;
   UserSetNuking := False;
   ExploderAssignInProgress := False;
@@ -2342,7 +2339,6 @@ begin
   end;
 end;
 
-
 function TLemmingGame.AssignNewSkill(Skill: TBasicLemmingAction; IsHighlight: Boolean = False; IsReplayAssignment: Boolean = false): Boolean;
 var
   L: TLemming;
@@ -2354,7 +2350,12 @@ begin
 
   if not Assigned(L) then Exit;
 
-  Result := DoSkillAssignment(L, Skill, IsReplayAssignment);
+  if IsReplayAssignment then   // Should probably divide into two seperate routines rather than having IsReplayAssignment parameter
+    Result := DoSkillAssignment(L, Skill)
+  else begin
+    RecordSkillAssignment(L, Skill);
+    Exit;
+  end;
 
   if Result then
   begin
@@ -2364,7 +2365,7 @@ begin
 end;
 
 
-function TLemmingGame.DoSkillAssignment(L: TLemming; NewSkill: TBasicLemmingAction; IsReplayAssignment: Boolean = false): Boolean;
+function TLemmingGame.DoSkillAssignment(L: TLemming; NewSkill: TBasicLemmingAction): Boolean;
 begin
 
   Result := False;
@@ -2382,12 +2383,6 @@ begin
   else
   begin
     UpdateSkillCount(NewSkill);
-
-    if not IsReplayAssignment then
-    begin
-      if fReplaying then RegainControl;
-      RecordSkillAssignment(L, NewSkill);
-    end;
 
     // Get starting position for stacker
     if (Newskill = baStacking) then L.LemStackLow := not HasPixelAt(L.LemX + L.LemDx, L.LemY);
@@ -4784,8 +4779,8 @@ begin
 
   if fLastRecordedRR <> CurrReleaseRate then
   begin
-    RecordReleaseRate(raf_StopChangingRR);
-    fLastRecordedRR := CurrReleaseRate;
+    //RecordReleaseRate(CurrReleaseRate);
+    //fLastRecordedRR := CurrReleaseRate;
 
     if LemmingsReleased < Level.Info.LemmingsCount - 1 then
     begin
@@ -4800,7 +4795,7 @@ begin
     end;
   end;
 
-  CheckForReplayAction(true);
+  CheckForReplayAction;
 
   // erase existing ShadowBridge
   if fExistShadow then
@@ -4844,9 +4839,6 @@ begin
     InfoPainter.SetReplayMark(Replaying);
     UpdateTimeLimit;
   end;
-
-
-  CheckForReplayAction(false);
 
   if fReplaying and (fCurrentIteration > fReplayManager.LastActionFrame) then
     RegainControl;
@@ -5149,17 +5141,33 @@ begin
   case Value of
     spbFaster:
       begin
-        fSpeedingUpReleaseRate := MakeActive;
-        if MakeActive then
-          fSlowingDownReleaseRate := False;
-        if RightClick and fSpeedingUpReleaseRate then InstReleaseRate := 1;
+        if not MakeActive then
+        begin
+          ReleaseRateModifier := 0;
+          Exit;
+        end;
+
+        if Level.Info.ReleaseRateLocked or (CurrReleaseRate = 99) then Exit;
+
+        if RightClick then
+          RecordReleaseRate(99)
+        else
+          ReleaseRateModifier := 1;
       end;
     spbSlower:
       begin
-        fSlowingDownReleaseRate := MakeActive;
-        if MakeActive then
-          fSpeedingUpReleaseRate := False;
-        if RightClick and fSlowingDownReleaseRate then InstReleaseRate := -1;
+        if not MakeActive then
+        begin
+          ReleaseRateModifier := 0;
+          Exit;
+        end;
+        
+        if Level.Info.ReleaseRateLocked or (CurrReleaseRate = Level.Info.ReleaseRate) then Exit;
+
+        if RightClick then
+          RecordReleaseRate(Level.Info.ReleaseRate)
+        else
+          ReleaseRateModifier := -1;
       end;
     spbPause:
       begin
@@ -5168,8 +5176,8 @@ begin
       end;
     spbNuke:
       begin
-        UserSetNuking := True;
-        ExploderAssignInProgress := True;
+        //UserSetNuking := True;
+        //ExploderAssignInProgress := True;
         RecordNuke;
       end;
     spbNone: ; // Do Nothing
@@ -5399,21 +5407,22 @@ begin
 end;
 *)
 
-procedure TLemmingGame.AdjustReleaseRate(Delta: Integer);
-var
-  N: Integer;
-  MaxRR: Integer;
+function TLemmingGame.CheckIfLegalRR(aRR: Integer): Boolean;
 begin
-  N := CurrReleaseRate + Delta;
-  if Level.Info.ReleaseRateLocked then
-    MaxRR := Level.Info.ReleaseRate
+  if Level.Info.ReleaseRateLocked
+  or (aRR > 99)
+  or (aRR < Level.Info.ReleaseRate) then
+    Result := false
   else
-    MaxRR := 99;
-  Restrict(N, Level.Info.ReleaseRate, MaxRR);
-  if N <> currReleaseRate then
+    Result := true;
+end;
+
+procedure TLemmingGame.AdjustReleaseRate(aRR: Integer);
+begin
+  if (aRR <> currReleaseRate) and CheckIfLegalRR(aRR) then
   begin
-    currReleaseRate := N;
-    LastReleaseRate := N;
+    currReleaseRate := aRR;
+    LastReleaseRate := aRR;
     InfoPainter.DrawSkillCount(spbFaster, currReleaseRate);
   end;
 end;
@@ -5433,7 +5442,7 @@ begin
   fReplayManager.Add(E);
 end;
 
-procedure TLemmingGame.RecordReleaseRate(aActionFlag: Byte);
+procedure TLemmingGame.RecordReleaseRate(aRR: Integer);
 var
   E: TReplayChangeReleaseRate;
 begin
@@ -5442,10 +5451,11 @@ begin
 
   E := TReplayChangeReleaseRate.Create;
   E.Frame := fCurrentIteration;
-  E.NewReleaseRate := CurrReleaseRate;
+  E.NewReleaseRate := aRR;
   E.SpawnedLemmingCount := LemmingList.Count;
 
   fReplayManager.Add(E);
+  CheckForReplayAction(true);
 end;
 
 procedure TLemmingGame.RecordSkillAssignment(L: TLemming; aSkill: TBasicLemmingAction);
@@ -5482,7 +5492,7 @@ begin
 end;*)
 
 
-procedure TLemmingGame.CheckForReplayAction(RRCheck: Boolean);
+procedure TLemmingGame.CheckForReplayAction(PausedRRCheck: Boolean = false);
 var
   R: TBaseReplayItem;
 
@@ -5497,21 +5507,15 @@ var
   var
     E: TReplayChangeReleaseRate absolute R;
   begin
-    AdjustReleaseRate(E.NewReleaseRate - CurrReleaseRate);
+    AdjustReleaseRate(E.NewReleaseRate);
   end;
-
-  (*procedure ApplySkillSelect;
-  var
-    E: TReplaySelectSkill absolute R;
-  begin
-    ReplaySkillSelection(E);
-  end;*)
 
   procedure ApplyNuke;
   var
     E: TReplayNuke absolute R;
   begin
-    SetSelectedSkill(spbNuke, true);
+    UserSetNuking := True;
+    ExploderAssignInProgress := True;
   end;
 
   procedure Handle;
@@ -5524,31 +5528,26 @@ var
     if R is TReplayChangeReleaseRate then
       ApplyReleaseRate;
 
-    (*if R is TReplaySelectSkill then
-      ApplySkillSelect;*)
-
     if R is TReplayNuke then
       ApplyNuke;
   end;
 begin
-  if not fReplaying then
-    Exit;
+  //if not fReplaying then
+  //  Exit;
 
   fReplayCommanding := True;
 
   try
     // Note - the fReplayManager getters can return nil, and often will!
     // The "Handle" procedure ensures this does not lead to errors.
-    if RRCheck then
-    begin
-      R := fReplayManager.ReleaseRateChange[fCurrentIteration];
-      Handle;
-    end else begin
-      R := fReplayManager.Assignment[fCurrentIteration];
-      Handle;
-      R := fReplayManager.InterfaceAction[fCurrentIteration];
-      Handle;
-    end;
+    R := fReplayManager.ReleaseRateChange[fCurrentIteration];
+    Handle;
+    if PausedRRCheck then Exit;
+
+    R := fReplayManager.Assignment[fCurrentIteration];
+    Handle;
+    R := fReplayManager.InterfaceAction[fCurrentIteration];
+    Handle;
   finally
     fReplayCommanding := False;
   end;
@@ -5866,22 +5865,14 @@ begin
 end;
 
 procedure TLemmingGame.CheckAdjustReleaseRate;
+var
+  NewRR: Integer;
 begin
-  if SpeedingUpReleaseRate then
-  begin
-    //if not (Replaying and Paused) then
-    AdjustReleaseRate(1)
-  end
-  else if SlowingDownReleaseRate then
-  begin
-    //if not (Replaying and Paused) then
-    AdjustReleaseRate(-1)
-  end;
-  if InstReleaseRate = -1 then
-    AdjustReleaseRate(-100)
-  else if InstReleaseRate = 1 then
-    AdjustReleaseRate(100);
-  InstReleaseRate := 0;
+  if ReleaseRateModifier = 0 then Exit;
+
+  NewRR := CurrReleaseRate + ReleaseRateModifier;
+  if CheckIfLegalRR(NewRR) then
+    RecordReleaseRate(NewRR);
 end;
 
 procedure TLemmingGame.SetSoundOpts(const Value: TGameSoundOptions);
