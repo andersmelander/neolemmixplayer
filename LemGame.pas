@@ -397,7 +397,6 @@ type
     NextLemmingCountDown       : Integer;
     fDrawLemmingPixel          : Boolean;
     fFastForward               : Boolean;
-    fReplaying                 : Boolean;
     //fReplayIndex               : Integer;
     fCurrentScreenPosition     : TPoint; // for minimap, this really sucks but works ok for the moment
     fLastCueSoundIteration     : Integer;
@@ -479,6 +478,7 @@ type
 
     procedure CombineNoOverwriteStoner(F: TColor32; var B: TColor32; M: TColor32);
   { internal methods }
+    function GetIsReplaying: Boolean;
     procedure ApplyBashingMask(L: TLemming; MaskFrame: Integer);
     procedure ApplyExplosionMask(L: TLemming);
     procedure ApplyStoneLemming(L: TLemming);
@@ -699,7 +699,7 @@ type
     property Paused: Boolean read fPaused write fPaused;
     property Playing: Boolean read fPlaying write fPlaying;
     property Renderer: TRenderer read fRenderer;
-    property Replaying: Boolean read fReplaying;
+    property Replaying: Boolean read GetIsReplaying;
     property ReplayManager: TReplay read fReplayManager;
     property RightMouseButtonHeldDown: Boolean read fRightMouseButtonHeldDown write fRightMouseButtonHeldDown;
     property ShiftButtonHeldDown: Boolean read fShiftButtonHeldDown write fShiftButtonHeldDown;
@@ -1074,10 +1074,8 @@ begin
   if not SkipTargetBitmap then
     RefreshAllPanelInfo;
 
-  // And we must get the replay index to the right point and activate replay mode
-  fReplaying := true;
   //fReplayIndex := fRecorder.FindIndexForFrame(fCurrentIteration);
-  InfoPainter.SetReplayMark(true);
+  InfoPainter.SetReplayMark(Replaying);
 
   // And, update the minimap. Probably easier to redo this from scratch.
   InitializeMiniMap;
@@ -1641,9 +1639,7 @@ begin
     fReplayManager.LevelRank := Trim(fGameParams.Info.dSectionName);
     fReplayManager.LevelPosition := fGameParams.Info.dLevel+1;
     fReplayManager.LevelID := Level.Info.LevelID;
-    fReplaying := false;
-  end else
-    fReplaying := true;
+  end;
 
   fExplodingGraphics := False;
 
@@ -4841,9 +4837,6 @@ begin
     UpdateTimeLimit;
   end;
 
-  if fReplaying and (fCurrentIteration > fReplayManager.LastActionFrame) then
-    RegainControl;
-
   CheckForPlaySoundEffect;
   InitializeMinimap;
 end;
@@ -5364,6 +5357,8 @@ begin
 
   if aObject.MetaObj.InternalSoundEffect = -1 then
     CueSoundEffect(GetTrapSoundIndex(aObject.MetaObj.SoundEffect), SrcPoint)
+  else if (aObject.MetaObj.TriggerEffect = 15) and (aObject.MetaObj.SoundEffect = 0) then
+    CueSoundEffect(SFX_ENTRANCE, SrcPoint)
   else
     CueSoundEffect(aObject.MetaObj.InternalSoundEffect, SrcPoint);
 end;
@@ -5427,7 +5422,7 @@ procedure TLemmingGame.RecordNuke;
 var
   E: TReplayNuke;
 begin
-  if not fPlaying or fReplaying then
+  if not fPlaying then
     Exit;
   E := TReplayNuke.Create;
   E.Frame := fCurrentIteration;
@@ -5438,7 +5433,7 @@ procedure TLemmingGame.RecordReleaseRate(aRR: Integer);
 var
   E: TReplayChangeReleaseRate;
 begin
-  if not fPlaying or fReplaying then
+  if not fPlaying then
     Exit;
 
   E := TReplayChangeReleaseRate.Create;
@@ -5458,7 +5453,7 @@ var
   E: TReplaySkillAssignment;
 begin
   if fFreezeRecording then Exit;
-  if not fPlaying or fReplaying then
+  if not fPlaying then
     Exit;
 
   E := TReplaySkillAssignment.Create;
@@ -5469,24 +5464,10 @@ begin
   fReplayManager.Add(E);
 end;
 
-(*procedure TLemmingGame.RecordSkillSelection(aSkill: TSkillPanelButton);
-var
-  E: TReplaySelectSkill;
-begin
-  if not fPlaying then Exit;
-  if fReplaying then Exit;
-
-  E := TReplaySelectSkill.Create;
-  E.Skill := aSkill;
-  E.Frame := fCurrentIteration;
-
-  fReplayManager.Add(E);
-end;*)
-
-
 procedure TLemmingGame.CheckForReplayAction(PausedRRCheck: Boolean = false);
 var
   R: TBaseReplayItem;
+  i: Integer;
 
   procedure ApplySkillAssign;
   var
@@ -5510,9 +5491,12 @@ var
     ExploderAssignInProgress := True;
   end;
 
-  procedure Handle;
+  function Handle: Boolean;
   begin
+    Result := false;
     if R = nil then Exit;
+
+    Result := true;
 
     if R is TReplaySkillAssignment then
       ApplySkillAssign;
@@ -5524,22 +5508,25 @@ var
       ApplyNuke;
   end;
 begin
-  //if not fReplaying then
-  //  Exit;
 
   fReplayCommanding := True;
 
   try
     // Note - the fReplayManager getters can return nil, and often will!
     // The "Handle" procedure ensures this does not lead to errors.
-    R := fReplayManager.ReleaseRateChange[fCurrentIteration];
-    Handle;
+    i := 0;
+    repeat
+      R := fReplayManager.ReleaseRateChange[fCurrentIteration, i];
+      Inc(i);
+    until not Handle;
     if PausedRRCheck then Exit;
 
-    R := fReplayManager.Assignment[fCurrentIteration];
-    Handle;
-    R := fReplayManager.InterfaceAction[fCurrentIteration];
-    Handle;
+    i := 0;
+    repeat
+      R := fReplayManager.Assignment[fCurrentIteration, i];
+      Inc(i);
+    until not Handle;
+
   finally
     fReplayCommanding := False;
   end;
@@ -5761,14 +5748,10 @@ procedure TLemmingGame.RegainControl;
   This is a very important routine. It jumps from replay into usercontrol.
 -------------------------------------------------------------------------------}
 begin
-  if fReplaying then
-  begin
-    fReplaying := False;
-
+  if Replaying then
     fReplayManager.Cut(fCurrentIteration);
-  end;
 
-  InfoPainter.SetReplayMark(false); 
+  InfoPainter.SetReplayMark(false);
 end;
 
 procedure TLemmingGame.SetOptions(const Value: TDosGameOptions);
@@ -6177,6 +6160,11 @@ begin
     end;
   end;
 
+end;
+
+function TLemmingGame.GetIsReplaying: Boolean;
+begin
+  Result := fCurrentIteration <= fReplayManager.LastActionFrame;
 end;
 
 end.
