@@ -21,7 +21,7 @@ const
   // Current version number
   Cur_MainVer = 1;
   Cur_SubVer = 47;
-  Cur_MinorVer = 3;
+  Cur_MinorVer = 4;
 
   // Do not forget to update consts in TAppController.CheckCompatibility if minimum compatible version has changed!
 
