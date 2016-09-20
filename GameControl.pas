@@ -270,6 +270,7 @@ begin
   SL.Add('LastVersion=' + IntToStr(Cur_MainVer) + IntToStr(Cur_SubVer) + IntToStr(Cur_MinorVer));
 
   SL.Add('');
+  SL.Add('# Interface Options');
   SaveBoolean('ClickHighlight', ClickHighlight);
   SaveBoolean('AutoReplayNames', AutoReplayNames);
   SaveBoolean('AutoSaveReplay', AutoSaveReplay);
@@ -282,6 +283,7 @@ begin
   SaveBoolean('TimerBlink', TimerBlink);
   SaveBoolean('BlackOutZero', BlackOutZero);
   SaveBoolean('NoBackgrounds', NoBackgrounds);
+  SL.Add('ZoomLevel=' + IntToStr(ZoomLevel));
 
   SL.Add('');
   SL.Add('# Sound Options');
@@ -290,10 +292,10 @@ begin
   SaveBoolean('VictoryJingle', PostLevelVictorySound);
   SaveBoolean('FailureJingle', PostLevelFailureSound);
 
+  SL.Add('');
+  SL.Add('# Online Options');
   SaveBoolean('EnableOnline', OnlineEnabled);
   SaveBoolean('UpdateCheck', CheckUpdates);
-
-  SL.Add('ZoomLevel=' + IntToStr(ZoomLevel));
 
 
   SL.SaveToFile(ExtractFilePath(ParamStr(0)) + 'NeoLemmix147Settings.ini');
