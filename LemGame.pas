@@ -1374,7 +1374,8 @@ procedure TLemmingGame.PlayMusic;
 begin
   if MusicVolume = 0 then Exit;
   PrepareMusic;
-  SoundMgr.PlayMusic(0);
+  if not fStartupMusicAfterEntry then
+    SoundMgr.PlayMusic(0);
 end;
 
 procedure TLemmingGame.PrepareMusic;
@@ -4895,8 +4896,8 @@ begin
         end;
         if fStartupMusicAfterEntry and not EntriesOpened then
         begin
-          PlayMusic;
           fStartupMusicAfterEntry := False;
+          PlayMusic;
         end;
         EntriesOpened := True;
       end;
@@ -4904,8 +4905,8 @@ begin
       begin
         if fStartupMusicAfterEntry then
         begin
-          PlayMusic;
           fStartupMusicAfterEntry := False;
+          PlayMusic;
         end;
       end;
   end;
