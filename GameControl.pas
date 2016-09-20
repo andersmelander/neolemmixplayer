@@ -96,6 +96,9 @@ type
 
   TMiscOptions = set of TMiscOption;
 
+  TPostLevelSoundOption = (plsVictory, plsFailure);
+  TPostLevelSoundOptions = set of TPostLevelSoundOption;
+
 const
   DEF_MISCOPTIONS = [
     moAutoReplayNames,
@@ -123,8 +126,14 @@ type
     fZoomLevel: Integer;
     fMainForm: TForm; // link to the FMain form
 
+    MiscOptions           : TMiscOptions;
+    PostLevelSoundOptions : TPostLevelSoundOptions;
+
     function GetOptionFlag(aFlag: TMiscOption): Boolean;
     procedure SetOptionFlag(aFlag: TMiscOption; aValue: Boolean);
+
+    function GetPostLevelSoundOptionFlag(aFlag: TPostLevelSoundOption): Boolean;
+    procedure SetPostLevelSoundOptionFlag(aFlag: TPostLevelSoundOption; aValue: Boolean);
 
     function GetSoundFlag(aFlag: TGameSoundOption): Boolean;
     //procedure SetSoundFlag(aFlag: TGameSoundOption; aValue: Boolean);
@@ -164,7 +173,6 @@ type
 
     // cheat
 //    Cheatmode: Boolean; // levelcode screen
-    MiscOptions         : TMiscOptions;
 
     fZoomFactor          : Integer;
     fForceSkillset       : Word;
@@ -212,6 +220,9 @@ type
     property PauseAfterBackwardsSkip: boolean Index moPauseAfterBackwards read GetOptionFlag write SetOptionFlag;
     property NoBackgrounds: boolean Index moNoBackgrounds read GetOptionFlag write SetOptionFlag;
 
+    property PostLevelVictorySound: Boolean Index plsVictory read GetPostLevelSoundOptionFlag write SetPostLevelSoundOptionFlag;
+    property PostLevelFailureSound: Boolean Index plsFailure read GetPostLevelSoundOptionFlag write SetPostLevelSoundOptionFlag;
+
     property DumpMode: boolean read fDumpMode write fDumpMode;
     property OneLevelMode: boolean read fOneLevelMode write fOneLevelMode;
     property ShownText: boolean read fShownText write fShownText;
@@ -258,8 +269,7 @@ begin
 
   SL.Add('LastVersion=' + IntToStr(Cur_MainVer) + IntToStr(Cur_SubVer) + IntToStr(Cur_MinorVer));
 
-  SL.Add('MusicVolume=' + IntToStr(MusicVolume));
-  SL.Add('SoundVolume=' + IntToStr(SoundVolume));
+  SL.Add('');
   SaveBoolean('ClickHighlight', ClickHighlight);
   SaveBoolean('AutoReplayNames', AutoReplayNames);
   SaveBoolean('AutoSaveReplay', AutoSaveReplay);
@@ -271,8 +281,16 @@ begin
   SaveBoolean('LemmingCountBlink', LemmingBlink);
   SaveBoolean('TimerBlink', TimerBlink);
   SaveBoolean('BlackOutZero', BlackOutZero);
-  SaveBoolean('EnableOnline', OnlineEnabled);
   SaveBoolean('NoBackgrounds', NoBackgrounds);
+
+  SL.Add('');
+  SL.Add('# Sound Options');
+  SL.Add('MusicVolume=' + IntToStr(MusicVolume));
+  SL.Add('SoundVolume=' + IntToStr(SoundVolume));
+  SaveBoolean('VictoryJingle', PostLevelVictorySound);
+  SaveBoolean('FailureJingle', PostLevelFailureSound);
+
+  SaveBoolean('EnableOnline', OnlineEnabled);
   SaveBoolean('UpdateCheck', CheckUpdates);
 
   SL.Add('ZoomLevel=' + IntToStr(ZoomLevel));
@@ -286,6 +304,7 @@ end;
 procedure TDosGameParams.LoadFromIniFile;
 var
   SL: TStringList;
+  LastVer: Integer;
 
   function LoadBoolean(aLabel: String): Boolean;
   begin
@@ -299,11 +318,8 @@ var
 begin
   if not FileExists(ExtractFilePath(ParamStr(0)) + 'NeoLemmix147Settings.ini') then
     if not FileExists(ExtractFilePath(ParamStr(0)) + 'NeoLemmixSettings.ini') then
-    begin
-      SoundVolume := 100;
-      MusicVolume := 100;
       Exit;
-    end;
+
   SL := TStringList.Create;
 
   if not FileExists(ExtractFilePath(ParamStr(0)) + 'NeoLemmix147Settings.ini') then
@@ -330,10 +346,15 @@ begin
 
   ZoomLevel := StrToIntDef(SL.Values['ZoomLevel'], 0);
 
-  if StrToIntDef(SL.Values['LastVersion'], 0) < 1441 then
+  PostLevelVictorySound := LoadBoolean('VictoryJingle');
+  PostLevelFailureSound := LoadBoolean('FailureJingle');
+
+  LastVer := StrToIntDef(SL.Values['LastVersion'], 0);
+
+  if LastVer < 1441 then
     BlackOutZero := true;
 
-  if StrToIntDef(SL.Values['LastVersion'], 0) < 1471 then
+  if LastVer < 1471 then
   begin
     if LoadBoolean('SoundEnabled') then
       SoundVolume := 100
@@ -345,6 +366,12 @@ begin
       MusicVolume := 0;
 
     PauseAfterBackwardsSkip := true;
+  end;
+
+  if LastVer < 1474 then
+  begin
+    PostLevelVictorySound := true;
+    PostLevelFailureSound := true;
   end;
 
   SL.Free;
@@ -359,6 +386,10 @@ begin
   inherited Create;
 
   MiscOptions := DEF_MISCOPTIONS;
+  PostLevelSoundOptions := [plsVictory, plsFailure];
+
+  MusicVolume := 100;
+  SoundVolume := 100;
   fForceSkillset := 0;
   fDumpMode := false;
   fTestScreens := 0;
@@ -417,6 +448,19 @@ begin
     Include(MiscOptions, aFlag)
   else
     Exclude(MiscOptions, aFlag);
+end;
+
+function TDosGameParams.GetPostLevelSoundOptionFlag(aFlag: TPostLevelSoundOption): Boolean;
+begin
+  Result := aFlag in PostLevelSoundOptions;
+end;
+
+procedure TDosGameParams.SetPostLevelSoundOptionFlag(aFlag: TPostLevelSoundOption; aValue: Boolean);
+begin
+  if aValue then
+    Include(PostLevelSoundOptions, aFlag)
+  else
+    Exclude(PostLevelSoundOptions, aFlag);
 end;
 
 function TDosGameParams.GetSoundFlag(aFlag: TGameSoundOption): Boolean;
