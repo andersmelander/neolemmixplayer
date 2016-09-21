@@ -63,12 +63,13 @@ begin
   Z.OpenArchive(ZipFileName, amCreate);
   Z.ZipOptions := [];
   Z.AddFiles(IncludeTrailingBackslash(GetApplicationPath + aSourcePath) + 'helpers\*.png');
+  Z.AddFiles(IncludeTrailingBackslash(GetApplicationPath + aSourcePath) + '*.dat');
+  Z.AddFiles(IncludeTrailingBackslash(GetApplicationPath + aSourcePath) + '*.it');
+  Z.AddFiles(IncludeTrailingBackslash(GetApplicationPath + aSourcePath) + '*.ogg');
   Z.AddFiles(IncludeTrailingBackslash(GetApplicationPath + aSourcePath) + 'image\*.png');
   Z.AddFiles(IncludeTrailingBackslash(GetApplicationPath + aSourcePath) + 'lems\*.png');
   Z.AddFiles(IncludeTrailingBackslash(GetApplicationPath + aSourcePath) + 'lems\*.nxmi');
   Z.AddFiles(IncludeTrailingBackslash(GetApplicationPath + aSourcePath) + 'masks\*.png');
-  Z.AddFiles(IncludeTrailingBackslash(GetApplicationPath + aSourcePath) + '*.dat');
-  Z.AddFiles(IncludeTrailingBackslash(GetApplicationPath + aSourcePath) + '*.it');
   Z.AddFiles(IncludeTrailingBackslash(GetApplicationPath + aSourcePath) + '*.txt');
 
 
