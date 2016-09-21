@@ -282,7 +282,7 @@ begin
                                                     // sometimes. Not sure if this still needs to be here but no harm
                                                     // in having it.
 
-  fGameParams.SaveSystem.LoadFile(@fGameParams);
+  fGameParams.Load;
 
   if fGameParams.fTestMode then
   begin
@@ -294,8 +294,6 @@ begin
     else
       fGameParams.QuickTestMode := s2i(ParamStr(4));
   end;
-
-  fGameParams.LoadFromIniFile;
 
   // Unless Zoom level is 0 (fullscreen), resize the main window
   if fGameParams.ZoomLevel <> 0 then
@@ -374,9 +372,7 @@ begin
   // game will be terminating after this procedure anyway.
   // More important is making sure all relevant data is saved.
 
-  fGameParams.SaveSystem.SaveFile(@fGameParams);
-  fGameParams.SaveToIniFile;
-  fGameParams.Hotkeys.SaveFile;
+  fGameParams.Save;
 
   fGameParams.Renderer.Free;
   fGameParams.Level.Free;
@@ -397,9 +393,7 @@ begin
   begin
     // Save the data between screens. This way it's more up to date in case
     // game crashes at any point.
-    fGameParams.SaveSystem.SaveFile(@fGameParams);
-    fGameParams.SaveToIniFile;
-    fGameParams.Hotkeys.SaveFile;
+    fGameParams.Save;
 
     // I don't remember why this part is written like this.
     // Might be so that after the text screen, the right screen out of
