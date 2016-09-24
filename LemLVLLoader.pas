@@ -154,7 +154,7 @@ begin
   if Vgaspec <> '' then
     with aLevel.Terrains.Insert(0) do
     begin
-      GS := 'special';
+      GS := '*special';
       Piece := Vgaspec;
       Left := aLevel.Info.VgaspecX;
       Top := aLevel.Info.VgaspecY;
