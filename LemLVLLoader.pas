@@ -145,6 +145,7 @@ var
       if aLevel.Info.WindowOrder[i] >= Removed then
         aLevel.Info.WindowOrder[i] := aLevel.Info.WindowOrder[i] - 1;
   end;
+
 begin
   // Needs to convert preplaced lemmings and vgaspecs appropriately
 
@@ -152,13 +153,7 @@ begin
 
   if Vgaspec = 'none' then Vgaspec := '';
   if Vgaspec <> '' then
-    with aLevel.Terrains.Insert(0) do
-    begin
-      GS := '*special';
-      Piece := Vgaspec;
-      Left := aLevel.Info.VgaspecX;
-      Top := aLevel.Info.VgaspecY;
-    end;
+    raise Exception.Create('Error: This level uses a VGASPEC, which is no longer supported.');
 
   if GlobalPieceManager <> nil then
   begin
