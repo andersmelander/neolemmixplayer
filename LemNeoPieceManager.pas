@@ -162,7 +162,7 @@ begin
   if fIsObtaining then raise Exception.Create('ObtainTerrain loop on "' + Identifier + '". Please report this.');
 
   TerrainLabel := SplitIdentifier(Identifier);
-  if Lowercase(TerrainLabel.GS) = 'special' then
+  if Lowercase(TerrainLabel.GS) = '*special' then
     ObtainVgaspec(TerrainLabel.Piece)
   else
     ObtainGraphicSet(TerrainLabel.GS);
