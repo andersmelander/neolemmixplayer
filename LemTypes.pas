@@ -357,15 +357,15 @@ begin
                       Exit;
                     end;
 
-                    if not IsSingleLevelMode then Arc.OpenArchive(GameFile, amOpen);
-                    if not FileInArchive then Arc.OpenResource(HINSTANCE, 'lemdata', 'archive');
-                    if FileInArchive then
-                      Arc.ExtractFile(aFilename, Result)
+                    if FileExists(AppPath + 'styles/' + aFilename) then
+                      Result.LoadFromFile(AppPath + 'styles/' + aFilename)
                     else begin
-                      if not FileExists(AppPath + 'styles/' + aFilename) then
-                        FreeAndNil(Result)
+                      if not IsSingleLevelMode then Arc.OpenArchive(GameFile, amOpen);
+                      if not FileInArchive then Arc.OpenResource(HINSTANCE, 'lemdata', 'archive');
+                      if FileInArchive then
+                        Arc.ExtractFile(aFilename, Result)
                       else
-                        Result.LoadFromFile(AppPath + 'styles/' + aFilename);
+                        FreeAndNil(Result);
                     end;
                   end;
         ldtText: begin
