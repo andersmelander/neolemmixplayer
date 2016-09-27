@@ -212,7 +212,7 @@ var
       with aLevel.Terrains.Insert(1) do
       begin
         GS := Vgaspec;
-        Piece := 't1*s';
+        Piece := 't1*s'; // piece manager detects the "*s" and overrides the steel setting of the piece
         Left := aLevel.Info.VgaspecX;
         Top := aLevel.Info.VgaspecY;
         DrawingFlags := 0;
