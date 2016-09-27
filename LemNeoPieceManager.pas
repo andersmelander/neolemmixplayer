@@ -35,7 +35,7 @@ type
       function ObtainTerrain(Identifier: String): Integer;
       function ObtainObject(Identifier: String): Integer;
 
-      procedure ObtainGraphicSet(aName: String; aAsTheme: Boolean = false);
+      procedure ObtainGraphicSet(aName: String; aAsTheme: Boolean = false; aBgIndex: Integer = 0);
       procedure ObtainVgaspec(aName: String);
       function CheckForGraphicSet(aName: String): Boolean;
 
@@ -51,7 +51,7 @@ type
       procedure Tidy;
 
       procedure SetTheme(aTheme: TNeoTheme);
-      procedure ApplyTheme(aSet: String);
+      procedure ApplyTheme(aSet: String; aBgIndex: Integer);
 
       property Terrains[Identifier: String]: TMetaTerrain read GetMetaTerrain;
       property Objects[Identifier: String]: TMetaObject read GetMetaObject;
@@ -213,7 +213,7 @@ begin
   end;
 end;
 
-procedure TNeoPieceManager.ObtainGraphicSet(aName: String; aAsTheme: Boolean = false);
+procedure TNeoPieceManager.ObtainGraphicSet(aName: String; aAsTheme: Boolean = false; aBgIndex: Integer = 0);
 var
   BcSet: TBcGraphicSet;
   AlreadyHasSet: Boolean;
@@ -228,7 +228,7 @@ begin
     BcSet.LoadGraphicSet(aName);
 
     if aAsTheme then
-      fTheme.Load(BcSet);
+      fTheme.Load(BcSet, aBgIndex);
 
     if AlreadyHasSet then Exit;
 
@@ -283,9 +283,9 @@ begin
   Tidy;
 end;
 
-procedure TNeoPieceManager.ApplyTheme(aSet: String);
+procedure TNeoPieceManager.ApplyTheme(aSet: String; aBgIndex: Integer);
 begin
-  ObtainGraphicSet(aSet, true);
+  ObtainGraphicSet(aSet, true, aBgIndex);
 end;
 
 end.

@@ -95,6 +95,7 @@ type
       constructor Create;
       destructor Destroy; override;
       procedure LoadGraphicSet(aName: String);
+      function LoadBackground(aDst: TBitmap32; aIndex: Integer): Boolean;
       property DataStream: TMemoryStream read fDataStream;
       property Name: String read fName;
       property Resolution: Integer read fResolution;
@@ -174,6 +175,26 @@ begin
   fDataStream.Free;
   fSpecialBitmap.Free;
   inherited;
+end;
+
+function TBcGraphicSet.LoadBackground(aDst: TBitmap32; aIndex: Integer): Boolean;
+var
+  i: Integer;
+begin
+  Result := false;
+  aDst.Clear(fBackgroundColor or $FF000000);
+  for i := 0 to fObjectCount-1 do
+  begin
+    if fObjectData[i].TriggerEff <> 32 then Continue;
+    if aIndex = 0 then
+    begin
+      fDataStream.Position := fObjectData[i].BaseLoc;
+      LoadNeoLemmixImage(fDataStream, aDst, fResolution);
+      Result := true;
+      Exit;
+    end else
+      Dec(aIndex);
+  end;
 end;
 
 procedure TBcGraphicSet.EnsureObjectLength;

@@ -40,7 +40,7 @@ type
       destructor Destroy; override;
       procedure Clear;
       procedure Load(aSet: String); overload;
-      procedure Load(aBc: TBcGraphicSet); overload;
+      procedure Load(aBc: TBcGraphicSet; aBgIndex: Integer); overload;
 
       property HasImageBackground: Boolean read fHasImageBackground;
       property Background: TBitmap32 read fBackgroundImage;
@@ -69,7 +69,7 @@ begin
   SetLength(fColors, 0);
 end;
 
-procedure TNeoTheme.Load(aBc: TBcGraphicSet);
+procedure TNeoTheme.Load(aBc: TBcGraphicSet; aBgIndex: Integer);
 var
   i: Integer;
 begin
@@ -89,13 +89,8 @@ begin
   else
     fLemmings := 'default';
 
-  for i := 0 to aBc.ObjectCount-1 do
-    if aBc.ObjectData[i].TriggerEff = 32 then
-    begin
-      aBc.DataStream.Position := aBc.ObjectData[i].BaseLoc;
-      LoadNeoLemmixImage(aBc.DataStream, fBackgroundImage, aBc.Resolution);
-      fHasImageBackground := true;
-    end;
+  if aBc.LoadBackground(fBackgroundImage, aBgIndex) then
+    fHasImageBackground := true; 
 end;
 
 procedure TNeoTheme.Load(aSet: String);
