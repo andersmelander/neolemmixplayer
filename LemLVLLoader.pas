@@ -146,6 +146,48 @@ var
         aLevel.Info.WindowOrder[i] := aLevel.Info.WindowOrder[i] - 1;
   end;
 
+  function HandleVgaspecConvert: Boolean;
+  var
+    i: Integer;
+  const
+    SPEC_NAMES: array[0..13] of String = ('beasti', 'menace', 'awesome', 'beastii',
+                                          'beasti_md', 'menace_md', 'awesome_md', 'beastii_md',
+                                          'hebereke', 'covox', '', 'prima',
+                                          'apple', 'sixesnot');
+    SPEC_OFFSET: array[0..13] of Integer = (1, 0, 17, 0,
+                                            230, 226, 225, 224,
+                                            227, 18, 0, 0,
+                                            0, 272);
+
+  begin
+    aLevel.Info.VgaspecFile := '';
+    Result := false;
+    for i := 0 to 13 do
+    begin
+      if i = 10 then Continue; // placeholder for Covox's steel
+      if Vgaspec = SPEC_NAMES[i] then
+      begin
+        with aLevel.Terrains.Insert(0) do
+        begin
+          GS := 'special';
+          Piece := 't' + IntToStr(i);
+          Left := aLevel.Info.VgaspecX + SPEC_OFFSET[i];
+          Top := aLevel.Info.VgaspecY; // all the pieces in the "Special" set are still full-height so no custom height offsets needed
+        end;
+        if i = 9 then // special handling for Covox: add the steel too
+          with aLevel.Terrains.Insert(1) do
+          begin
+            GS := 'special';
+            Piece := 't10';
+            Left := aLevel.Info.VgaspecX + SPEC_OFFSET[i];
+            Top := aLevel.Info.VgaspecY;
+          end;
+        Result := true;
+        Exit;
+      end;
+    end;
+  end;
+
 begin
   // Needs to convert preplaced lemmings and vgaspecs appropriately
 
@@ -153,7 +195,8 @@ begin
 
   if Vgaspec = 'none' then Vgaspec := '';
   if Vgaspec <> '' then
-    raise Exception.Create('Error: This level uses a VGASPEC, which is no longer supported.');
+    if not HandleVgaspecConvert then
+      raise Exception.Create('This level uses a non-default VGASPEC and thus needs to be updated to work with regular graphic sets only.');
 
   if GlobalPieceManager <> nil then
   begin
