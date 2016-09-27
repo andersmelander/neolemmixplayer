@@ -6047,7 +6047,7 @@ begin
 
   sc := CurrSkillCount[aAction];
 
-  if sc > 0 then Result := true;
+  if (sc > 0) or (fGameParams.ChallengeMode) then Result := true;
 
   CheckButton := ActionToSkillPanelButton[aAction];
   for i := 0 to 7 do
@@ -6062,7 +6062,11 @@ procedure TLemmingGame.UpdateSkillCount(aAction: TBasicLemmingAction; Rev : Bool
 var
   sc, sc2: ^Integer;
 begin
-  if Rev and fGameParams.ChallengeMode then Exit;
+  if fGameParams.ChallengeMode then
+    if Rev then
+      Exit
+    else
+      Rev := true;
   if fFreezeSkillCount then Exit;
 
   Assert(aAction in AssignableSkills, 'UpdateSkillCount for not assignable skill');
