@@ -53,6 +53,8 @@ type
       procedure SetTheme(aTheme: TNeoTheme);
       procedure ApplyTheme(aSet: String; aBgIndex: Integer);
 
+      function GetTerrainPieceCount(aSet: String): Integer;
+
       property Terrains[Identifier: String]: TMetaTerrain read GetMetaTerrain;
       property Objects[Identifier: String]: TMetaObject read GetMetaObject;
   end;
@@ -129,6 +131,23 @@ begin
   Result := fObjects.Count;
 end;
 
+function TNeoPieceManager.GetTerrainPieceCount(aSet: String): Integer;
+var
+  i: Integer;
+begin
+  Result := 0;
+  aSet := Lowercase(aSet);
+  for i := 0 to fTerrains.Count-1 do
+    if Lowercase(fTerrains[i].GS) = aSet then
+      Inc(Result);
+  if Result = 0 then
+  begin
+    i := fTerrains.Count;
+    ObtainGraphicSet(aSet);
+    Result := fTerrains.Count - i;
+  end;
+end;
+
 // Some functions to locate a piece in the internal arrays...
 
 function TNeoPieceManager.FindTerrainIndexByIdentifier(Identifier: String): Integer;
@@ -162,10 +181,7 @@ begin
   if fIsObtaining then raise Exception.Create('ObtainTerrain loop on "' + Identifier + '". Please report this.');
 
   TerrainLabel := SplitIdentifier(Identifier);
-  if Lowercase(TerrainLabel.GS) = '*special' then
-    ObtainVgaspec(TerrainLabel.Piece)
-  else
-    ObtainGraphicSet(TerrainLabel.GS);
+  ObtainGraphicSet(TerrainLabel.GS);
   fIsObtaining := true;
   Result := FindTerrainIndexByIdentifier(Identifier);
   fIsObtaining := false;
@@ -262,9 +278,17 @@ end;
 function TNeoPieceManager.GetMetaTerrain(Identifier: String): TMetaTerrain;
 var
   i: Integer;
+  SetToSteel: Boolean;
 begin
+  if RightStr(Identifier, 2) = '*s' then
+  begin
+    Identifier := LeftStr(Identifier, Length(Identifier)-2);
+    SetToSteel := true;
+  end;
   i := FindTerrainIndexByIdentifier(Identifier);
   Result := fTerrains[i];
+  if SetToSteel then
+    Result.IsSteel := true;
 end;
 
 function TNeoPieceManager.GetMetaObject(Identifier: String): TMetaObject;

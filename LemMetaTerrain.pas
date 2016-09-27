@@ -30,6 +30,7 @@ type
     procedure EnsureImageMade(Flip, Invert, Rotate: Boolean);
     procedure DeriveGraphicImage(Flip, Invert, Rotate: Boolean);
     procedure DerivePhysicsImage(Flip, Invert, Rotate: Boolean);
+    procedure SetIsSteel(aValue: Boolean);
   protected
     fGraphicImages: array[0..ALIGNMENT_COUNT-1] of TBitmap32;
     fPhysicsImages: array[0..ALIGNMENT_COUNT-1] of TBitmap32;
@@ -55,7 +56,7 @@ type
     property Piece  : String read fPiece write fPiece;
     property Width         : Integer read fWidth write fWidth;
     property Height        : Integer read fHeight write fHeight;
-    property IsSteel       : Boolean read fIsSteel write fIsSteel;
+    property IsSteel       : Boolean read fIsSteel write SetIsSteel;
   end;
 
   TMetaTerrains = class(TObjectList)
@@ -273,6 +274,17 @@ end;
 procedure TMetaTerrain.GenerateGraphicImage;
 begin
   raise Exception.Create('Basic TMetaTerrain cannot interally generate the graphical image!');
+end;
+
+procedure TMetaTerrain.SetIsSteel(aValue: Boolean);
+var
+  i: Integer;
+begin
+  fIsSteel := aValue;
+  for i := 0 to ALIGNMENT_COUNT-1 do
+    fGeneratedPhysicsImage[i] := false;
+  fPhysicsImages[0].Clear(0);
+  GeneratePhysicsImage;
 end;
 
 procedure TMetaTerrain.GeneratePhysicsImage;

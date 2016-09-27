@@ -173,6 +173,8 @@ var
           Piece := 't' + IntToStr(i);
           Left := aLevel.Info.VgaspecX + SPEC_OFFSET[i];
           Top := aLevel.Info.VgaspecY; // all the pieces in the "Special" set are still full-height so no custom height offsets needed
+          if aLevel.Info.LevelOptions and $80 = 0 then
+            DrawingFlags := tdf_NoOneWay;
         end;
         if i = 9 then // special handling for Covox: add the steel too
           with aLevel.Terrains.Insert(1) do
@@ -186,6 +188,48 @@ var
         Exit;
       end;
     end;
+
+    // A clever workaround. But I really hope people don't rely on it... especially because it may give graphical issues
+    // on certain ways of constructing the VGASPEC file. Should be functionally fine in all cases, though.
+    if GlobalPieceManager = nil then
+      raise Exception.Create('This level uses a non-default VGASPEC, and the global piece manager is not set. Please report this.');
+
+    Vgaspec := 'x_' + Vgaspec;
+    i := GlobalPieceManager.GetTerrainPieceCount(Vgaspec);
+    with aLevel.Terrains.Insert(0) do
+    begin
+      GS := Vgaspec;
+      Piece := 't0';
+      Left := aLevel.Info.VgaspecX;
+      Top := aLevel.Info.VgaspecY;
+      if aLevel.Info.LevelOptions and $80 <> 0 then
+        DrawingFlags := tdf_NoOneWay
+      else
+        DrawingFlags := 0;
+    end;
+
+    if i > 1 then
+      with aLevel.Terrains.Insert(1) do
+      begin
+        GS := Vgaspec;
+        Piece := 't1*s';
+        Left := aLevel.Info.VgaspecX;
+        Top := aLevel.Info.VgaspecY;
+        DrawingFlags := 0;
+      end;
+
+    if i > 2 then
+      with aLevel.Terrains.Insert(2) do
+      begin
+        GS := Vgaspec;
+        Piece := 't2';
+        Left := aLevel.Info.VgaspecX;
+        Top := aLevel.Info.VgaspecY;
+        if aLevel.Info.LevelOptions and $80 = 0 then
+          DrawingFlags := tdf_NoOneWay
+        else
+          DrawingFlags := 0;
+      end;
   end;
 
 begin
