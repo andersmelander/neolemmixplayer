@@ -20,7 +20,8 @@ type
 
   // Compatibility flags. These are used by the CheckCompatible function.
   TNxCompatibility = (nxc_Unknown,
-                      nxc_VersionError,
+                      nxc_VersionErrorNew,
+                      nxc_VersionErrorOld,
                       nxc_Compatible,
                       nxc_Incompatible,
                       nxc_BC); //nxc_BC works but implements some backwards compatibility fixes
@@ -78,7 +79,7 @@ const
   // Lowest version numbers that are compatible. Note that this isn't nessecerially the exact
   // current version; this should only be changed when a backwards compatibility issue arises.
   Min_MainVer = 1;    // 1.bb-c
-  Min_SubVer = 47;    // a.47-c
+  Min_SubVer = 48;    // a.48-c
   Min_MinorVer = 1;   // a.bb-A
 
   function GetTargetAsString(aMain, aSub, aMinor: Integer): String;
@@ -93,6 +94,15 @@ const
   function CombineTarget(aMain, aSub, aMinor: Integer): Integer;
   begin
     Result := (aMain * 10000) + (aSub * 100) + aMinor;
+  end;
+
+  function TestFor148Compatible: Boolean;
+  var
+    TempStream: TMemoryStream;
+  begin
+    TempStream := CreateDataStream('levels.nxmi', ldtLemmings);
+    Result := (TempStream <> nil);
+    TempStream.Free;
   end;
 begin
   //Result := nxc_Unknown;
@@ -126,28 +136,19 @@ begin
     begin
       ShowMessage('Warning: This pack may be incompatible with this version of NeoLemmix. Please use' + #13 +
                   'NeoLemmix ' + GetTargetAsString(MainVer, SubVer, MinorVer) + ' or higher.');
-      Result := nxc_VersionError;
+      Result := nxc_VersionErrorNew;
     end;
 
     // If requirement is below lowest supported version
     if CombineTarget(MainVer, MaxSubVer, MaxMinorVer) < CombineTarget(Min_MainVer, Min_SubVer, Min_MinorVer) then
     begin
-      if SubVer < 44 then
+      if not TestFor148Compatible then
       begin
-        ShowMessage('This pack was built for an older version of NeoLemmix. Please be aware that' + #13 +
-                    'full compatibility cannot be guaranteed. Using V1.43n-F to play this pack' + #13 +
-                    'is recommended.');
-        Result := nxc_VersionError;
-      end else if SubVer < 47 then
-      begin
-        // Not likely to ever happen. Just in case.
-        ShowMessage('This pack may have compatibility issues.');
-      end else begin
-        // Fallback if there's no specific message. Should never happen but just in case.
-        ShowMessage('Warning: This pack may be incompatible with this version of NeoLemmix. Please update to' + #13 +
-                    'NeoLemmix ' + GetTargetAsString(MainVer, SubVer, MinorVer) + ' or higher.');
-        Result := nxc_VersionError;
+        ShowMessage('This pack was built for older versions of NeoLemmix and is not compatible with this version.' + #13 +
+                    'Use NeoLemmix ' + GetTargetAsString(MainVer, MaxSubVer, MaxMinorVer) + ' to play this pack.');
+        Result := nxc_VersionErrorOld;
       end;
+      // TestFor148Compatible will only pass on certain V1.47n-targetting packs that will not have compatibility issues.
     end;
 
   except
@@ -220,6 +221,9 @@ begin
                                          ShowMessage('ERROR: ' + ExtractFileName(GameFile) + ' is not a valid NeoLemmix data file.');
                                          Halt(0);
                                        end;
+        nxc_VersionErrorOld: begin
+                               Halt(0);
+                             end;
         //nxc_BC: OverrideDirectDrop := false;
       end;
     end else begin
@@ -715,7 +719,6 @@ var
   begin
     Result := false;
     DataStream := CreateDataStream('levels.nxmi', ldtLemmings);
-    if DataStream = nil then Exit;
 
     LS := TBaseDosLevelSystem(fGameParams.Style.LevelSystem);
 
@@ -800,19 +803,7 @@ begin
        SoundVolume := 0;
        MusicVolume := 0;
        if not TryLevelInfoFile then
-       begin
-         SetLength(LevelIDArray, TBaseDosLevelSystem(fGameParams.Style.LevelSystem).GetSectionCount);
-         for dS := 0 to Length(LevelIDArray)-1 do
-         begin
-           SetLength(LevelIDArray[dS], TBaseDosLevelSystem(fGameParams.Style.LevelSystem).GetLevelCount(dS));
-           for dL := 0 to Length(LevelIDArray[dS])-1 do
-           begin
-             TBaseDosLevelSystem(fGameParams.Style.LevelSystem).ResetOddtableHistory;
-             fGameParams.Style.LevelSystem.LoadSingleLevel(fGameParams.Info.dPack, dS, dL, fGameParams.Level);
-             LevelIDArray[dS][dL] := fGameParams.Level.Info.LevelID;
-           end;
-         end;
-       end;
+         raise Exception.Create('Couldn''t get Level IDs from info file.');
        for i := 0 to fGameParams.ReplayResultList.Count-1 do
        begin
          FoundMatch := false;
