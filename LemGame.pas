@@ -5363,8 +5363,12 @@ begin
   SrcPoint.Y := aObject.Top + aObject.TriggerRect.Top;
 
   if aObject.MetaObj.InternalSoundEffect = -1 then
-    CueSoundEffect(GetTrapSoundIndex(aObject.MetaObj.SoundEffect), SrcPoint)
-  else
+  begin
+    if (aObject.MetaObj.TriggerEffect = DOM_LOCKEXIT) and (aObject.MetaObj.SoundEffect = 0) then
+      CueSoundEffect(SFX_ENTRANCE, SrcPoint)
+    else
+      CueSoundEffect(GetTrapSoundIndex(aObject.MetaObj.SoundEffect), SrcPoint);
+  end else
     CueSoundEffect(aObject.MetaObj.InternalSoundEffect, SrcPoint);
 end;
 
