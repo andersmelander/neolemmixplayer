@@ -731,10 +731,13 @@ begin
           lka_LoadReplay: LoadReplay;
           lka_Music: if MusicVolume <> 0 then
                      begin
+                       SavedMusicVol := MusicVolume;
                        SoundOpts := SoundOpts - [gsoMusic];
                        MusicVolume := 0;
                      end else begin
-                       MusicVolume := 100; // must be first, else music plays at volume zero                    
+                       if SavedMusicVol = 0 then
+                         SavedMusicVol := 50;
+                       MusicVolume := SavedMusicVol; // must be first, else music plays at volume zero
                        SoundOpts := SoundOpts + [gsoMusic];
                      end;
           lka_Restart: begin         
@@ -743,11 +746,14 @@ begin
                        end;
           lka_Sound: if SoundVolume <> 0 then
                      begin
+                       SavedSoundVol := SoundVolume;
                        SoundOpts := SoundOpts - [gsoSound];
                        SoundVolume := 0;
                      end else begin
+                       if SavedSoundVol = 0 then
+                         SavedSoundVol := 50;
                        SoundOpts := SoundOpts + [gsoSound];
-                       SoundVolume := 100;
+                       SoundVolume := SavedSoundVol;
                      end;
           lka_SaveReplay: Save;
           lka_SkillRight: begin
