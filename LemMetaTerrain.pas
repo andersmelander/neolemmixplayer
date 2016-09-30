@@ -196,7 +196,7 @@ begin
     DS := aSet.DataStream;
 
     ClearImages;
-    fGS := 'special';
+    fGS := '*special';
     fPiece := RightStr(aSet.Name, Length(aSet.Name)-2);
 
     if aSet.SpecialBitmap <> nil then // older format
