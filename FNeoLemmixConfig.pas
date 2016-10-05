@@ -55,6 +55,8 @@ type
     Label7: TLabel;
     cbSuccessJingle: TCheckBox;
     cbFailureJingle: TCheckBox;
+    cbAutoUpdateStyles: TCheckBox;
+    btnUpdateStyles: TButton;
     procedure btnApplyClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure btnHotkeysClick(Sender: TObject);
@@ -65,6 +67,7 @@ type
     procedure OptionChanged(Sender: TObject);
     procedure cbEnableOnlineClick(Sender: TObject);
     procedure SliderChange(Sender: TObject);
+    procedure btnUpdateStylesClick(Sender: TObject);
   private
     fGameParams: TDosGameParams;
     fForceSkillset: Word;
@@ -311,6 +314,11 @@ end;
 procedure TFormNXConfig.SliderChange(Sender: TObject);
 begin
   btnApply.Enabled := true;
+end;
+
+procedure TFormNXConfig.btnUpdateStylesClick(Sender: TObject);
+begin
+  CheckForStyleUpdates(true);
 end;
 
 end.

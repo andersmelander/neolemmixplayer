@@ -88,8 +88,8 @@ type
     moConfirmOverwrite,
     moExplicitCancel,
     moBlackOutZero,
-    moEnableOnline,
     moCheckUpdates,
+    moUpdateStyles,
     moNoAutoReplayMode,
     moPauseAfterBackwards,
     moNoBackgrounds
@@ -219,8 +219,8 @@ type
     property ConfirmOverwrite: boolean Index moConfirmOverwrite read GetOptionFlag write SetOptionFlag;
     property ExplicitCancel: boolean Index moExplicitCancel read GetOptionFlag write SetOptionFlag;
     property BlackOutZero: boolean Index moBlackOutZero read GetOptionFlag write SetOptionFlag;
-    property EnableOnline: boolean Index moEnableOnline read GetOptionFlag write SetOptionFlag;
     property CheckUpdates: boolean Index moCheckUpdates read GetOptionFlag write SetOptionFlag;
+    property UpdateStyles: boolean Index moUpdateStyles read GetOptionFlag write SetOptionFlag;
     property NoAutoReplayMode: boolean Index moNoAutoReplayMode read GetOptionFlag write SetOptionFlag;
     property PauseAfterBackwardsSkip: boolean Index moPauseAfterBackwards read GetOptionFlag write SetOptionFlag;
     property NoBackgrounds: boolean Index moNoBackgrounds read GetOptionFlag write SetOptionFlag;
@@ -305,7 +305,6 @@ begin
   SaveBoolean('LemmingCountBlink', LemmingBlink);
   SaveBoolean('TimerBlink', TimerBlink);
   SaveBoolean('BlackOutZero', BlackOutZero);
-  SaveBoolean('EnableOnline', OnlineEnabled);
   SaveBoolean('NoBackgrounds', NoBackgrounds);
   SL.Add('ZoomLevel=' + IntToStr(ZoomLevel));
 
@@ -318,8 +317,9 @@ begin
 
   SL.Add('');
   SL.Add('# Online Options');
-  SaveBoolean('EnableOnline', EnableOnline);
+  SaveBoolean('EnableOnline', OnlineEnabled);
   SaveBoolean('UpdateCheck', CheckUpdates);
+  SaveBoolean('UpdateStyles', UpdateStyles);
 
 
   SL.SaveToFile(ExtractFilePath(ParamStr(0)) + 'NeoLemmix147Settings.ini');
@@ -369,6 +369,7 @@ begin
   OnlineEnabled := LoadBoolean('EnableOnline');
   NoBackgrounds := LoadBoolean('NoBackgrounds');
   CheckUpdates := LoadBoolean('UpdateCheck');
+  UpdateStyles := LoadBoolean('UpdateStyles');
 
   ZoomLevel := StrToIntDef(SL.Values['ZoomLevel'], 0);
 

@@ -11,7 +11,7 @@ interface
 
 uses
   Dialogs,
-  URLMon, Wininet, Classes, ActiveX, Axctrls, SysUtils; // I can only guess why IStream and others are in the ActiveX units...
+  URLMon, Wininet, Classes, ActiveX, Axctrls, StrUtils, SysUtils; // I can only guess why IStream and others are in the ActiveX units...
 
 const
   NX_BASE_URL = 'http://online.neolemmix.com/';
@@ -25,6 +25,7 @@ type
   function DownloadToFile(aURL: String; aFilename: String): Boolean;
   function DownloadToStream(aURL: String; aStream: TStream): Boolean;
   function DownloadToStringList(aURL: String; aStringList: TStringList): Boolean;
+  procedure CheckForStyleUpdates(Notify: Boolean = false);
 
   // Specialty functions
   function GetLatestNeoLemmixVersion(const aApp: TNxAppType; var MainVer, SubVer, MinorVer: Integer): Boolean;
@@ -33,6 +34,9 @@ var
   OnlineEnabled: Boolean;
 
 implementation
+
+uses
+  LemTypes;
 
 function GetLatestNeoLemmixVersion(const aApp: TNxAppType; var MainVer, SubVer, MinorVer: Integer): Boolean;
 var
@@ -169,6 +173,78 @@ begin
     TempStream.Position := 0;
     aStringList.LoadFromStream(TempStream);
   finally
+    TempStream.Free;
+  end;
+end;
+
+procedure CheckForStyleUpdates(Notify: Boolean = false);
+var
+  SL: TStringList;
+  UpdHist: TStringList;
+  SearchRec: TSearchRec;
+  StyName: String;
+  ModifiedDate: Int64;
+  LatestDate: Int64;
+  TempStream: TMemoryStream;
+  TempStr: String;
+
+  UpdateCount: Integer;
+  UpdateList: String;
+begin
+  SL := TStringList.Create;
+  UpdHist := TStringList.Create;
+  TempStream := TMemoryStream.Create;
+  UpdateCount := 0;
+  UpdateList := '';
+  try
+    if FileExists(AppPath + 'styles\versions.ini') then
+      UpdHist.LoadFromFile(AppPath + 'styles\versions.ini');
+    if FindFirst(AppPath + 'styles\*.dat', faAnyFile, SearchRec) = 0 then
+    begin
+      DownloadToStringList('http://online.neolemmix.com/styles.php', SL);
+      repeat
+        StyName := ChangeFileExt(Lowercase(SearchRec.Name), '');
+        if SL.Values[StyName] = '' then Continue;
+
+        TempStream.Clear;
+
+        LatestDate := StrToInt64Def(SL.Values[StyName], 0);
+        if UpdHist.Values[StyName] = '' then
+        begin
+          TempStr := '';
+          DateTimeToString(TempStr, 'yyyymmddhhnnss' , FileDateToDateTime(SearchRec.Time));
+          ModifiedDate := StrToInt64Def(TempStr, 0);
+        end else
+          ModifiedDate := StrToInt64Def(UpdHist.Values[StyName], 0);
+
+        if ModifiedDate >= LatestDate then Continue;
+
+        DownloadToStream('http://online.neolemmix.com/' + StyName + '.dat', TempStream);
+        TempStream.SaveToFile(AppPath + 'styles\' + StyName + '.dat');
+
+        Inc(UpdateCount);
+        UpdateList := UpdateList + StyName + ', ';
+        if UpdateCount mod 4 = 0 then
+          UpdateList := UpdateList + #13;
+
+        UpdHist.Values[StyName] := SL.Values[StyName];
+      until FindNext(SearchRec) <> 0;
+      FindClose(SearchRec);
+
+      UpdHist.SaveToFile(AppPath + 'styles\versions.ini');
+
+      if Notify then
+        if UpdateCount = 0 then
+          ShowMessage('No updates to styles were found.')
+        else begin
+          UpdateList := LeftStr(UpdateList, Length(UpdateList)-2);
+          ShowMessage('Downloaded updates to ' + IntToStr(UpdateCount) + ' styles:' + #13 + UpdateList);
+        end;
+
+    end;
+  finally
+    SL.Free;
+    UpdHist.Free;
     TempStream.Free;
   end;
 end;

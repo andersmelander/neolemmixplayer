@@ -23,7 +23,7 @@ object FormNXConfig: TFormNXConfig
     Top = 0
     Width = 273
     Height = 345
-    ActivePage = TabSheet1
+    ActivePage = TabSheet3
     TabOrder = 0
     object TabSheet1: TTabSheet
       Caption = 'General Options'
@@ -285,9 +285,27 @@ object FormNXConfig: TFormNXConfig
         Top = 40
         Width = 153
         Height = 17
-        Caption = 'Enable Update Check'
+        Caption = 'Enable Player Update Check'
         TabOrder = 1
         OnClick = OptionChanged
+      end
+      object cbAutoUpdateStyles: TCheckBox
+        Left = 16
+        Top = 64
+        Width = 153
+        Height = 17
+        Caption = 'Update Styles Automatically'
+        TabOrder = 2
+        OnClick = OptionChanged
+      end
+      object btnUpdateStyles: TButton
+        Left = 16
+        Top = 96
+        Width = 161
+        Height = 25
+        Caption = 'Check For Style Updates Now'
+        TabOrder = 3
+        OnClick = btnUpdateStylesClick
       end
     end
     object TabSheet2: TTabSheet

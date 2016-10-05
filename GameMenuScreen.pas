@@ -192,24 +192,32 @@ procedure TGameMenuScreen.PerformUpdateCheck;
 var
   MainVer, SubVer, MinorVer: Integer;
 begin
-  // Checks if the latest version according to NeoLemmix Website is more recent than the
-  // one currently running. If running an experimental version, also checks if it's the
-  // exact same version (as it would be a stable release).
-  GameParams.DoneUpdateCheck := true;
-  if not (OnlineEnabled and GameParams.CheckUpdates) then Exit;
-  if GetLatestNeoLemmixVersion(NxaPlayer, MainVer, SubVer, MinorVer) then
+  if not OnlineEnabled then
+    Exit;
+
+  if GameParams.CheckUpdates then
   begin
-    if (MainVer > Cur_MainVer)
-    or ((MainVer = Cur_MainVer) and (SubVer > Cur_SubVer))
-    or ((MainVer = Cur_MainVer) and (SubVer = Cur_SubVer) and (MinorVer > Cur_MinorVer))
-    {$ifdef exp}or ((MainVer = Cur_MainVer) and (SubVer = Cur_SubVer) and (MinorVer = Cur_MinorVer)){$endif} then
-      if MessageDlg('Update available: NeoLemmix V' + NumericalVersionToStringVersion(MainVer, SubVer, MinorVer) + #13 +
-                    'Go to the NeoLemmix website?', mtCustom, [mbYes, mbNo], 0) = mrYes then
-      begin
-        ShellExecute(handle,'open',PChar('http://www.neolemmix.com/neolemmix.html'), '','',SW_SHOWNORMAL);
-        CloseScreen(gstExit);
-      end;
+    // Checks if the latest version according to NeoLemmix Website is more recent than the
+    // one currently running. If running an experimental version, also checks if it's the
+    // exact same version (as it would be a stable release).
+    GameParams.DoneUpdateCheck := true;
+    if GetLatestNeoLemmixVersion(NxaPlayer, MainVer, SubVer, MinorVer) then
+    begin
+      if (MainVer > Cur_MainVer)
+      or ((MainVer = Cur_MainVer) and (SubVer > Cur_SubVer))
+      or ((MainVer = Cur_MainVer) and (SubVer = Cur_SubVer) and (MinorVer > Cur_MinorVer))
+      {$ifdef exp}or ((MainVer = Cur_MainVer) and (SubVer = Cur_SubVer) and (MinorVer = Cur_MinorVer)){$endif} then
+        if MessageDlg('Player update available: NeoLemmix V' + NumericalVersionToStringVersion(MainVer, SubVer, MinorVer) + #13 +
+                      'Go to the NeoLemmix website?', mtCustom, [mbYes, mbNo], 0) = mrYes then
+        begin
+          ShellExecute(handle,'open',PChar('http://www.neolemmix.com/neolemmix.html'), '','',SW_SHOWNORMAL);
+          CloseScreen(gstExit);
+        end;
+    end;
   end;
+
+  if GameParams.UpdateStyles then
+    CheckForStyleUpdates;
 end;
 
 procedure TGameMenuScreen.DrawBitmapElement(aElement: TGameMenuBitmap);
