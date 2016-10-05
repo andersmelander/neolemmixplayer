@@ -656,7 +656,6 @@ type
     procedure PrepareMusic;
     procedure PlayMusic;
     procedure Start(aReplay: Boolean = False);
-      procedure SetObjectInfos;
     procedure UpdateLemmings;
 
   { callable }
@@ -1696,8 +1695,6 @@ begin
   ObjectInfos.Clear;
   fRenderer.CreateInteractiveObjectList(ObjectInfos);
 
-  // SetObjectInfos;
-
   with Level do
   for i := 0 to ObjectInfos.Count - 1 do
   begin
@@ -1778,35 +1775,6 @@ begin
 
   Playing := True;
 end;
-
-procedure TLemmingGame.SetObjectInfos;
-var
-  i: Integer;
-  Inf: TInteractiveObjectInfo;
-  MO: TMetaObjectInterface;
-begin
-  ObjectInfos.Clear;
-
-  for i := 0 to Level.InteractiveObjects.Count - 1 do
-  begin
-    MO := fRenderer.FindMetaObject(Level.InteractiveObjects[i]);
-    Inf := TInteractiveObjectInfo.Create(Level.InteractiveObjects[i], MO);
-
-    ObjectInfos.Add(Inf);
-
-    // Check whether trigger area intersects the level area
-    if    (Inf.TriggerRect.Top > Level.Info.Height)
-       or (Inf.TriggerRect.Bottom < 0)
-       or (Inf.TriggerRect.Right < 0)
-       or (Inf.TriggerRect.Left > Level.Info.Width) then
-      Inf.IsDisabled := True;
-  end;
-
-  // Get ReceiverID for all Teleporters
-  ObjectInfos.FindReceiverID;
-end;
-
-
 
 
 procedure TLemmingGame.AddPreplacedLemming;
@@ -3160,7 +3128,8 @@ function TLemmingGame.HandleExit(L: TLemming): Boolean;
 begin
   Result := False; // only see exit trigger area, if it actually used
 
-  if (not L.LemIsZombie) and not (L.LemAction in [baFalling, baSplatting]) then
+  if     (not L.LemIsZombie)
+     and ((L.LemAction in [baFloating, baGliding]) or HasPixelAt(L.LemX, L.LemY)) then
   begin
     Result := True;
     Transition(L, baExiting);
