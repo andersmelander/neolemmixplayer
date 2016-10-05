@@ -150,6 +150,7 @@ begin
 
   //// Page 3 (Online Options) ////
   cbUpdateCheck.Checked := fGameParams.CheckUpdates; // in reverse order as the next one may override this
+  cbAutoUpdateStyles.Checked := fGameParams.UpdateStyles;
   cbEnableOnline.Checked := OnlineEnabled;
 
   //// Page 4 (Game-Specific Options) ////
@@ -233,6 +234,7 @@ begin
   // Checkboxes
   OnlineEnabled := cbEnableOnline.Checked;
   fGameParams.CheckUpdates := cbUpdateCheck.Checked;
+  fGameParams.UpdateStyles := cbAutoUpdateStyles.Checked;
 
   //// Page 4 (Game Options) ////
   // Checkboxes
@@ -307,7 +309,12 @@ end;
 procedure TFormNXConfig.cbEnableOnlineClick(Sender: TObject);
 begin
   cbUpdateCheck.Enabled := cbEnableOnline.Checked;
-  if not cbEnableOnline.Checked then cbUpdateCheck.Checked := false;
+  cbAutoUpdateStyles.Enabled := cbEnableOnline.Checked;
+  if not cbEnableOnline.Checked then
+  begin
+    cbUpdateCheck.Checked := false;
+    cbAutoUpdateStyles.Checked := false;
+  end;
   btnApply.Enabled := true;
 end;
 
@@ -317,8 +324,19 @@ begin
 end;
 
 procedure TFormNXConfig.btnUpdateStylesClick(Sender: TObject);
+var
+  OldEnableOnline: Boolean;
 begin
-  CheckForStyleUpdates(true);
+  OldEnableOnline := OnlineEnabled;
+  try
+    if not cbEnableOnline.Checked then
+      if MessageDlg('You currently have online functionality disabled. Do you want to' + #13 + 'temporarily enable it to check for style updates?', mtCustom, [mbYes, mbNo], 0) = mrNo then
+        Exit;
+    OnlineEnabled := true;
+    CheckForStyleUpdates(true);
+  finally
+    OnlineEnabled := OldEnableOnline;
+  end;
 end;
 
 end.

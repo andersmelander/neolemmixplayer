@@ -200,7 +200,6 @@ begin
     // Checks if the latest version according to NeoLemmix Website is more recent than the
     // one currently running. If running an experimental version, also checks if it's the
     // exact same version (as it would be a stable release).
-    GameParams.DoneUpdateCheck := true;
     if GetLatestNeoLemmixVersion(NxaPlayer, MainVer, SubVer, MinorVer) then
     begin
       if (MainVer > Cur_MainVer)
@@ -218,6 +217,8 @@ begin
 
   if GameParams.UpdateStyles then
     CheckForStyleUpdates;
+
+  GameParams.DoneUpdateCheck := true;
 end;
 
 procedure TGameMenuScreen.DrawBitmapElement(aElement: TGameMenuBitmap);
