@@ -255,6 +255,7 @@ type
       UsedSkillCount: array[TBasicLemmingAction] of Integer;  // should only be called with arguments in AssignableSkills
 
       UserSetNuking: Boolean;
+      ExploderAssignInProgress: Boolean;
       Index_LemmingToBeNuked: Integer;
       LastRecordedRR: Integer;
       constructor Create;
@@ -981,6 +982,7 @@ begin
   end;
 
   aState.UserSetNuking := UserSetNuking;
+  aState.ExploderAssignInProgress := ExploderAssignInProgress;
   aState.Index_LemmingToBeNuked := Index_LemmingToBeNuked;
   aState.LastRecordedRR := fLastRecordedRR;
 
@@ -1046,6 +1048,7 @@ begin
   end;
 
   UserSetNuking := aState.UserSetNuking;
+  ExploderAssignInProgress := aState.ExploderAssignInProgress;
   Index_LemmingToBeNuked := aState.Index_LemmingToBeNuked;
   fLastRecordedRR := aState.LastRecordedRR;
 
