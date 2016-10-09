@@ -16,7 +16,7 @@ uses
   function NumericalVersionToStringVersion(Main, Sub, Minor: Integer): String;
 
 const
-  PVersion = '1.48-B:77E7984';
+  PVersion = '1.48-B';
 
   // Current version number
   Cur_MainVer = 1;
