@@ -86,7 +86,9 @@ const
   begin
     Result := 'V';
     Result := Result + IntToStr(aMain);
-    Result := Result + '.' + LeadZeroStr(aSub, 2) + 'n';
+    Result := Result + '.' + LeadZeroStr(aSub, 2);
+    if (aMain = 1) and (aSub < 48) then
+      Result := Result + 'n';
     if aMinor <> 1 then
       Result := Result + '-' + Char(aMinor + 64);
   end;
