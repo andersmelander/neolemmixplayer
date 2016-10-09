@@ -23,7 +23,7 @@ object FormNXConfig: TFormNXConfig
     Top = 0
     Width = 273
     Height = 345
-    ActivePage = TabSheet3
+    ActivePage = TabSheet1
     TabOrder = 0
     object TabSheet1: TTabSheet
       Caption = 'General'
