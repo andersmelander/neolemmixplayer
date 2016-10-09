@@ -3,7 +3,7 @@ unit FNeoLemmixConfig;
 interface
 
 uses
-  GameControl, GameSound, FEditHotkeys, LemDosStyle, LemNeoOnline,
+  GameControl, GameSound, FEditHotkeys, LemDosStyle, LemNeoOnline, LemTypes,
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ComCtrls, StdCtrls;
 
@@ -55,6 +55,7 @@ type
     cbFailureJingle: TCheckBox;
     cbAutoUpdateStyles: TCheckBox;
     btnUpdateStyles: TButton;
+    btnForceRedownload: TButton;
     procedure btnApplyClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure btnHotkeysClick(Sender: TObject);
@@ -66,6 +67,7 @@ type
     procedure cbEnableOnlineClick(Sender: TObject);
     procedure SliderChange(Sender: TObject);
     procedure btnUpdateStylesClick(Sender: TObject);
+    procedure btnForceRedownloadClick(Sender: TObject);
   private
     fGameParams: TDosGameParams;
     fForceSkillset: Word;
@@ -332,6 +334,44 @@ begin
       if MessageDlg('You currently have online functionality disabled. Do you want to' + #13 + 'temporarily enable it to check for style updates?', mtCustom, [mbYes, mbNo], 0) = mrNo then
         Exit;
     OnlineEnabled := true;
+    CheckForStyleUpdates(true);
+  finally
+    OnlineEnabled := OldEnableOnline;
+  end;
+end;
+
+procedure TFormNXConfig.btnForceRedownloadClick(Sender: TObject);
+var
+  OldEnableOnline: Boolean;
+  
+  procedure GenerateJunkVersionINI;
+  var
+    SearchRec: TSearchRec;
+    SL: TStringList;
+  begin
+    // Replaces version.ini with one that marks all styles as out of date
+    SL := TStringList.Create;
+    try
+      if FindFirst(AppPath + 'styles\*.dat', faAnyFile, SearchRec) = 0 then
+      begin
+        repeat
+          SL.Add(Lowercase(ExtractFileName(ChangeFileExt(SearchRec.Name, ''))) + '=0');
+        until FindNext(SearchRec) <> 0;
+        FindClose(SearchRec);
+      end;
+      SL.SaveToFile(AppPath + 'styles\versions.ini');
+    finally
+      SL.Free;
+    end;
+  end;
+begin
+  OldEnableOnline := OnlineEnabled;
+  try
+    if not cbEnableOnline.Checked then
+      if MessageDlg('You currently have online functionality disabled. Do you want to' + #13 + 'temporarily enable it to check for style updates?', mtCustom, [mbYes, mbNo], 0) = mrNo then
+        Exit;
+    OnlineEnabled := true;
+    GenerateJunkVersionINI;
     CheckForStyleUpdates(true);
   finally
     OnlineEnabled := OldEnableOnline;

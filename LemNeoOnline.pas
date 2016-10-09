@@ -186,7 +186,6 @@ var
   ModifiedDate: Int64;
   LatestDate: Int64;
   TempStream: TMemoryStream;
-  TempStr: String;
 
   UpdateCount: Integer;
   UpdateList: String;
@@ -210,11 +209,8 @@ begin
 
         LatestDate := StrToInt64Def(SL.Values[StyName], 0);
         if UpdHist.Values[StyName] = '' then
-        begin
-          TempStr := '';
-          DateTimeToString(TempStr, 'yyyymmddhhnnss' , FileDateToDateTime(SearchRec.Time));
-          ModifiedDate := StrToInt64Def(TempStr, 0);
-        end else
+          ModifiedDate := 0
+        else
           ModifiedDate := StrToInt64Def(UpdHist.Values[StyName], 0);
 
         if ModifiedDate >= LatestDate then Continue;

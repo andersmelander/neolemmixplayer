@@ -23,7 +23,7 @@ object FormNXConfig: TFormNXConfig
     Top = 0
     Width = 273
     Height = 345
-    ActivePage = TabSheet1
+    ActivePage = TabSheet3
     TabOrder = 0
     object TabSheet1: TTabSheet
       Caption = 'General'
@@ -297,6 +297,15 @@ object FormNXConfig: TFormNXConfig
         Caption = 'Check For Style Updates Now'
         TabOrder = 3
         OnClick = btnUpdateStylesClick
+      end
+      object btnForceRedownload: TButton
+        Left = 16
+        Top = 136
+        Width = 161
+        Height = 25
+        Caption = 'Force Redownload All Styles'
+        TabOrder = 4
+        OnClick = btnForceRedownloadClick
       end
     end
     object TabSheet2: TTabSheet
