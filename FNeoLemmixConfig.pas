@@ -15,7 +15,6 @@ type
     btnCancel: TButton;
     btnApply: TButton;
     GroupBox2: TGroupBox;
-    cbOneClickHighlight: TCheckBox;
     btnHotkeys: TButton;
     GroupBox3: TGroupBox;
     cbLemmingBlink: TCheckBox;
@@ -29,7 +28,6 @@ type
     TabSheet2: TTabSheet;
     GroupBox5: TGroupBox;
     cbLookForLVL: TCheckBox;
-    cbSteelDebug: TCheckBox;
     cbChallengeMode: TCheckBox;
     cbTimerMode: TCheckBox;
     GroupBox7: TGroupBox;
@@ -110,7 +108,6 @@ begin
 
   //// Page 1 (Global Options) ////
   // Checkboxes
-  cbOneClickHighlight.Checked := fGameParams.ClickHighlight;
   cbLemmingBlink.Checked := fGameParams.LemmingBlink;
   cbTimerBlink.Checked := fGameParams.TimerBlink;
   cbBlackOut.Checked := fGameParams.BlackOutZero;
@@ -157,10 +154,8 @@ begin
   // Checkboxes
   cbLookForLVL.Enabled := (fGameParams.SysDat.Options and 1) <> 0;
   cbLookForLVL.Checked := fGameParams.LookForLVLFiles and cbLookForLVL.Enabled;
-  cbSteelDebug.Enabled := (fGameParams.SysDat.Options and 32) <> 0;
-  cbSteelDebug.Checked := fGameParams.DebugSteel and cbSteelDebug.Enabled;
-  cbChallengeMode.Enabled := (fGameParams.SysDat.Options and 32) <> 0;
-  cbChallengeMode.Checked := fGameParams.ChallengeMode and cbChallengeMode.Enabled;
+  cbChallengeMode.Enabled := ((fGameParams.SysDat.Options and 32) <> 0) and (fGameParams.ForceSkillset = 0);
+  cbChallengeMode.Checked := (fGameParams.ChallengeMode or (fGameParams.ForceSkillset = 0)) and cbChallengeMode.Enabled;
   cbTimerMode.Enabled := (fGameParams.SysDat.Options and 32) <> 0;
   cbTimerMode.Checked := fGameParams.TimerMode and cbTimerMode.Enabled;
   cbForceSkill.Enabled := (fGameParams.SysDat.Options and 32) <> 0;
@@ -185,7 +180,6 @@ begin
 
   //// Page 1 (Global Options) ////
   // Checkboxes
-  fGameParams.ClickHighlight := cbOneClickHighlight.Checked;
   fGameParams.LemmingBlink := cbLemmingBlink.Checked;
   fGameParams.TimerBlink := cbTimerBlink.Checked;
   fGameParams.BlackOutZero := cbBlackOut.Checked;
@@ -240,8 +234,10 @@ begin
   // Checkboxes
   fGameParams.LookForLVLFiles := cbLookForLVL.Checked;
   TBaseDosLevelSystem(fGameParams.Style.LevelSystem).LookForLVL := fGameParams.LookForLVLFiles;
-  fGameParams.DebugSteel := cbSteelDebug.Checked;
-  fGameParams.ChallengeMode := cbChallengeMode.Checked;
+  if fForceSkillset <> 0 then
+    fGameParams.ChallengeMode := true
+  else
+    fGameParams.ChallengeMode := cbChallengeMode.Checked;
   fGameParams.TimerMode := cbTimerMode.Checked;
 
   btnApply.Enabled := false;
@@ -270,6 +266,8 @@ begin
     fForceSkillset := fForceSkillset and not (1 shl (15 - cbSkillList.ItemIndex));
 
   btnCheckSkills.Enabled := (fForceSkillset <> 0);
+  cbChallengeMode.Checked := (fForceSkillset <> 0);
+  cbChallengeMode.Enabled := (fForceSkillset <> 0);
   btnClearSkill.Enabled := btnCheckSkills.Enabled;
 
   OptionChanged(Sender);
@@ -281,6 +279,7 @@ begin
   cbForceSkill.Checked := false;
   btnCheckSkills.Enabled := false;
   btnClearSkill.Enabled := false;
+  cbChallengeMode.Enabled := true;
   OptionChanged(Sender);
 end;
 

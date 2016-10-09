@@ -75,15 +75,13 @@ type
 
 type
   TMiscOption = (
-    moLookForLVLFiles,  // 6
-    moDebugSteel,
+    moLookForLVLFiles,
     moChallengeMode,
     moTimerMode,
     moAutoReplayNames,
     moLemmingBlink,
     moTimerBlink,
     moAutoReplaySave,
-    moClickHighlight,
     moAlwaysTimestamp,
     moConfirmOverwrite,
     moExplicitCancel,
@@ -105,7 +103,6 @@ const
     moAutoReplayNames,
     moTimerBlink,
     moAlwaysTimestamp,
-    moClickHighlight,
     moAutoReplaySave,
     moBlackOutZero,
     moPauseAfterBackwards
@@ -207,10 +204,8 @@ type
     property SoundEnabled: Boolean Index gsoSound read GetSoundFlag;
 
     property LookForLVLFiles: Boolean Index moLookForLVLFiles read GetOptionFlag write SetOptionFlag;
-    property DebugSteel: Boolean Index moDebugSteel read GetOptionFlag write SetOptionFlag;
     property ChallengeMode: Boolean Index moChallengeMode read GetOptionFlag write SetOptionFlag;
     property TimerMode: Boolean Index moTimerMode read GetOptionFlag write SetOptionFlag;
-    property ClickHighlight: Boolean Index moClickHighlight read GetOptionFlag write SetOptionFlag;
     property AutoReplayNames: Boolean Index moAutoReplayNames read GetOptionFlag write SetOptionFlag;
     property AutoSaveReplay: Boolean Index moAutoReplaySave read GetOptionFlag write SetOptionFlag;
     property LemmingBlink: Boolean Index moLemmingBlink read GetOptionFlag write SetOptionFlag;
@@ -294,7 +289,6 @@ begin
 
   SL.Add('');
   SL.Add('# Interface Options');
-  SaveBoolean('ClickHighlight', ClickHighlight);
   SaveBoolean('AutoReplayNames', AutoReplayNames);
   SaveBoolean('AutoSaveReplay', AutoSaveReplay);
   SaveBoolean('AlwaysTimestampReplays', AlwaysTimestamp);
@@ -355,7 +349,6 @@ begin
 
   MusicVolume := StrToIntDef(SL.Values['MusicVolume'], 100);
   SoundVolume := StrToIntDef(SL.Values['SoundVolume'], 100);
-  ClickHighlight := LoadBoolean('ClickHighlight');
   AutoReplayNames := LoadBoolean('AutoReplayNames');
   AutoSaveReplay := LoadBoolean('AutoSaveReplay');
   LemmingBlink := LoadBoolean('LemmingCountBlink');
