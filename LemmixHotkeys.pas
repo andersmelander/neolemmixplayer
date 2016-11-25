@@ -11,7 +11,7 @@ uses
 const
   MAX_KEY = 255;
   MAX_KEY_LEN = 4;
-  KEYSET_VERSION = 4;
+  KEYSET_VERSION = 6;
 
 type
   TLemmixHotkeyAction = (lka_Null,
@@ -36,6 +36,8 @@ type
                          lka_LoadReplay,
                          lka_SaveReplay,
                          lka_CancelReplay,
+                         lka_EditReplay,
+                         lka_ReplayInsert,
                          lka_Music,
                          lka_Sound,
                          lka_Restart,
@@ -100,6 +102,7 @@ begin
   fKeyFunctions[$31].Action := lka_Cheat;
   fKeyFunctions[$43].Action := lka_CancelReplay;
   fKeyFunctions[$44].Action := lka_FallDistance;
+  fKeyFunctions[$45].Action := lka_EditReplay;
   fKeyFunctions[$46].Action := lka_FastForward;
   fKeyFunctions[$49].Action := lka_SaveImage;
   fKeyFunctions[$4C].Action := lka_LoadReplay;
@@ -108,6 +111,7 @@ begin
   fKeyFunctions[$52].Action := lka_Restart;
   fKeyFunctions[$53].Action := lka_Sound;
   fKeyFunctions[$55].Action := lka_SaveReplay;
+  fKeyFunctions[$57].Action := lka_ReplayInsert;
   fKeyFunctions[$58].Action := lka_SkillRight;
   fKeyFunctions[$5A].Action := lka_SkillLeft;
   fKeyFunctions[$70].Action := lka_ReleaseRateDown;
@@ -215,6 +219,8 @@ var
     if s = 'highlight' then Result := lka_Highlight;
     if s = 'clear_physics' then Result := lka_ClearPhysics;
     if s = 'fall_distance' then Result := lka_FallDistance;
+    if s = 'edit_replay' then Result := lka_EditReplay;
+    if s = 'replay_insert' then Result := lka_ReplayInsert;
   end;
 
   function InterpretSecondary(s: String): Integer;
@@ -248,6 +254,13 @@ var
         Result := 0;
       end;
     end;
+  end;
+
+  procedure SetIfFree(aKey: Word; aFunc: TLemmixHotkeyAction; aMod: Integer = 0);
+  begin
+    if fKeyFunctions[aKey].Action <> lka_Null then Exit;
+    fKeyFunctions[aKey].Action := aFunc;
+    fKeyFunctions[aKey].Modifier := aMod;
   end;
 begin
   if FileExists(ExtractFilePath(ParamStr(0)) + 'NeoLemmixHotkeys.ini') then
@@ -286,27 +299,28 @@ begin
       FixVersion := StrToIntDef(StringList.Values['Version'], 0);
       
       if FixVersion < 1 then
-        if fKeyFunctions[$C0].Action = lka_Null then fKeyFunctions[$C0].Action := lka_ReleaseMouse;
+        SetIfFree($C0, lka_ReleaseMouse);
 
       if FixVersion < 2 then
       begin
-        fKeyFunctions[$02].Action := lka_Highlight;
-        fKeyFunctions[$04].Action := lka_Pause;
+        SetIfFree($02, lka_Highlight);
+        SetIfFree($04, lka_Pause);
       end;
 
       if FixVersion < 3 then
-        if fKeyFunctions[$43].Action = lka_Null then fKeyFunctions[$43].Action := lka_CancelReplay;
+        SetIfFree($43, lka_CancelReplay);
 
       if FixVersion < 4 then
-        if fKeyFunctions[$54].Action = lka_Null then
-        begin
-          fKeyFunctions[$54].Action := lka_ClearPhysics;
-          fKeyFunctions[$54].Modifier := 1;
-        end;
+        SetIfFree($54, lka_ClearPhysics, 1);
 
       if FixVersion < 5 then
-        if fKeyFunctions[$44].Action = lka_Null then
-          fKeyFunctions[$44].Action := lka_FallDistance;
+        SetIfFree($44, lka_FallDistance);
+
+      if FixVersion < 6 then
+      begin
+        SetIfFree($45, lka_EditReplay);
+        SetIfFree($57, lka_ReplayInsert);
+      end;
 
     except
       SetDefaults;
@@ -354,6 +368,8 @@ var
       lka_Highlight:        Result := 'Highlight';
       lka_ClearPhysics:     Result := 'Clear_Physics';
       lka_FallDistance:     Result := 'Fall_Distance';
+      lka_EditReplay:       Result := 'Edit_Replay';
+      lka_ReplayInsert:     Result := 'Replay_Insert';
       else Result := 'Null';
     end;
   end;
