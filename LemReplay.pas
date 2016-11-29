@@ -39,9 +39,11 @@ type
     private
       fFrame: Integer;
     protected
-      function DoLoadLine(Line: TParserLine): Boolean; virtual;    // Return TRUE if the line is understood. Should start with "if inherited then Exit".
-      procedure DoSave(SL: TStringList; aLabel: String); virtual;                  // Should start with a call to inherited.
+      procedure DoLoadLine(Line: TParserLine); virtual;    // Return TRUE if the line is understood. Should start with "if inherited then Exit".
+      procedure DoSave(SL: TStringList; aLabel: String); virtual;  // Should start with a call to inherited.
+      procedure InitializeValues(); virtual; // we cannot guarantee that all values will be set, so make sure that there is nothing null and nothing that will crash the game!!!
     public
+      constructor Create; // NEVER call this from this base class - only instanciate children!
       procedure Load(Parser: TNeoLemmixParser);
       procedure Save(SL: TStringList);
       property Frame: Integer read fFrame write fFrame;
@@ -55,8 +57,9 @@ type
       fLemmingY: Integer;
       fLemmingHighlit: Boolean;
     protected
-      function DoLoadLine(Line: TParserLine): Boolean; override;
+      procedure DoLoadLine(Line: TParserLine); override;
       procedure DoSave(SL: TStringList; aLabel: String); override;
+      procedure InitializeValues(); override;
     public
       procedure SetInfoFromLemming(aLemming: TLemming; aHighlit: Boolean);
       property LemmingIndex: Integer read fLemmingIndex write fLemmingIndex;
@@ -70,8 +73,9 @@ type
     private
       fSkill: TBasicLemmingAction;
     protected
-      function DoLoadLine(Line: TParserLine): Boolean; override;
+      procedure DoLoadLine(Line: TParserLine); override;
       procedure DoSave(SL: TStringList; aLabel: String); override;
+      procedure InitializeValues(); override; // THIS IS VERY IMPORTANT HERE!!! Null-Actions will crash the game!!!
     public
       property Skill: TBasicLemmingAction read fSkill write fSkill;
   end;
@@ -81,8 +85,9 @@ type
       fNewReleaseRate: Integer;
       fSpawnedLemmingCount: Integer;
     protected
-      function DoLoadLine(Line: TParserLine): Boolean; override;
+      procedure DoLoadLine(Line: TParserLine); override;
       procedure DoSave(SL: TStringList; aLabel: String); override;
+      procedure InitializeValues(); override;
     public
       property NewReleaseRate: Integer read fNewReleaseRate write fNewReleaseRate;
       property SpawnedLemmingCount: Integer read fSpawnedLemmingCount write fSpawnedLemmingCount;
@@ -90,7 +95,7 @@ type
 
   TReplayNuke = class(TBaseReplayItem)
     protected
-      function DoLoadLine(Line: TParserLine): Boolean; override;
+      procedure DoLoadLine(Line: TParserLine); override;
       procedure DoSave(SL: TStringList; aLabel: String); override;
   end;
 
@@ -426,6 +431,7 @@ begin
       Item := nil;
       Line := Parser.NextLine;
 
+      // Upon adding new keywords here, add them as well in TBaseReplayItem.Load!
       if Line.Keyword = 'ASSIGNMENT' then
         Item := TReplaySkillAssignment.Create;
 
@@ -636,13 +642,27 @@ end;
 
 { TBaseReplayItem }
 
+constructor TBaseReplayItem.Create;
+begin
+  inherited Create();
+  InitializeValues();
+end;
+
+procedure TBaseReplayItem.InitializeValues();
+begin
+  Frame := 17 * 60 * 99; // try corrupt values only after 99 minutes.
+end;
+
 procedure TBaseReplayItem.Load(Parser: TNeoLemmixParser);
 var
   Line: TParserLine;
 begin
   repeat
     Line := Parser.NextLine;
-  until not DoLoadLine(Line);
+    DoLoadLine(Line);
+  until (Line.Keyword = '') or (Line.Keyword = 'ASSIGNMENT')
+     or (Line.Keyword = 'RELEASE_RATE') or (Line.Keyword = 'NUKE');
+
   Parser.Back;
 end;
 
@@ -652,15 +672,9 @@ begin
   SL.Add(''); // But they won't put the blank line, as they're coded such that they don't nessecerially know which is the final one
 end;
 
-function TBaseReplayItem.DoLoadLine(Line: TParserLine): Boolean;
+procedure TBaseReplayItem.DoLoadLine(Line: TParserLine);
 begin
-  Result := false;
-
-  if Line.Keyword = 'FRAME' then
-  begin
-    Result := true;
-    fFrame := Line.Numeric;
-  end;
+  if Line.Keyword = 'FRAME' then fFrame := Line.Numeric;
 end;
 
 procedure TBaseReplayItem.DoSave(SL: TStringList; aLabel: String);
@@ -671,6 +685,16 @@ end;
 
 { TBaseReplayLemmingItem }
 
+procedure TBaseReplayLemmingItem.InitializeValues();
+begin
+  inherited InitializeValues();
+  fLemmingIndex := 0;
+  fLemmingX := 0;
+  fLemmingDx := 0;
+  fLemmingY := 0;
+  fLemmingHighlit := False;
+end;
+
 procedure TBaseReplayLemmingItem.SetInfoFromLemming(aLemming: TLemming; aHighlit: Boolean);
 begin
   fLemmingIndex := aLemming.LemIndex;
@@ -680,45 +704,20 @@ begin
   fLemmingHighlit := aHighlit;
 end;
 
-function TBaseReplayLemmingItem.DoLoadLine(Line: TParserLine): Boolean;
+procedure TBaseReplayLemmingItem.DoLoadLine(Line: TParserLine);
 begin
-  Result := inherited DoLoadLine(Line);
-  if Result then Exit;
+  inherited DoLoadLine(Line);
 
-  if Line.Keyword = 'LEM_INDEX' then
-  begin
-    fLemmingIndex := Line.Numeric;
-    Result := true;
-  end;
-
-  if Line.Keyword = 'LEM_X' then
-  begin
-    fLemmingX := Line.Numeric;
-    Result := true;
-  end;
-
-  if Line.Keyword = 'LEM_Y' then
-  begin
-    fLemmingX := Line.Numeric;
-    Result := true;
-  end;
-
+  if Line.Keyword = 'LEM_INDEX' then fLemmingIndex := Line.Numeric;
+  if Line.Keyword = 'LEM_X' then fLemmingX := Line.Numeric;
+  if Line.Keyword = 'LEM_Y' then fLemmingY := Line.Numeric;
   if Line.Keyword = 'LEM_DIR' then
   begin
-    if LeftStr(Uppercase(Line.Value), 1) = 'L' then
-      fLemmingDx := -1
-    else if LeftStr(Uppercase(Line.Value), 1) = 'R' then
-      fLemmingDx := 1
-    else
-      fLemmingDx := 0; // we must be able to store "unknown", eg. for converting old replays
-    Result := true;
+    if LeftStr(Uppercase(Line.Value), 1) = 'L' then fLemmingDx := -1
+    else if LeftStr(Uppercase(Line.Value), 1) = 'R' then fLemmingDx := 1
+    else fLemmingDx := 0; // we must be able to store "unknown", eg. for converting old replays
   end;
-
-  if Line.Keyword = 'HIGHLIT' then
-  begin
-    fLemmingHighlit := true;
-    Result := true;
-  end;
+  if Line.Keyword = 'HIGHLIT' then fLemmingHighlit := true;
 end;
 
 procedure TBaseReplayLemmingItem.DoSave(SL: TStringList; aLabel: String);
@@ -737,16 +736,17 @@ end;
 
 { TReplaySkillAssignment }
 
-function TReplaySkillAssignment.DoLoadLine(Line: TParserLine): Boolean;
+procedure TReplaySkillAssignment.InitializeValues();
 begin
-  Result := inherited DoLoadLine(Line);
-  if Result then Exit;
+  inherited InitializeValues();
+  Skill := baNone;
+end;
 
-  if Line.Keyword = 'ACTION' then
-  begin
-    Skill := GetSkillAction(Line.Value);
-    Result := true;
-  end;
+procedure TReplaySkillAssignment.DoLoadLine(Line: TParserLine);
+begin
+  inherited DoLoadLine(Line);
+
+  if Line.Keyword = 'ACTION' then Skill := GetSkillAction(Line.ValueTrimmed);
 end;
 
 procedure TReplaySkillAssignment.DoSave(SL: TStringList; aLabel: String);
@@ -757,22 +757,19 @@ end;
 
 { TReplayReleaseRateChange }
 
-function TReplayChangeReleaseRate.DoLoadLine(Line: TParserLine): Boolean;
+procedure TReplayChangeReleaseRate.InitializeValues();
 begin
-  Result := inherited DoLoadLine(Line);
-  if Result then Exit;
+  inherited InitializeValues();
+  NewReleaseRate := 1;
+  SpawnedLemmingCount := 0;
+end;
 
-  if Line.Keyword = 'RATE' then
-  begin
-    fNewReleaseRate := Line.Numeric;
-    Result := true;
-  end;
+procedure TReplayChangeReleaseRate.DoLoadLine(Line: TParserLine);
+begin
+  inherited DoLoadLine(Line);
 
-  if Line.Keyword = 'SPAWNED' then
-  begin
-    fSpawnedLemmingCount := Line.Numeric;
-    Result := true;
-  end;
+  if Line.Keyword = 'RATE' then fNewReleaseRate := Line.Numeric;
+  if Line.Keyword = 'SPAWNED' then fSpawnedLemmingCount := Line.Numeric;
 end;
 
 procedure TReplayChangeReleaseRate.DoSave(SL: TStringList; aLabel: String);
@@ -784,9 +781,9 @@ end;
 
 { TReplayNuke }
 
-function TReplayNuke.DoLoadLine(Line: TParserLine): Boolean;
+procedure TReplayNuke.DoLoadLine(Line: TParserLine);
 begin
-  Result := inherited DoLoadLine(Line);
+  inherited DoLoadLine(Line);
 end;
 
 procedure TReplayNuke.DoSave(SL: TStringList; aLabel: String);
