@@ -127,7 +127,6 @@ type
     fOneLevelMode: Boolean;
     fDoneUpdateCheck: Boolean;
     fZoomLevel: Integer;
-    fMainForm: TForm; // link to the FMain form
 
     MiscOptions           : TMiscOptions;
     PostLevelSoundOptions : TPostLevelSoundOptions;
@@ -239,7 +238,6 @@ type
     property ZoomLevel: Integer read fZoomLevel write fZoomLevel;
     {property WindowX: Integer read fWindowX write fWindowX;
     property WindowY: Integer read fWindowY write fWindowY;}
-    property MainForm: TForm read fMainForm write fMainForm;
 
     property Talismans: TTalismans read fTalismans;
     property TalismanPage: Integer read fTalismanPage write fTalismanPage;
@@ -377,7 +375,7 @@ begin
   CheckUpdates := LoadBoolean('UpdateCheck');
   UpdateStyles := LoadBoolean('UpdateStyles');
 
-  ZoomLevel := StrToIntDef(SL.Values['ZoomLevel'], 0);
+  ZoomLevel := 0; // always fullscreen in this version
 
   PostLevelVictorySound := LoadBoolean('VictoryJingle');
   PostLevelFailureSound := LoadBoolean('FailureJingle');

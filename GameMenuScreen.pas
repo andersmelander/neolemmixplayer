@@ -791,17 +791,6 @@ end;
 
 procedure TGameMenuScreen.CloseScreen(aNextScreen: TGameScreenType);
 begin
-  if GameParams.ZoomLevel = 0 then
-  begin
-    GameParams.MainForm.BorderStyle := bsNone;
-    GameParams.MainForm.WindowState := wsMaximized;
-  end else begin
-    GameParams.MainForm.BorderStyle := bsToolWindow;
-    GameParams.MainForm.ClientWidth := 320 * GameParams.ZoomLevel;
-    GameParams.MainForm.ClientHeight := 200 * GameParams.ZoomLevel;
-    GameParams.MainForm.Left := (Screen.Width - GameParams.MainForm.Width) div 2;
-    GameParams.MainForm.Top := (Screen.Height - GameParams.MainForm.Height) div 2;
-  end;
   inherited CloseScreen(aNextScreen);
 end;
 

@@ -140,7 +140,7 @@ begin
   ZeroMemory(@Input, SizeOf(Input));
   SendInput(1, Input, SizeOf(Input)); // don't send anyting actually to another app..
   SetForegroundWindow(Application.Handle);
-  DoneBringToFront := true;
+  //DoneBringToFront := true;
 end;
 
 constructor TAppController.Create(aOwner: TComponent);
@@ -253,7 +253,6 @@ begin
   fGameParams.MainDatFile := LemmingsPath + 'main.dat';
   fGameParams.Renderer := TRenderer.Create;
   fGameParams.Level := Tlevel.Create(nil);
-  fGameParams.MainForm := TForm(aOwner);
 
   // fMainDatExtractor currently has a convenient routine for loading SYSTEM.DAT. This is a relic
   // from when SYSTEM.DAT was embedded in MAIN.DAT in very early versions of Flexi.
@@ -312,28 +311,6 @@ begin
     else
       fGameParams.QuickTestMode := s2i(ParamStr(4));
   end;
-
-  // Unless Zoom level is 0 (fullscreen), resize the main window
-  if fGameParams.ZoomLevel <> 0 then
-  begin
-    if fGameParams.ZoomLevel > Screen.Width div 320 then
-      fGameParams.ZoomLevel := Screen.Width div 320;
-    if fGameParams.ZoomLevel > Screen.Height div 200 then
-      fGameParams.ZoomLevel := Screen.Height div 200;
-    fGameParams.MainForm.BorderStyle := bsToolWindow;
-    fGameParams.MainForm.WindowState := wsNormal;
-    fGameParams.MainForm.ClientWidth := 320 * fGameParams.ZoomLevel;
-    fGameParams.MainForm.ClientHeight := 200 * fGameParams.ZoomLevel;
-    fGameParams.MainForm.Left := (Screen.Width - fGameParams.MainForm.Width) div 2;
-    fGameParams.MainForm.Top := (Screen.Height - fGameParams.MainForm.Height) div 2;
-  end;
-
-  if fGameParams.fTestMode then
-    fGameParams.MainForm.Caption := 'NeoLemmix - Single Level'
-  else
-    fGameParams.MainForm.Caption := Trim(fGameParams.SysDat.PackName);
-
-  Application.Title := fGameParams.MainForm.Caption;
 
   // Background color is not supported as a user option anymore. I intend to support it in the
   // future as a graphic set option. So let's just make it inaccessible for now rather than fully
@@ -455,6 +432,7 @@ var
 begin
   F := TGameLevelCodeScreen.Create(nil);
   try
+    BringToFront;
     F.ShowScreen(fGameParams);
   finally
     F.Free;
@@ -467,7 +445,7 @@ var
 begin
   F := TGameMenuScreen.Create(nil);
   try
-    if not DoneBringToFront then BringToFront;
+    BringToFront;
     F.ShowScreen(fGameParams);
   finally
     F.Free;
@@ -480,6 +458,7 @@ var
 begin
   F := TGameWindow.Create(nil);
   try
+    BringToFront;
     F.ShowScreen(fGameParams);
   finally
     F.Free;
@@ -498,7 +477,11 @@ begin
   F := TGameTextScreen.Create(nil);
   HasTextToShow := F.HasScreenText(fGameParams);
   try
-    if HasTextToShow then F.ShowScreen(fGameParams);
+    if HasTextToShow then
+    begin
+      BringToFront;
+      F.ShowScreen(fGameParams);
+    end;
   finally
     F.Free;
   end;
@@ -510,6 +493,7 @@ var
 begin
   F := TGamePostviewScreen.Create(nil);
   try
+    BringToFront;
     F.ShowScreen(fGameParams);
   finally
     F.Free;
@@ -522,6 +506,7 @@ var
 begin
   F := TGameTalismanScreen.Create(nil);
   try
+    BringToFront;
     F.ShowScreen(fGameParams);
   finally
     F.Free;
@@ -864,7 +849,7 @@ begin
     end else begin
       // In the case of loading a single level file, menu screen will never be displayed.
       // Therefore, bringing to front must be done here.
-      if not DoneBringToFront then BringToFront;
+      BringToFront;
       F.ShowScreen(fGameParams);
     end;
   finally
