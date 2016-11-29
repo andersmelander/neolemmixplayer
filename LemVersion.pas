@@ -12,7 +12,7 @@ const
   CORE_VERSION = 11;
   FEATURES_VERSION = 11;
   HOTFIX_VERSION = 0;
-  COMMIT_ID = '64790bd';  // empty string is handled, and is uppercased when needed so don't need to do manually anymore :D
+  COMMIT_ID = '';  // empty string is handled, and is uppercased when needed so don't need to do manually anymore :D
 
 function MakeVersionString(aFormat, aCore, aFeature, aHotfix: Integer): String;
 function MakeVersionID(aFormat, aCore, aFeature, aHotfix: Integer): Int64;
