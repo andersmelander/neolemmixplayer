@@ -63,7 +63,7 @@ type
   function CombineIdentifier(Identifier: TLabelRecord): String;
 
 var
-  GlobalPieceManager: TNeoPieceManager; // speedhack for backwards-compatible level loading
+  PieceManager: TNeoPieceManager; // globalized as this does not need to have seperate instances
 
 implementation
 

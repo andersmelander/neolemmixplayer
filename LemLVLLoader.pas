@@ -146,92 +146,6 @@ var
         aLevel.Info.WindowOrder[i] := aLevel.Info.WindowOrder[i] - 1;
   end;
 
-  function HandleVgaspecConvert: Boolean;
-  var
-    i: Integer;
-  const
-    SPEC_NAMES: array[0..13] of String = ('beasti', 'menace', 'awesome', 'beastii',
-                                          'beasti_md', 'menace_md', 'awesome_md', 'beastii_md',
-                                          'hebereke', 'covox', '', 'prima',
-                                          'apple', 'sixesnot');
-    SPEC_OFFSET: array[0..13] of Integer = (1, 0, 17, 0,
-                                            230, 226, 225, 224,
-                                            227, 18, 0, 0,
-                                            0, 272);
-
-  begin
-    aLevel.Info.VgaspecFile := '';
-    Result := false;
-    for i := 0 to 13 do
-    begin
-      if i = 10 then Continue; // placeholder for Covox's steel
-      if Vgaspec = SPEC_NAMES[i] then
-      begin
-        with aLevel.Terrains.Insert(0) do
-        begin
-          GS := 'special';
-          Piece := 't' + IntToStr(i);
-          Left := aLevel.Info.VgaspecX + SPEC_OFFSET[i];
-          Top := aLevel.Info.VgaspecY; // all the pieces in the "Special" set are still full-height so no custom height offsets needed
-          if aLevel.Info.LevelOptions and $80 = 0 then
-            DrawingFlags := tdf_NoOneWay;
-        end;
-        if i = 9 then // special handling for Covox: add the steel too
-          with aLevel.Terrains.Insert(1) do
-          begin
-            GS := 'special';
-            Piece := 't10';
-            Left := aLevel.Info.VgaspecX + SPEC_OFFSET[i];
-            Top := aLevel.Info.VgaspecY;
-          end;
-        Result := true;
-        Exit;
-      end;
-    end;
-
-    // A clever workaround. But I really hope people don't rely on it... especially because it may give graphical issues
-    // on certain ways of constructing the VGASPEC file. Should be functionally fine in all cases, though.
-    if GlobalPieceManager = nil then
-      raise Exception.Create('This level uses a non-default VGASPEC, and the global piece manager is not set. Please report this.');
-
-    Vgaspec := 'x_' + Vgaspec;
-    i := GlobalPieceManager.GetTerrainPieceCount(Vgaspec);
-    with aLevel.Terrains.Insert(0) do
-    begin
-      GS := Vgaspec;
-      Piece := 't0';
-      Left := aLevel.Info.VgaspecX;
-      Top := aLevel.Info.VgaspecY;
-      if aLevel.Info.LevelOptions and $80 <> 0 then
-        DrawingFlags := tdf_NoOneWay
-      else
-        DrawingFlags := 0;
-    end;
-
-    if i > 1 then
-      with aLevel.Terrains.Insert(1) do
-      begin
-        GS := Vgaspec;
-        Piece := 't1*s'; // piece manager detects the "*s" and overrides the steel setting of the piece
-        Left := aLevel.Info.VgaspecX;
-        Top := aLevel.Info.VgaspecY;
-        DrawingFlags := 0;
-      end;
-
-    if i > 2 then
-      with aLevel.Terrains.Insert(2) do
-      begin
-        GS := Vgaspec;
-        Piece := 't2';
-        Left := aLevel.Info.VgaspecX;
-        Top := aLevel.Info.VgaspecY;
-        if aLevel.Info.LevelOptions and $80 = 0 then
-          DrawingFlags := tdf_NoOneWay
-        else
-          DrawingFlags := 0;
-      end;
-  end;
-
 begin
   // Needs to convert preplaced lemmings and vgaspecs appropriately
 
@@ -239,73 +153,34 @@ begin
 
   if Vgaspec = 'none' then Vgaspec := '';
   if Vgaspec <> '' then
-    if not HandleVgaspecConvert then
-      raise Exception.Create('This level uses a non-default VGASPEC and thus needs to be updated to work with regular graphic sets only.');
+    raise Exception.Create('This level uses a VGASPEC, which is no longer supported.');
 
-  if GlobalPieceManager <> nil then
+  for i := aLevel.InteractiveObjects.Count-1 downto 0 do
   begin
-    for i := aLevel.InteractiveObjects.Count-1 downto 0 do
+    O := aLevel.InteractiveObjects[i];
+    MO_PM := PieceManager.Objects[O.GS + ':' + O.Piece].GetInterface(false, false, false);
+    if MO_PM.TriggerEffect = 13 then
     begin
-      O := aLevel.InteractiveObjects[i];
-      MO_PM := GlobalPieceManager.Objects[O.GS + ':' + O.Piece].GetInterface(false, false, false);
-      if MO_PM.TriggerEffect = 13 then
-      begin
-        L := aLevel.PreplacedLemmings.Insert(0);
-        L.X := O.Left + MO_PM.TriggerLeft;
-        L.Y := O.Top + MO_PM.TriggerTop;
-        if O.DrawingFlags and odf_FlipLem <> 0 then
-          L.Dx := -1
-        else
-          L.Dx := 1;
-        L.IsClimber := (O.TarLev and 1) <> 0;
-        L.IsSwimmer := (O.TarLev and 2) <> 0;
-        L.IsFloater := (O.TarLev and 4) <> 0;
-        L.IsGlider := ((O.TarLev and 8) <> 0) and not L.IsFloater;
-        L.IsDisarmer := (O.TarLev and 16) <> 0;
-        L.IsBlocker := (O.TarLev and 32) <> 0;
-        L.IsZombie := (O.TarLev and 64) <> 0;
-        aLevel.InteractiveObjects.Delete(i);
-        PreplacedLemmingPatch(i);
-        Continue;
-      end;
-    end;
-  end else begin
-    GS := TBcGraphicSet.Create;
-    try
-      for i := aLevel.InteractiveObjects.Count-1 downto 0 do
-      begin
-        if Lowercase(GS.Name) <> Lowercase(aLevel.InteractiveObjects[i].GS) then
-          GS.LoadGraphicSet(aLevel.InteractiveObjects[i].GS);
-
-        MO := GS.ObjectData[StrToInt(RightStr(aLevel.InteractiveObjects[i].Piece, Length(aLevel.InteractiveObjects[i].Piece)-1))];
-
-        if MO.TriggerEff = 13 then
-        begin
-          O := aLevel.InteractiveObjects[i];
-          L := aLevel.PreplacedLemmings.Insert(0);
-          L.X := O.Left + MO.PTriggerX;
-          L.Y := O.Top + MO.PTriggerY;
-          if O.DrawingFlags and odf_FlipLem <> 0 then
-            L.Dx := -1
-          else
-            L.Dx := 1;
-          L.IsClimber := (O.TarLev and 1) <> 0;
-          L.IsSwimmer := (O.TarLev and 2) <> 0;
-          L.IsFloater := (O.TarLev and 4) <> 0;
-          L.IsGlider := ((O.TarLev and 8) <> 0) and not L.IsFloater;
-          L.IsDisarmer := (O.TarLev and 16) <> 0;
-          L.IsBlocker := (O.TarLev and 32) <> 0;
-          L.IsZombie := (O.TarLev and 64) <> 0;
-          aLevel.InteractiveObjects.Delete(i);
-          PreplacedLemmingPatch(i);
-          Continue;
-        end;
-
-      end;
-    finally
-      GS.Free;
+      L := aLevel.PreplacedLemmings.Insert(0);
+      L.X := O.Left + MO_PM.TriggerLeft;
+      L.Y := O.Top + MO_PM.TriggerTop;
+      if O.DrawingFlags and odf_FlipLem <> 0 then
+        L.Dx := -1
+      else
+        L.Dx := 1;
+      L.IsClimber := (O.TarLev and 1) <> 0;
+      L.IsSwimmer := (O.TarLev and 2) <> 0;
+      L.IsFloater := (O.TarLev and 4) <> 0;
+      L.IsGlider := ((O.TarLev and 8) <> 0) and not L.IsFloater;
+      L.IsDisarmer := (O.TarLev and 16) <> 0;
+      L.IsBlocker := (O.TarLev and 32) <> 0;
+      L.IsZombie := (O.TarLev and 64) <> 0;
+      aLevel.InteractiveObjects.Delete(i);
+      PreplacedLemmingPatch(i);
+      Continue;
     end;
   end;
+
 end;
 
 { TTranslationTable }
