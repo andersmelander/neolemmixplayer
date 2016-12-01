@@ -4,6 +4,9 @@ unit LemNeoPieceManager;
 // graphic sets were in the past. It could be thought of as a huge
 // dynamic graphic set.
 
+
+// TODO: New changes probably cause recolorable pieces to not recolor when the theme is changed.
+
 interface
 
 uses
@@ -12,6 +15,9 @@ uses
   LemNeoParser, PngInterface, LemNeoTheme,
   LemMetaTerrain, LemMetaObject, LemTypes, GR32, LemStrings,
   StrUtils, Classes, SysUtils;
+
+const
+  RETAIN_PIECE_CYCLES = 10; // how many times Tidy can be called without a piece being used before it's discarded
 
 type
 
@@ -114,9 +120,21 @@ end;
 // Tidy-up function. Pretty much clears out the lists. Might add
 // stuff in the future so it retains frequently-used pieces.
 procedure TNeoPieceManager.Tidy;
+var
+  i: Integer;
 begin
-  fTerrains.Clear;
-  fObjects.Clear;
+  for i := fTerrains.Count-1 downto 0 do
+  begin
+    fTerrains[i].CyclesSinceLastUse := fTerrains[i].CyclesSinceLastUse + 1;
+    if fTerrains[i].CyclesSinceLastUse >= RETAIN_PIECE_CYCLES then
+      fTerrains.Delete(i);
+  end;
+  for i := fObjects.Count-1 downto 0 do
+  begin
+    fObjects[i].CyclesSinceLastUse := fObjects[i].CyclesSinceLastUse + 1;
+    if fObjects[i].CyclesSinceLastUse >= RETAIN_PIECE_CYCLES then
+      fObjects.Delete(i);
+  end;
 end;
 
 // Quick shortcuts to get number of pieces currently present
@@ -289,6 +307,7 @@ begin
   Result := fTerrains[i];
   if SetToSteel then
     Result.IsSteel := true;
+  Result.CyclesSinceLastUse := 0;
 end;
 
 function TNeoPieceManager.GetMetaObject(Identifier: String): TMetaObject;
@@ -297,6 +316,7 @@ var
 begin
   i := FindObjectIndexByIdentifier(Identifier);
   Result := fObjects[i];
+  Result.CyclesSinceLastUse := 0;
 end;
 
 // And the stuff for communicating with the theme
