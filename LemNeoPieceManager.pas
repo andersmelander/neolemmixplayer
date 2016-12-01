@@ -255,6 +255,18 @@ var
 begin
   AlreadyHasSet := CheckForGraphicSet(aName);
 
+  if AlreadyHasSet then
+  begin
+    // Zero the last use cycle. This is done instead of the normal system so that either whole graphic
+    // sets will be discarded at once, or nothing of them will.
+    for i := fTerrains.Count-1 downto 0 do
+      if Lowercase(aName) = Lowercase(fTerrains[i].GS) then
+        fTerrains[i].CyclesSinceLastUse := 0;
+    for i := fObjects.Count-1 downto 0 do
+      if Lowercase(aName) = Lowercase(fObjects[i].GS) then
+        fObjects[i].CyclesSinceLastUse := 0;
+  end;
+
   if AlreadyHasSet and not aAsTheme then Exit;
 
   BcSet := TBcGraphicSet.Create;
@@ -307,7 +319,6 @@ begin
   Result := fTerrains[i];
   if SetToSteel then
     Result.IsSteel := true;
-  Result.CyclesSinceLastUse := 0;
 end;
 
 function TNeoPieceManager.GetMetaObject(Identifier: String): TMetaObject;
@@ -316,7 +327,6 @@ var
 begin
   i := FindObjectIndexByIdentifier(Identifier);
   Result := fObjects[i];
-  Result.CyclesSinceLastUse := 0;
 end;
 
 // And the stuff for communicating with the theme
@@ -330,6 +340,7 @@ end;
 procedure TNeoPieceManager.ApplyTheme(aSet: String; aBgIndex: Integer);
 begin
   ObtainGraphicSet(aSet, true, aBgIndex);
+  Tidy;
 end;
 
 end.
