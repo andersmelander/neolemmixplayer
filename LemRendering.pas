@@ -1741,7 +1741,7 @@ begin
 
   fXmasPal := XmasPal;
 
-  PieceManager.ApplyTheme(Info.Level.Info.GraphicSetName, Inf.Level.Info.BackgroundIndex);
+  PieceManager.ApplyTheme(Info.Level.Info.GraphicSetName);
 
   LowPal := DosPaletteToArrayOfColor32(DosInLevelPalette);
   if fXmasPal then

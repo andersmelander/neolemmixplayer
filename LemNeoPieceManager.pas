@@ -54,7 +54,7 @@ type
       procedure Tidy;
 
       procedure SetTheme(aTheme: TNeoTheme);
-      procedure ApplyTheme(aSet: String; aBgIndex: Integer);
+      procedure ApplyTheme(aSet: String);
 
       function GetTerrainPieceCount(aSet: String): Integer;
 
@@ -331,9 +331,9 @@ begin
   Tidy;
 end;
 
-procedure TNeoPieceManager.ApplyTheme(aSet: String; aBgIndex: Integer);
+procedure TNeoPieceManager.ApplyTheme(aSet: String);
 begin
-  ObtainGraphicSet(aSet, true, aBgIndex);
+  ObtainGraphicSet(aSet, true);
   Tidy;
 end;
 

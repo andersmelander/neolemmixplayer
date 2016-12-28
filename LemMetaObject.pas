@@ -8,7 +8,7 @@ uses
   GR32, LemTypes, LemBCGraphicSet, LemNeoParser,
   PngInterface, LemStrings, LemNeoTheme,
   Classes, SysUtils, StrUtils,
-  Contnrs, UTools, LemNeoParser;
+  Contnrs, UTools;
 
 const
   // Object Animation Types
@@ -262,6 +262,7 @@ begin
 end;
 
 procedure TMetaObject.Load(aCollection,aPiece: String; aTheme: TNeoTheme);
+(*
 var
   Parser: TParser;
   Sec: TParserSection;
@@ -272,7 +273,9 @@ var
   DoHorizontal: Boolean;
 
   Masker: TMasker;
+*)
 begin
+(*
   fGS := Lowercase(aCollection);
   fPiece := Lowercase(aPiece);
   O := GetInterface(false, false, false);
@@ -371,6 +374,7 @@ begin
     Parser.Free;
     BMP.Free;
   end;
+*)
 end;
 
 procedure TMetaObject.Load(aSet: TBcGraphicSet; aIndex: Integer);

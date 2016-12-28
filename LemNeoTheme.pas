@@ -67,9 +67,6 @@ procedure TNeoTheme.Load(aBc: TBcGraphicSet; aBgIndex: Integer);
 var
   i: Integer;
 begin
-  fHasImageBackground := false;
-  fBackgroundImage.Clear;
-
   SetLength(fColors, 3);
   fColors[0].Name := 'MASK';
   fColors[0].Color := aBc.MaskColor;
@@ -82,9 +79,6 @@ begin
     fLemmings := 'xmas'
   else
     fLemmings := 'default';
-
-  if aBc.LoadBackground(fBackgroundImage, aBgIndex) then
-    fHasImageBackground := true; 
 end;
 
 procedure TNeoTheme.Load(aSet: String);

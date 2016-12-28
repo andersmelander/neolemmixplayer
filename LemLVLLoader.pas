@@ -114,13 +114,7 @@ var
   end;
 
 begin
-  // Needs to convert preplaced lemmings and vgaspecs appropriately
-
-  Vgaspec := ChangeFileExt(Lowercase(aLevel.Info.VgaspecFile), '');
-
-  if Vgaspec = 'none' then Vgaspec := '';
-  if Vgaspec <> '' then
-    raise Exception.Create('This level uses a VGASPEC, which is no longer supported.');
+  // Needs to convert preplaced lemmings appropriately
 
   for i := aLevel.InteractiveObjects.Count-1 downto 0 do
   begin
@@ -1241,17 +1235,17 @@ begin
 
       //Buf.GraphicSetEx := GraphicSetEx;
       //Buf.GraphicSet   := GraphicSet;
-      Buf.MusicNumber  := GraphicSet shr 8;
+      Buf.MusicNumber  := 0;
       Buf.ScreenPosition := ScreenPosition;
       Buf.ScreenYPosition := ScreenYPosition;
 
       Buf.Resolution := 8;
-      Buf.BgIndex := BackgroundIndex;
+      Buf.BgIndex := StrToIntDef(Background, 0);
 
       Buf.Width := Width;
       Buf.Height := Height;
 
-      Buf.Gimmick := GimmickSet;
+      Buf.Gimmick := 0;
 
       if Length(Title) > 0 then
          System.Move(Title[1], Buf.LevelName, Length(Title));
@@ -1274,19 +1268,18 @@ begin
 
       if Buf.GraphicSetEx = 255 then
       begin}
-        k := VgaspecFile;
-        if k = '' then k := 'none';
+        k := 'none';
         System.Move(k[1], Buf.VgaspecName, Length(k));
       //end;
 
       {for i := 0 to 31 do
         Buf.WindowOrder[i] := WindowOrder[i];}
 
-      Buf.RefSection := fOddTarget shr 8;
-      Buf.RefLevel   := fOddTarget;
+      Buf.RefSection := 0;
+      Buf.RefLevel   := 0;
 
-      Buf.VgaspecX := VgaspecX;
-      Buf.VgaspecY := VgaspecY;
+      Buf.VgaspecX := 0;
+      Buf.VgaspecY := 0;
 
       Buf.LevelID := LevelID;
     end;
@@ -1417,14 +1410,8 @@ begin
     FillChar(Buf2.MusicName, 16, 0);
     Buf2.ScreenPosition := Info.ScreenPosition;
     Buf2.ScreenYPosition := Info.ScreenYPosition;
-    Buf2.GimmickFlags2 := Info.GimmickSet2;
-    Buf2.GimmickFlags3 := Info.GimmickSet3;
     k := LowerCase(LeftStr(Info.MusicFile, 16));
     Move(k[1], Buf2.MusicName, Length(k));
-    Buf2.SecRedirectRank := 0;
-    Buf2.SecRedirectLevel := 0;
-    Buf2.BnsRedirectRank := Info.BnsRank;
-    Buf2.BnsRedirectLevel := Info.BnsLevel;
     aStream.Write(Buf2, SizeOf(Buf2));
 
     b := 6;
