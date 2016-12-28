@@ -322,10 +322,6 @@ var
 
   n: Integer;
   Suffix: String;
-
-  Parser: TParser;
-  MainSec: TParserSection;
-  Sec: TParserSection;
 begin
   OldLookForLvls := fLookForLVL;
   fLookForLVL := false;
@@ -333,70 +329,31 @@ begin
   aLevel := TLevel.Create;
 try
   if not ForceDirectories(ExtractFilePath(ParamStr(0)) + 'Dump\' + ChangeFileExt(ExtractFileName(GameFile), '') + '\') then Exit;
-  SoftOddMode := true;
-  if not SoftOddMode then
-    SoftOddMode := MessageDlg('Hard-apply oddtabling to dumped levels?', mtCustom, [mbYes, mbNo], 0) = mrNo
-    else
-    SoftOddMode := false;
+  SoftOddMode := false;
 
   BasePath :=   AppPath + 'Dump\'
             + ChangeFileExt(ExtractFileName(GameFile), '')
             + '\';
 
-  Parser := TParser.Create;
-  MainSec := Parser.MainSection;
-
   for dS := 0 to fDefaultSectionCount-1 do
-  begin
-    Sec := MainSec.SectionList.Add('RANK');
-    Sec.AddLine('NAME', EasyGetSectionName(dS));
-    Sec.AddLine('FOLDER', MakeSuitableForFilename(EasyGetSectionName(dS)));
-
-    ForceDirectories(BasePath + MakeSuitableForFilename(EasyGetSectionName(dS)));
-
     for DL := 0 to GetLevelCount(dS)-1 do
     begin
-
       ResetOddtableHistory;
       GetEntry(dS, dL, aFilename, aFileIndex);
       aInfo.DosLevelPackFileName := aFilename;
       aInfo.DosLevelPackIndex := aFileIndex;
       LoadSingleLevel(aFileIndex, dS, dL, aLevel, SoftOddMode);
-<<<<<<< HEAD
       FilePath :=   ExtractFilePath(ParamStr(0)) + 'Dump\'
                   + ChangeFileExt(ExtractFileName(GameFile), '')
                   + '\' + LeadZeroStr(dS + 1, 2) + LeadZeroStr(dL + 1, 2) + '.lvl';
       FileStream := TFileStream.Create(FilePath, fmCreate);
       try
         TLVLLoader.StoreLevelInStream(aLevel, FileStream);
-=======
-      FilePath := BasePath + MakeSuitableForFilename(EasyGetSectionName(dS)) + '\' + Trim(MakeSuitableForFilename(aLevel.Info.Title));
-
-      n := 0;
-      Suffix := '';
-
-      while FileExists(FilePath + Suffix + '.nxlv') do
-      begin
-        Inc(n);
-        Suffix := LeadZeroStr(n, 2);
-      end;
-
-      FilePath := FilePath + Suffix + '.nxlv';
-
-      Sec.AddLine('LEVEL', ExtractFileName(FilePath));
-
-      FileStream := TFileStream.Create(FilePath, fmCreate);
-      try
-        aLevel.SaveToStream(FileStream);
->>>>>>> master
       finally
         FileStream.Free;
       end;
 
     end;
-  end;
-
-  Parser.SaveToFile(BasePath + 'levels.nxmi');
 except
 end;
 
