@@ -127,40 +127,10 @@ procedure TRecolorImage.LoadSwaps(aName: String);
 var
   Parser: TParser;
   Mode: TColorSwapType;
-<<<<<<< HEAD
-  SwapCount: Integer;
-  TempStream: TMemoryStream;
-
-  procedure CheckExpand;
-  begin
-    if Length(fSwaps) = SwapCount then
-      SetLength(fSwaps, Length(fSwaps)+64);
-  end;
-=======
->>>>>>> master
 begin
   SetLength(fSwaps, 0);
   Parser := TParser.Create;
   try
-<<<<<<< HEAD
-    TempStream := CreateDataStream(aName + '_scheme.nxmi', ldtLemmings);
-    Parser.LoadFromStream(TempStream);
-    TempStream.Free;
-    repeat
-      Line := Parser.NextLine;
-      if Line.Keyword = 'SELECTED' then Mode := rcl_Selected;
-      if Line.Keyword = 'ZOMBIE' then Mode := rcl_Zombie;
-      if Line.Keyword = 'ATHLETE' then Mode := rcl_Athlete;
-      if StrToIntDef('x' + Line.Keyword, -1) <> -1 then
-      begin
-        CheckExpand;
-        fSwaps[SwapCount].Condition := Mode;
-        fSwaps[SwapCount].SrcColor := StrToInt('x' + Line.Keyword);
-        fSwaps[SwapCount].DstColor := StrToInt('x' + Line.Value);
-        Inc(SwapCount);
-      end;
-    until Line.Keyword = '';
-=======
     Parser.LoadFromFile(AppPath + SFStyles + aName + SFPiecesLemmings + 'scheme.nxmi');
 
     Mode := rcl_Athlete;
@@ -171,7 +141,6 @@ begin
 
     Mode := rcl_Selected;
     Parser.MainSection.Section['recoloring'].DoForEachSection('selected', RegisterSwap, @Mode);
->>>>>>> master
   finally
     Parser.Free;
   end;

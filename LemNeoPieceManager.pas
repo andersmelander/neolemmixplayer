@@ -8,12 +8,8 @@ interface
 
 uses
   Dialogs,
-<<<<<<< HEAD
   LemBCGraphicSet,
-  LemNeoParser, PngInterface, LemNeoTheme,
-=======
   PngInterface, LemNeoTheme,
->>>>>>> master
   LemMetaTerrain, LemMetaObject, LemTypes, GR32, LemStrings,
   StrUtils, Classes, SysUtils;
 
@@ -202,21 +198,12 @@ begin
   Result := FindTerrainIndexByIdentifier(Identifier);
   fIsObtaining := false;
 
-<<<<<<< HEAD
-  (*BasePath := AppPath + SFStylesPieces + TerrainLabel.GS + SFPiecesTerrain + TerrainLabel.Piece;
-
-  if FileExists(BasePath + '.png') then  // .nxtp is optional, but .png is not :)
-    T := TMetaTerrain.Create
-  else if FileExists(BasePath + '.nxcs') then
-    T := TMetaConstruct.Create;
-=======
-  BasePath := AppPath + SFStyles + TerrainLabel.GS + SFPiecesTerrain + TerrainLabel.Piece;
+  (*BasePath := AppPath + SFStyles + TerrainLabel.GS + SFPiecesTerrain + TerrainLabel.Piece;
 
   if FileExists(BasePath + '.png') then  // .nxtp is optional, but .png is not :)
     T := TMetaTerrain.Create
   else
     raise Exception.Create('TNeoPieceManager.ObtainTerrain: Could not find terrain piece: ' + Identifier);
->>>>>>> master
   fTerrains.Add(T);
   T.Load(TerrainLabel.GS, TerrainLabel.Piece);*)
 end;

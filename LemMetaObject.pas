@@ -5,11 +5,7 @@ unit LemMetaObject;
 interface
 
 uses
-<<<<<<< HEAD
   GR32, LemTypes, LemBCGraphicSet, LemNeoParser,
-=======
-  GR32, LemTypes,
->>>>>>> master
   PngInterface, LemStrings, LemNeoTheme,
   Classes, SysUtils, StrUtils,
   Contnrs, UTools, LemNeoParser;
