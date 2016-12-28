@@ -338,17 +338,17 @@ begin
         // Handle the simple ones first - those that generally only look in one place.
         ldtNone: Fail; // hm... why does ldtNone even exist? Better not remove until I'm sure it's not needed.
         ldtSound: begin
-                    aFilename := ChangeFileExt(aFilename, '');
-                    if FileExists(AppPath + 'sound\' + aFilename + '.ogg') then
-                      aFilename := aFilename + '.ogg'
-                    else if FileExists(AppPath + 'sound\' + aFilename + '.wav') then
-                      aFileName := aFilename + '.wav'
+                    Arc.OpenResource(HINSTANCE, 'lemsounds', 'archive');
+                    aFilename := ChangeFileExt(aFilename, '.wav');
+                    if FileInArchive then
+                      Arc.ExtractFile(aFilename, Result)
                     else begin
-                      FreeAndNil(Result);
-                      Exit;
+                      aFilename := ChangeFileExt(aFilename, '.ogg');
+                      if FileInArchive then
+                        Arc.ExtractFile(aFilename, Result)
+                      else
+                        FreeAndNil(Result);
                     end;
-
-                    Result.LoadFromFile(AppPath + 'sound\' + aFilename);
                   end;
         ldtParticles: begin
                         Arc.OpenResource(HINSTANCE, 'lemparticles', 'archive');

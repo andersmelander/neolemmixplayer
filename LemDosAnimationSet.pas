@@ -196,10 +196,12 @@ procedure TBaseDosAnimationSet.DoReadMetaData(XmasPal : Boolean = false);
     dx: Integer;
 
     Anim: TMetaLemmingAnimation;
+    S: TMemoryStream;
   begin
+    S := CreateDataStream(fLemmingPrefix + '_scheme.nxmi', ldtLemmings);
     Parser := TParser.Create;
     try
-      Parser.LoadFromFile(fLemmingPrefix + '_scheme.nxmi');
+      Parser.LoadFromStream(S);
       AnimSec := Parser.MainSection.Section['animations'];
       for i := 0 to 23 do
       begin
@@ -226,6 +228,7 @@ procedure TBaseDosAnimationSet.DoReadMetaData(XmasPal : Boolean = false);
       raise Exception.Create('TBaseDosAnimationSet: Error while opening scheme.nxmi.');
     end;
     Parser.Free;
+    S.Free;
   end;
 
 const

@@ -127,11 +127,13 @@ procedure TRecolorImage.LoadSwaps(aName: String);
 var
   Parser: TParser;
   Mode: TColorSwapType;
+  S: TMemoryStream;
 begin
   SetLength(fSwaps, 0);
+  S := CreateDataStream(aName + '_scheme.nxmi', ldtLemmings);
   Parser := TParser.Create;
   try
-    Parser.LoadFromFile(AppPath + SFStyles + aName + SFPiecesLemmings + 'scheme.nxmi');
+    Parser.LoadFromStream(S);
 
     Mode := rcl_Athlete;
     Parser.MainSection.Section['recoloring'].DoForEachSection('athlete', RegisterSwap, @Mode);
@@ -143,6 +145,7 @@ begin
     Parser.MainSection.Section['recoloring'].DoForEachSection('selected', RegisterSwap, @Mode);
   finally
     Parser.Free;
+    S.Free;
   end;
 end;
 

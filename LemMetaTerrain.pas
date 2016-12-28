@@ -139,7 +139,7 @@ begin
   ClearImages;
 
   fGS := aSet.Name;
-  fPiece := 'T' + IntToStr(aIndex);
+  fPiece := IntToStr(aIndex);
 
   TI := aSet.TerrainData[aIndex];
   DS := aSet.DataStream;

@@ -408,7 +408,7 @@ begin
     fVariableInfo[0].Height := O.Images[0].Height;
 
     fGS := aSet.Name;
-    fPiece := 'O' + IntToStr(aIndex);
+    fPiece := IntToStr(aIndex);
 
     fFrameCount := OI.FrameCount;
     O.TriggerLeft := OI.PTriggerX;
