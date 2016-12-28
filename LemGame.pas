@@ -1288,8 +1288,8 @@ begin
 
   with SoundMgr do
   begin
-    SFX_FAILURE         := AddSoundFromFileName('failure.ogg', true);
-    SFX_SUCCESS         := AddSoundFromFileName('success.ogg', true);
+    SFX_FAILURE         := AddSoundFromFileName('failure.ogg');
+    SFX_SUCCESS         := AddSoundFromFileName('success.ogg');
     SFX_BUILDER_WARNING := AddSoundFromFileName('ting.ogg');
     SFX_ASSIGN_SKILL    := AddSoundFromFileName('mousepre.ogg');
     SFX_YIPPEE          := AddSoundFromFileName('yippee.ogg');
@@ -1864,6 +1864,9 @@ begin
   if (F <> 0) and (B and E = 0) then B := B and not PM_TERRAIN;
 end;
 
+// Not sure who wrote this (probably me), but upon seeing this I forgot what the hell they were
+// for. The pixel in "E" is excluded, IE: anything that matches even one bit of E, will not be
+// removed when applying the mask.
 procedure TLemmingGame.CombineMaskPixelsLeft(F: TColor32; var B: TColor32; M: TColor32);
 var
   E: TColor32;
@@ -2047,9 +2050,6 @@ begin
   i := AnimationIndices[NewAction, (L.LemDx = -1)];
   TempMetaAnim := Style.AnimationSet.MetaLemmingAnimations[i];
   L.LemMaxFrame := TempMetaAnim.FrameCount - 1;
-  L.LemAnimationType := TempMetaAnim.AnimationType;
-  L.FrameTopDy  := TempMetaAnim.FootY; // ccexplore compatible
-  L.FrameLeftDx := TempMetaAnim.FootX; // ccexplore compatible
 
   // some things to do when entering state
   case L.LemAction of
@@ -2099,9 +2099,6 @@ begin
     i := AnimationIndices[LemAction, (LemDx = -1)];
     TempMetaAnim := Style.AnimationSet.MetaLemmingAnimations[i];
     LemMaxFrame := TempMetaAnim.FrameCount - 1;
-    LemAnimationType := TempMetaAnim.AnimationType;
-    FrameTopDy  := -TempMetaAnim.FootY; // ccexplore compatible
-    FrameLeftDx := -TempMetaAnim.FootX; // ccexplore compatible
   end;
 end;
 
@@ -3473,8 +3470,8 @@ var
   ShadowSkillButton: TSkillPanelButton;
   ShadowLem: TLemming;
 const
-  ShadowSkillSet = [spbPlatformer, spbBuilder, spbStacker,
-                    spbDigger, spbMiner, spbBasher, spbExplode, spbGlider];
+  ShadowSkillSet = [spbPlatformer, spbBuilder, spbStacker, spbDigger, spbMiner,
+                    spbBasher, spbExplode, spbGlider, spbCloner];
 begin
   if fHyperSpeed then Exit;
 
@@ -3630,6 +3627,10 @@ function TLemmingGame.HandleLemming(L: TLemming): Boolean;
   o Call specialized action-method
   o Do *not* call this method for a removed lemming
 -------------------------------------------------------------------------------}
+const
+  OneTimeActionSet = [baDrowning, baHoisting, baSplatting, baExiting,
+                      baVaporizing, baShrugging, baOhnoing, baExploding,
+                      baStoning];
 begin
   // Remember old position and action for CheckTriggerArea
   L.LemXOld := L.LemX;
@@ -3645,7 +3646,7 @@ begin
     L.LemFrame := 0;
     // Floater and Glider start cycle at frame 9!
     if L.LemAction in [baFloating, baGliding] then L.LemFrame := 9;
-    if L.LemAnimationType = lat_Once then L.LemEndOfAnimation := True;
+    if L.LemAction in OneTimeActionSet then L.LemEndOfAnimation := True;
   end;
 
   // Do Lem action
@@ -5046,7 +5047,7 @@ begin
 
   // convert buttontype to skilltype
   Sel := SkillPanelButtonToAction[fSelectedSkill];
-  Assert(Sel <> baNone);
+  if Sel = baNone then Exit;
 
   Result := AssignNewSkill(Sel, IsHighlight);
 
@@ -5819,8 +5820,6 @@ begin
       gTarget := 0
     else
       gTarget := (gToRescue * 100) div gLemCap;
-
-    if Level.Info.DisplayPercent > 0 then gTarget := Level.Info.DisplayPercent;
 
     if not fGameCheated then
     begin

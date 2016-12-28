@@ -107,6 +107,7 @@ function CalcFrameRect(Bmp: TBitmap32; FrameCount, FrameIndex: Integer): TRect;
 procedure PrepareFramedBitmap(Bmp: TBitmap32; FrameCount, FrameWidth, FrameHeight: Integer);
 procedure InsertFrame(Dst, Src: TBitmap32; FrameCount, FrameIndex: Integer);
 function AppPath: string;
+function MakeSuitableForFilename(const aInput: String): String;
 function LemmingsPath: string;
 function MusicsPath: string;
 
@@ -125,6 +126,26 @@ begin
   if _AppPath = '' then
     _AppPath := ExtractFilePath(ParamStr(0));
   Result := _AppPath;
+end;
+
+function MakeSuitableForFilename(const aInput: String): String;
+const
+  FORBIDDEN_CHARS = '<>:"/\|?*';
+  REPLACEMENT_CHAR = '_';
+var
+  i: Integer;
+  CharPos: Integer;
+begin
+  Result := aInput;
+  for i := 1 to Length(FORBIDDEN_CHARS) do
+  begin
+    CharPos := Pos(FORBIDDEN_CHARS[i], Result);
+    while CharPos <> 0 do
+    begin
+      Result[CharPos] := REPLACEMENT_CHAR;
+      CharPos := Pos(FORBIDDEN_CHARS[i], Result);
+    end;
+  end;
 end;
 
 function LemmingsPath: string;
@@ -317,18 +338,17 @@ begin
         // Handle the simple ones first - those that generally only look in one place.
         ldtNone: Fail; // hm... why does ldtNone even exist? Better not remove until I'm sure it's not needed.
         ldtSound: begin
-                    Result := TMemoryStream.Create;
-                    Arc.OpenResource(HINSTANCE, 'lemsounds', 'archive');
-                    aFilename := ChangeFileExt(aFilename, '.ogg');
-                    if FileInArchive then
-                      Arc.ExtractFile(aFilename, Result)
+                    aFilename := ChangeFileExt(aFilename, '');
+                    if FileExists(AppPath + 'sound\' + aFilename + '.ogg') then
+                      aFilename := aFilename + '.ogg'
+                    else if FileExists(AppPath + 'sound\' + aFilename + '.wav') then
+                      aFileName := aFilename + '.wav'
                     else begin
-                      aFilename := ChangeFileExt(aFilename, '.wav');
-                      if FileInArchive then
-                        Arc.ExtractFile(aFilename, Result)
-                      else
-                        FreeAndNil(Result);
+                      FreeAndNil(Result);
+                      Exit;
                     end;
+
+                    Result.LoadFromFile(AppPath + 'sound\' + aFilename);
                   end;
         ldtParticles: begin
                         Arc.OpenResource(HINSTANCE, 'lemparticles', 'archive');
@@ -382,38 +402,13 @@ begin
                    end;
                  end;
         ldtMusic: begin
-                    // ldtMusic is the most complicated one. We search in several places until we find it.
-                    // We also must check for various formats; so any extension passed is ignored. Parts
-                    // of this are implemented in MusicFileInArchive and TryMusicPacks subfunctions.
-
-                    // First place: The pack's associated music pack.
-                    // Second place: The NXP.
-                    // Third place: Music folder.
-                    // Final place: lemdata
                     if FormatDateTime('mmdd', Now) = '0401' then
                       aFilename := 'orig_00'; // April fools prank. "orig_00" is a rickroll.
 
-                    if not IsSingleLevelMode then
-                    begin
-                      if FileExists(ChangeFileExt(GameFile, '_Music.dat')) then
-                        Arc.OpenArchive(ChangeFileExt(GameFile, '_Music.dat'), amOpen);
-                    end;
-                    if MusicFileInArchive then
-                    begin
-                      Arc.ExtractFile(aFilename, Result);
-                    end else
-                      if FindInMusicFolder = '' then
-                      begin
-                        if not (MusicFileInArchive or IsSingleLevelMode) then Arc.OpenArchive(GameFile, amOpen);
-                        if not MusicFileInArchive then Arc.OpenResource(HINSTANCE, 'lemdata', 'archive');
-                        MusicFileInArchive; // Sets aFilename to the one that actually exists.
-                        if FileInArchive then
-                          Arc.ExtractFile(aFilename, Result)
-                        else
-                          FreeAndNil(Result);
-                      end else begin
-                        Result.LoadFromFile(AppPath + 'music/' + FindInMusicFolder);
-                      end;
+                    if FindInMusicFolder = '' then
+                      FreeAndNil(Result)
+                    else
+                      Result.LoadFromFile(AppPath + 'music/' + FindInMusicFolder);
                   end;
       end;
       if Result <> nil then Result.Position := 0;

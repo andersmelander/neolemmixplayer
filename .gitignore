@@ -28,3 +28,7 @@ NeoLemmixHotkeys.ini
 NeoLemmixSettings.ini
 bin/LemmingsPlusV Replay Results.txt
 bin/styles/versions.ini
+tools/GSConvert/bin/*
+!tools/GSConvert/bin/*.txt
+!tools/GSConvert/bin/*.dat
+!tools/GSConvert/bin/default/

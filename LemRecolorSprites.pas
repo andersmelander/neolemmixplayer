@@ -6,7 +6,7 @@ uses
   Dialogs,
   Classes, SysUtils,
   LemNeoParser,
-  LemDosStructures, LemLemming, LemTypes,
+  LemDosStructures, LemLemming, LemTypes, LemStrings,
   GR32, GR32_Blend{, GR32_OrdinalMaps, GR32_Layers};
 
 type
@@ -32,6 +32,7 @@ type
       fSwaps: TColorSwapArray;
 
       procedure SwapColors(F: TColor32; var B: TColor32);
+      procedure RegisterSwap(aSec: TParserSection; const aIteration: Integer; aData: Pointer);
 
       (*procedure CombineLemmingPixelsZombie(F: TColor32; var B: TColor32; M: TColor32);
       procedure CombineLemmingPixelsAthlete(F: TColor32; var B: TColor32; M: TColor32);
@@ -110,11 +111,23 @@ begin
   if F <> 0 then B := clBlack32 else B := clWhite32;
 end;
 
+procedure TRecolorImage.RegisterSwap(aSec: TParserSection; const aIteration: Integer; aData: Pointer);
+var
+  Mode: ^TColorSwapType absolute aData;
+  i: Integer;
+begin
+  i := Length(fSwaps);
+  SetLength(fSwaps, i+1);
+  fSwaps[i].Condition := Mode^;
+  fSwaps[i].SrcColor := aSec.LineNumeric['from'];
+  fSwaps[i].DstColor := aSec.LineNumeric['to'];
+end;
+
 procedure TRecolorImage.LoadSwaps(aName: String);
 var
-  Parser: TNeoLemmixParser;
-  Line: TParserLine;
+  Parser: TParser;
   Mode: TColorSwapType;
+<<<<<<< HEAD
   SwapCount: Integer;
   TempStream: TMemoryStream;
 
@@ -123,12 +136,13 @@ var
     if Length(fSwaps) = SwapCount then
       SetLength(fSwaps, Length(fSwaps)+64);
   end;
+=======
+>>>>>>> master
 begin
   SetLength(fSwaps, 0);
-  SwapCount := 0;
-  Parser := TNeoLemmixParser.Create;
-  Mode := rcl_Selected;
+  Parser := TParser.Create;
   try
+<<<<<<< HEAD
     TempStream := CreateDataStream(aName + '_scheme.nxmi', ldtLemmings);
     Parser.LoadFromStream(TempStream);
     TempStream.Free;
@@ -146,8 +160,19 @@ begin
         Inc(SwapCount);
       end;
     until Line.Keyword = '';
+=======
+    Parser.LoadFromFile(AppPath + SFStyles + aName + SFPiecesLemmings + 'scheme.nxmi');
+
+    Mode := rcl_Athlete;
+    Parser.MainSection.Section['recoloring'].DoForEachSection('athlete', RegisterSwap, @Mode);
+
+    Mode := rcl_Zombie;
+    Parser.MainSection.Section['recoloring'].DoForEachSection('zombie', RegisterSwap, @Mode);
+
+    Mode := rcl_Selected;
+    Parser.MainSection.Section['recoloring'].DoForEachSection('selected', RegisterSwap, @Mode);
+>>>>>>> master
   finally
-    SetLength(fSwaps, SwapCount);
     Parser.Free;
   end;
 end;

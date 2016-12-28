@@ -38,17 +38,14 @@ uses
   LemSteel,
   LemLemming,
   LemDosAnimationSet, LemMetaAnimation, LemCore,
-  LemLevel;
-
-  // we could maybe use the alpha channel for rendering, ok thats working!
-  // create gamerenderlist in order of rendering
+  LemLevel, StrUtils, LemStrings;
 
 type
   TParticleRec = packed record
     DX, DY: ShortInt
   end;
   TParticleArray = packed array[0..79] of TParticleRec;
-  TParticleTable = packed array[0..50] of TParticleArray;
+  TParticleTable = packed array[0..51] of TParticleArray;
 
   // temp solution
   TRenderInfoRec = record
@@ -175,7 +172,7 @@ type
 implementation
 
 uses
-  LemMetaConstruct, UTools;
+  UTools;
 
 { TRenderer }
 
@@ -474,6 +471,11 @@ begin
       DrawGliderShadow(CopyL);
     end;
 
+  spbCloner:
+    begin
+      CopyL.LemDX := -CopyL.LemDX;
+      DrawShadows(CopyL, ActionToSkillPanelButton[CopyL.LemAction]);
+    end;
   end;
 
   CopyL.Free;
@@ -858,9 +860,6 @@ begin
   Invert := T.DrawingFlags and tdf_Invert <> 0;
   Flip := T.DrawingFlags and tdf_Flip <> 0;
 
-  if Src is TMetaConstruct then
-    TMetaConstruct(Src).SetRenderer(Self);
-
   Dst.Assign(Src.PhysicsImage[Flip, Invert, Rotate]);
 
   for y := 0 to Dst.Height-1 do
@@ -978,9 +977,6 @@ begin
   Rotate := (T.DrawingFlags and tdf_Rotate <> 0);
   Invert := (T.DrawingFlags and tdf_Invert <> 0);
   Flip := (T.DrawingFlags and tdf_Flip <> 0);
-
-  if MT is TMetaConstruct then
-    TMetaConstruct(MT).SetRenderer(Self);
 
   Src := MT.GraphicImage[Flip, Invert, Rotate];
   PrepareTerrainBitmap(Src, T.DrawingFlags);
@@ -1172,19 +1168,19 @@ var
       DstRect := ZeroTopLeftRect(DstRect);
       OffsetRect(DstRect, Inf.Left, Inf.Top + (MO.Height * iY));
       // shrink sizes of rectange to draw on bottom row
-      if iY = CountY then
+      if (iY = CountY) and (Inf.Height mod MO.Height <> 0) then
       begin
-        Dec(DstRect.Bottom, Inf.Height mod MO.Height);
-        Dec(TempBitmapRect.Bottom, Inf.Height mod MO.Height);
+        Dec(DstRect.Bottom, MO.Height - (Inf.Height mod MO.Height));
+        Dec(TempBitmapRect.Bottom, MO.Height - (Inf.Height mod MO.Height));
       end;
 
       for iX := 0 to CountX do
       begin
         // shrink size of rectangle to draw on rightmost column
-        if iX = CountX then
+        if (iX = CountX) and (Inf.Width mod MO.Width <> 0) then
         begin
-          Dec(DstRect.Right, Inf.Width mod MO.Width);
-          Dec(TempBitmapRect.Right, Inf.Width mod MO.Width);
+          Dec(DstRect.Right, MO.Width - (Inf.Width mod MO.Width));
+          Dec(TempBitmapRect.Right, MO.Width - (Inf.Width mod MO.Width));
         end;
         // Draw copy of object onto alayer at this place
         TempBitmap.DrawTo(fLayers[aLayer], DstRect, TempBitmapRect);
@@ -1405,10 +1401,11 @@ begin
   for i := Low(THelperIcon) to High(THelperIcon) do
   begin
     if i = hpi_None then Continue;
-    fHelperImages[i] := TPngInterface.LoadPngFile(AppPath + 'gfx/helpers/' + HelperImageFilenames[i]);
+    fHelperImages[i] := TPngInterface.LoadPngFile(AppPath + SFGraphicsHelpers + HelperImageFilenames[i]);
     fHelperImages[i].DrawMode := dmBlend;
   end;
 
+  FillChar(fParticles, SizeOf(TParticleTable), $80);
   S := CreateDataStream('explode.dat', ldtParticles);
   S.Seek(0, soFromBeginning);
   S.Read(fParticles, S.Size);
@@ -1575,6 +1572,7 @@ var
 
   Lem: TPreplacedLemming;
   L: TLemming;
+  BgImg: TBitmap32;
 
   procedure CheckLockedExits;
   var
@@ -1598,6 +1596,23 @@ var
       end;
     end
   end;
+
+  procedure LoadBackgroundImage;
+  var
+    Collection, Piece: String;
+    SplitPos: Integer;
+  begin
+    SplitPos := pos(':', Inf.Level.Info.Background);
+    Collection := LeftStr(Inf.Level.Info.Background, SplitPos-1);
+    Piece := RightStr(Inf.Level.Info.Background, Length(Inf.Level.Info.Background)-SplitPos);
+
+    if FileExists(AppPath + SFStyles + Collection + '\backgrounds\' + Piece + '.png') then
+      TPngInterface.LoadPngFile((AppPath + SFStyles + Collection + '\backgrounds\' + Piece + '.png'), BgImg)
+    else begin
+      BgImg.SetSize(320, 160);
+      BgImg.Clear(fTheme.Colors['background']);
+    end;
+  end;
 begin
   if Inf.Level = nil then Exit;
 
@@ -1613,11 +1628,17 @@ begin
   fBgColor := Theme.Colors[BACKGROUND_COLOR] and $FFFFFF;
   fLayers[rlBackground].Clear($FF000000 or fBgColor);
 
-  if fTheme.HasImageBackground and DoBackground then
+  if DoBackground and (Inf.Level.Info.Background <> '') then
   begin
-    for y := 0 to Inf.Level.Info.Height div fTheme.Background.Height do
-    for x := 0 to Inf.Level.Info.Width div fTheme.Background.Width do
-      fTheme.Background.DrawTo(fLayers[rlBackground], x * fTheme.Background.Width, y * fTheme.Background.Height);
+    BgImg := TBitmap32.Create;
+    try
+      LoadBackgroundImage;
+      for y := 0 to Inf.Level.Info.Height div BgImg.Height do
+        for x := 0 to Inf.Level.Info.Width div BgImg.Width do
+          BgImg.DrawTo(fLayers[rlBackground], x * BgImg.Width, y * BgImg.Height);
+    finally
+      BgImg.Free;
+    end;
   end;
 
 

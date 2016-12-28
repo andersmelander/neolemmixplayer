@@ -16,7 +16,9 @@ uses
   LemDosBmp,
   LemDosMainDat,
   LemMetaAnimation,
-  LemAnimationSet;
+  LemAnimationSet,
+  LemNeoParser,
+  LemStrings;
 
 const
   LTR = False;
@@ -160,104 +162,122 @@ procedure TBaseDosAnimationSet.DoReadMetaData(XmasPal : Boolean = false);
   o make lemming animations
   o make mask animations metadata
 -------------------------------------------------------------------------------}
-
-    procedure Lem(aImageLocation: Integer; const aDescription: string;
-      aFrameCount, aWidth, aHeight, aBPP, aFootX, aFootY, aAnimType: Integer);
+  procedure Msk(aImageLocation: Integer; const aDescription: string;
+    aFrameCount, aWidth, aHeight, aBPP: Integer);
+  begin
+    with fMetaMaskAnimations.Add do
     begin
-      with fMetaLemmingAnimations.Add do
-      begin
-        ImageLocation      := aImageLocation;
-        Description        := aDescription;
-        FrameCount         := aFrameCount;
-        Width              := aWidth;
-        Height             := aHeight;
-        BitsPerPixel       := aBPP;
-        FootX              := aFootX;
-        FootY              := aFootY;
-        AnimationType      := aAnimType;
-      end;
+      ImageLocation      := aImageLocation;
+      Description        := aDescription;
+      FrameCount         := aFrameCount;
+      Width              := aWidth;
+      Height             := aHeight;
+      BitsPerPixel       := aBPP;
     end;
+  end;
 
-    procedure Msk(aImageLocation: Integer; const aDescription: string;
-      aFrameCount, aWidth, aHeight, aBPP: Integer);
-    begin
-      with fMetaMaskAnimations.Add do
+  procedure LoadPositionData;
+  const
+    // These match the order these are stored by this class. They do NOT have to be in this
+    // order in "scheme.nxmi", they just have to all be there.
+    ANIM_NAMES: array[0..23] of String =  ('WALKER', 'JUMPER', 'DIGGER', 'CLIMBER',
+                                           'DROWNER', 'HOISTER', 'BUILDER', 'BASHER',
+                                           'MINER', 'FALLER', 'FLOATER', 'SPLATTER',
+                                           'EXITER', 'BURNER', 'BLOCKER', 'SHRUGGER',
+                                           'OHNOER', 'BOMBER', 'PLATFORMER', 'STONER',
+                                           'SWIMMER', 'GLIDER', 'DISARMER', 'STACKER');
+    DIR_NAMES: array[0..1] of String = ('RIGHT', 'LEFT');
+  var
+    Parser: TParser;
+    AnimSec: TParserSection;
+    ThisAnimSec: TParserSection;
+    DirSec: TParserSection;
+    i: Integer;
+    dx: Integer;
+
+    Anim: TMetaLemmingAnimation;
+  begin
+    Parser := TParser.Create;
+    try
+      Parser.LoadFromFile('scheme.nxmi');
+      AnimSec := Parser.MainSection.Section['animations'];
+      for i := 0 to 23 do
       begin
-        ImageLocation      := aImageLocation;
-        Description        := aDescription;
-        FrameCount         := aFrameCount;
-        Width              := aWidth;
-        Height             := aHeight;
-        BitsPerPixel       := aBPP;
-      end;
-    end;
+        try
+          ThisAnimSec := AnimSec.Section[ANIM_NAMES[i]];
+          for dx := 0 to 1 do
+          begin
+            DirSec := ThisAnimSec.Section[DIR_NAMES[dx]];
+            Anim := fMetaLemmingAnimations[(i * 2) + dx];
 
+            if Anim.FrameCount = 0 then Anim.FrameCount := ThisAnimSec.LineNumeric['frames'];
+            if (i in [10, 21 {Floater, Glider}]) and (Anim.FrameCount < 10) then
+              Anim.FrameCount := 10;
+
+            Anim.FootX := DirSec.LineNumeric['foot_x'];
+            Anim.FootY := DirSec.LineNumeric['foot_y'];
+            Anim.Description := LeftStr(DIR_NAMES[dx], 1) + ANIM_NAMES[i];
+          end;
+        except
+          raise Exception.Create('TBaseDosAnimationSet: Error loading lemming animation metadata for ' + ANIM_NAMES[i] + '.')
+        end;
+      end;
+    except
+      raise Exception.Create('TBaseDosAnimationSet: Error while opening scheme.nxmi.');
+    end;
+    Parser.Free;
+  end;
+
+const
+  // Number of frames for the various lemming actions.
+  // If zero, the animations area loaded dynamically.
+  // Otherwise the animation must have *exactly* this number of frames.
+  ANIM_FRAMECOUNT: array[0..23] of Integer =
+    ( 0,  0, 16,  8,   // walker, jumper, digger, climber
+     16,  8, 16, 32,   // drowner, hoister, builder, basher
+     24,  0,  0, 16,   // miner, faller, floater, splatter
+      8, 14,  0,  8,   // exiter, burner, blocker, shrugger
+     16,  1, 16,  1,   // ohnoer, bomber, platformer, stoner
+      8,  0, 16,  8 ); // swimmer, glider, disarmer, stacker
+var
+  AnimIndex: Integer;
 begin
+  // Due to dynamic loading, only one value is needed here: The frame count.
+  // In situations where the graphic has no impact on physics (e.g. walkers),
+  // the frame count can be zero. In such situations even the animations are
+  // loaded dynamically.
 
-  // Description is used for new PNG system to identify the files.
-  // First letter specifies the direction to load! The rest is the
-  // filename without extension. Note that many left-facing ones are
-  // currently unused; use of them will be implemented once MAIN.DAT
-  // is completely dropped.
-  // This doesn't apply to masks; they're hardcoded further down.
-  //  place   description            F   W   H  BPP   FX   FY   animationtype
+  // Eventually, this should be changed so that even animations that do currently impact
+  // physics can have a different number of frames without impact.
 
-  // NOTE: Width and height will get overwritten by the loading routine based on the image size
-  //       BPP is no longer used
-  //       animationtype is no longer used by rendering; might still be used by game logic? 
+  // Note that currently, floater and glider have a minimum of 10 frames; this is handled
+  // elsewhere.
 
-  Lem($0000, 'Rwalker'            ,   8, 16, 10,  19,   8,  10,   lat_Loop); // 0
-  Lem($0D5C, 'Lwalker'            ,   8, 16, 10,  19,   9,  10,   lat_Loop);
-  Lem($0BE0, 'Rjumper'            ,   1, 16, 10,  19,   7,  10,   lat_Loop);
-  Lem($193C, 'Ljumper'            ,   1, 16, 10,  19,   9,  10,   lat_Loop);
-  Lem($1AB8, 'Rdigger'            ,  16, 17, 14,  19,   7,  12,   lat_Loop);
-  Lem($1AB8, 'Ldigger'            ,  16, 17, 14,  19,   8,  12,   lat_Loop);
-  Lem($3BF8, 'Rclimber'           ,   8, 16, 12,  19,   8,  12,   lat_Loop);
-  Lem($4A38, 'Lclimber'           ,   8, 16, 12,  19,   8,  12,   lat_Loop);
-  Lem($5878, 'Rdrowner'           ,  16, 16, 10,  19,   8,  10,   lat_Once);
-  Lem($5878, 'Ldrowner'           ,  16, 16, 10,  19,   9,  10,   lat_Once);
-  Lem($7038, 'Rhoister'           ,   8, 16, 12,  19,   8,  12,   lat_Once);
-  Lem($7E78, 'Lhoister'           ,   8, 16, 12,  19,   8,  12,   lat_Once);
-  Lem($8CB8, 'Rbuilder'           ,  16, 16, 13,  19,   8,  13,   lat_Loop);
-  Lem($AB98, 'Lbuilder'           ,  16, 16, 13,  19,   9,  13,   lat_Loop);
-  Lem($CA78, 'Rbasher'            ,  32, 16, 10,  19,   8,  10,   lat_Loop);
-  Lem($F9F8, 'Lbasher'            ,  32, 16, 10,  19,   7,  10,   lat_Loop);
-  Lem($12978, 'Rminer'            ,  24, 16, 14,  19,   7,  13,   lat_Loop);
-  Lem($157C8, 'Lminer'            ,  24, 16, 14,  19,   8,  13,   lat_Loop);
-  Lem($18618, 'Rfaller'           ,   4, 16, 10,  19,   7,  10,   lat_Loop);
-  Lem($18C08, 'Lfaller'           ,   4, 16, 10,  19,   9,  10,   lat_Loop);
-  Lem($191F8, 'Rfloater'       ,  17, 16, 16,  19,   7,  16,   lat_Loop);
-  Lem($1A4F8, 'Lfloater'       ,  17, 16, 16,  19,   9,  16,   lat_Loop);
-  Lem($1B7F8, 'Rsplatter'         ,  16, 16, 10,  19,   7,  10,   lat_Once);
-  Lem($1B7F8, 'Lsplatter'         ,  16, 16, 10,  19,   8,  10,   lat_Once);
-  Lem($1CFB8, 'Rexiter'           ,   8, 16, 13,  19,   6,  13,   lat_Once);
-  Lem($1CFB8, 'Lexiter'           ,   8, 16, 13,  19,   7,  13,   lat_Once);
-  Lem($1DF28, 'Rburner'           ,  14, 16, 14,  19,   7,  14,   lat_Once);
-  Lem($1DF28, 'Lburner'           ,  14, 16, 14,  19,   8,  14,   lat_Once);
-  Lem($1FC40, 'Rblocker'          ,  16, 16, 10,  19,   8,  10,   lat_Loop);
-  Lem($1FC40, 'Lblocker'          ,  16, 16, 10,  19,   9,  10,   lat_Loop);
-  Lem($21400, 'Rshrugger'         ,   8, 16, 10,  19,   8,  10,   lat_Once);
-  Lem($21FE0, 'Lshrugger'         ,   8, 16, 10,  19,   8,  10,   lat_Once);
-  Lem($22BC0, 'Rohnoer'           ,  16, 16, 10,  19,   7,  10,   lat_Once);
-  Lem($22BC0, 'Lohnoer'           ,  16, 16, 10,  19,   8,  10,   lat_Once);
-  Lem($24380, 'Rbomber'           ,   1, 32, 32,  19,  16,  25,   lat_Once);
-  Lem($24380, 'Lbomber'           ,   1, 32, 32,  19,  16,  25,   lat_Once);
-  Lem($24D00, 'Rplatformer'       ,  16, 16, 14,  19,   8,  13,   lat_Loop);
-  Lem($26E40, 'Lplatformer'       ,  16, 16, 14,  19,   9,  13,   lat_Loop);
-  Lem($28F80, 'Rstoner'           ,   1, 32, 32,  19,  16,  25,   lat_Once); //30
-  Lem($28F80, 'Lstoner'           ,   1, 32, 32,  19,  16,  25,   lat_Once); //30
-  Lem($29AA2, 'Rswimmer'          ,   8, 16, 10,  19,   8,   8,   lat_Loop);
-  Lem($2A682, 'Lswimmer'          ,   8, 16, 10,  19,   7,   8,   lat_Loop);
-  Lem($2B262, 'Rglider'        ,  17, 16, 16,  19,   7,  16,   lat_Loop);
-  Lem($2C562, 'Lglider'        ,  17, 16, 16,  19,   9,  16,   lat_Loop);
-  Lem($2D862, 'Rdisarmer'         ,  16, 16, 14,  19,   8,  12,   lat_Loop);
-  Lem($2D862, 'Ldisarmer'         ,  16, 16, 14,  19,   9,  12,   lat_Loop);
-  Lem($8CB8, 'Rstacker'        ,   8, 16, 13,  19,   8,  13,   lat_Loop); // MAIN.DAT doesn't have seperate anims for builder and
-  Lem($AB98, 'Lstacker'        ,   8, 16, 13,  19,   9,  13,   lat_Loop); // stacker; only PNG files support this
-  Lem($29900, 'pass'              ,   1, 16, 11,  19,   8,  10,   lat_Once);   // Stoner terrain image; this is loaded among masks
+  for AnimIndex := 0 to 23 do
+  begin
+    // Add right- and left-facing version
+    fMetaLemmingAnimations.Add.FrameCount := ANIM_FRAMECOUNT[AnimIndex];
+    fMetaLemmingAnimations.Add.FrameCount := ANIM_FRAMECOUNT[AnimIndex];
+  end;
+  // This one is a placeholder for the stoner mask, I can't remember why it's in here but it is. I need to fix that.
+  fMetaLemmingAnimations.Add.FrameCount := 1;
+
 
   if fMetaLemmingAnimations.Count <> 49 then
-    ShowMessage('Missing an animation? Total: ' + IntToStr(fMetaLemmingAnimations.Count)); 
+    ShowMessage('Missing an animation? Total: ' + IntToStr(fMetaLemmingAnimations.Count));
+
+  if fLemmingPrefix = '' then fLemmingPrefix := 'default';
+  SetCurrentDir(AppPath + SFStyles + fLemmingPrefix + SFPiecesLemmings);
+  LoadPositionData;
+
+  // Setting the foot position of the stoner mask.
+  // This should be irrelevant for the stoner mask, as the stoner mask is not positioned wrt. the lemming's foot.
+  // For other sprites, the foot position is required though.
+  with fMetaLemmingAnimations[48] do
+  begin
+    FootX := 8;
+    FootY := 10;
+  end;
 
   //  place   description            F   W   H  BPP
 
@@ -297,24 +317,37 @@ begin
   if fMetaLemmingAnimations.Count = 0 then
     ReadMetaData;
 
+  SetCurrentDir(AppPath + SFStyles + fLemmingPrefix + SFPiecesLemmings);
+
   try
 
       with fMetaLemmingAnimations do
-        for iAnimation := 0 to Count-1 do
+        for iAnimation := 0 to Count-2 do // -2 to leave out the stoner placeholder
         begin
           MLA := fMetaLemmingAnimations[iAnimation];
-          if MLA.Description = 'pass' then Continue;          
           Fn := RightStr(MLA.Description, Length(MLA.Description)-1);
-          if MLA.Description[1] = 'L' then
+
+          TPngInterface.LoadPngFile(Fn + '.png', TempBitmap);
+          if FileExists(Fn + '_mask.png') then
+            TPngInterface.MaskImageFromFile(TempBitmap, Fn + '_mask.png', Pal[7]);
+
+          MLA.Width := TempBitmap.Width div 2;
+          MLA.Height := TempBitmap.height div MLA.FrameCount;
+
+          if iAnimation mod 2 = 1 then
             X := 0
           else
             X := MLA.Width;
+<<<<<<< HEAD
           //MainExtractor.ExtractBitmapByName(TempBitmap, Fn, Pal[7]);
           TPngInterface.LoadPngFile(AppPath + 'gfx/sprites/' + fLemmingPrefix + '_' + Fn + '.png', TempBitmap);
           //if FileExists(AppPath + 'gfx/sprites/' + fLemmingPrefix + '/' + Fn + '_mask.png') then
             TPngInterface.MaskImageFromFile(TempBitmap, AppPath + 'gfx/sprites/' + fLemmingPrefix + '_' + Fn + '_mask.png', Pal[7]);
           MLA.Width := TempBitmap.Width div 2;
           MLA.Height := TempBitmap.height div MLA.FrameCount;
+=======
+
+>>>>>>> master
           Bmp := TBitmap32.Create;
           Bmp.SetSize(MLA.Width, MLA.Height * MLA.FrameCount);
           TempBitmap.DrawTo(Bmp, 0, 0, Rect(X, 0, X + MLA.Width, MLA.Height * MLA.FrameCount));
@@ -340,32 +373,32 @@ begin
       fHighlightBitmap.DrawMode := dmBlend;
 
         // Stoner, Bomber and Highlight are a single frame each so easy enough
-        TPngInterface.LoadPngFile(AppPath + 'gfx/mask/bomber.png', fExplosionMaskBitmap);
-        TPngInterface.LoadPngFile(AppPath + 'gfx/mask/stoner.png', fLemmingAnimations[STONED]);
+        TPngInterface.LoadPngFile(AppPath + SFGraphicsMasks + 'bomber.png', fExplosionMaskBitmap);
+        TPngInterface.LoadPngFile(AppPath + SFGraphicsMasks + 'stoner.png', fLemmingAnimations[STONED]);
         with fMetaLemmingAnimations[STONED] do
         begin
           Width := fLemmingAnimations[STONED].Width;
           Height := fLemmingAnimations[STONED].Height;
         end;
-        TPngInterface.LoadPngFile(AppPath + 'gfx/mask/highlight.png', fHighlightBitmap);
+        TPngInterface.LoadPngFile(AppPath + SFGraphicsMasks + 'highlight.png', fHighlightBitmap);
 
         fLemmingAnimations[STONED].DrawMode := dmBlend;
 
         // Basher and miner are a tad more complicated
-        TPngInterface.LoadPngFile(AppPath + 'gfx/mask/basher.png', TempBitmap);
+        TPngInterface.LoadPngFile(AppPath + SFGraphicsMasks + 'basher.png', TempBitmap);
         fBashMasksRTLBitmap.SetSize(16, 40);
         fBashMasksBitmap.SetSize(16, 40);
         TempBitmap.DrawTo(fBashMasksRTLBitmap, 0, 0, Rect(0, 0, 16, 40));
         TempBitmap.DrawTo(fBashMasksBitmap, 0, 0, Rect(16, 0, 32, 40));
 
-        TPngInterface.LoadPngFile(AppPath + 'gfx/mask/miner.png', TempBitmap);
+        TPngInterface.LoadPngFile(AppPath + SFGraphicsMasks + 'miner.png', TempBitmap);
         fMineMasksRTLBitmap.SetSize(16, 26);
         fMineMasksBitmap.SetSize(16, 26);
         TempBitmap.DrawTo(fMineMasksRTLBitmap, 0, 0, Rect(0, 0, 16, 26));
         TempBitmap.DrawTo(fMineMasksBitmap, 0, 0, Rect(16, 0, 32, 26));
 
         // And countdown digits are the most complicated of all (or not, anymore...)
-        TPngInterface.LoadPngFile(AppPath + 'gfx/mask/countdown.png', fCountdownDigitsBitmap);
+        TPngInterface.LoadPngFile(AppPath + SFGraphicsMasks + 'countdown.png', fCountdownDigitsBitmap);
         (*fCountdownDigitsBitmap.SetSize(8, 80);
         fCountdownDigitsBitmap.Clear(0);
         for i := 0 to 9 do

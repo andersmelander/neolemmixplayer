@@ -5,10 +5,14 @@ unit LemMetaObject;
 interface
 
 uses
+<<<<<<< HEAD
   GR32, LemTypes, LemBCGraphicSet, LemNeoParser,
+=======
+  GR32, LemTypes,
+>>>>>>> master
   PngInterface, LemStrings, LemNeoTheme,
   Classes, SysUtils, StrUtils,
-  Contnrs, UTools;
+  Contnrs, UTools, LemNeoParser;
 
 const
   // Object Animation Types
@@ -85,6 +89,7 @@ type
     fRandomStartFrame             : Boolean;
     fResizability                 : TMetaObjectSizeSetting;
     fCyclesSinceLastUse: Integer; // to improve TNeoPieceManager.Tidy
+    fIsMasked: Boolean;
     function GetIdentifier: String;
     function GetCanResize(Flip, Invert, Rotate: Boolean; aDir: TMetaObjectSizeSetting): Boolean;
     function GetImageIndex(Flip, Invert, Rotate: Boolean): Integer;
@@ -123,12 +128,14 @@ type
     property TriggerTop[Flip, Invert, Rotate: Boolean]   : Integer index ov_TriggerTop read GetVariableProperty write SetVariableProperty;
     property TriggerWidth[Flip, Invert, Rotate: Boolean] : Integer index ov_TriggerWidth read GetVariableProperty write SetVariableProperty;
     property TriggerHeight[Flip, Invert, Rotate: Boolean]: Integer index ov_TriggerHeight read GetVariableProperty write SetVariableProperty;
+    property TriggerEffect: Integer read fTriggerEffect write fTriggerEffect; // used by level loading / saving code
     
     property Resizability[Flip, Invert, Rotate: Boolean]: TMetaObjectSizeSetting read GetResizability write SetResizability;
     property CanResizeHorizontal[Flip, Invert, Rotate: Boolean]: Boolean index mos_Horizontal read GetCanResize;
     property CanResizeVertical[Flip, Invert, Rotate: Boolean]: Boolean index mos_Vertical read GetCanResize;
 
     property CyclesSinceLastUse: Integer read fCyclesSinceLastUse write fCyclesSinceLastUse;
+    property IsMasked: Boolean read fIsMasked; // we don't want to write to this one
   end;
 
   TMetaObjectInterface = class
@@ -186,6 +193,14 @@ type
       property List;
   end;
 
+  TMasker = class
+    public
+      BMP: TBitmap32;
+      Theme: TNeoTheme;
+      Piece: String;
+      procedure ApplyMask(aSection: TParserSection; const aIteration: Integer);
+  end;
+
 implementation
 
 {uses
@@ -234,136 +249,122 @@ begin
     fVariableInfo[i].Image.Clear;
 end;
 
+procedure TMasker.ApplyMask(aSection: TParserSection; const aIteration: Integer);
+var
+  MaskName, MaskColor: String;
+begin
+  if Theme = nil then Exit; // kludge, this situation should never arise in the first place
+
+  MaskColor := aSection.LineTrimString['color'];
+  if (aSection.Line['self'] <> nil) then
+    TPngInterface.MaskImageFromImage(BMP, BMP, Theme.Colors[MaskColor])
+  else begin
+    MaskName := aSection.LineTrimString['name'];
+    TPngInterface.MaskImageFromFile(BMP, Piece + '_mask_' + MaskName + '.png', Theme.Colors[MaskColor]);
+  end;
+ 
+end;
+
 procedure TMetaObject.Load(aCollection,aPiece: String; aTheme: TNeoTheme);
 var
-  Parser: TNeoLemmixParser;
-  Line: TParserLine;
+  Parser: TParser;
+  Sec: TParserSection;
+
   O: TMetaObjectInterface;
   BMP: TBitmap32;
-  MaskBMP: TBitmap32;
 
   DoHorizontal: Boolean;
 
-  procedure LoadApplyMask;
-  var
-    MaskName, MaskColor: String;
-  begin
-    if aTheme = nil then Exit; // kludge, this situation should never arise in the first place
-    MaskName := '';
-    MaskColor := '';
-    repeat
-      Line := Parser.NextLine;
-
-      if Line.Keyword = 'COLOR' then
-        MaskColor := Line.Value;
-
-      if Line.Keyword = 'NAME' then
-        MaskName := Line.Value;
-    until (Line.Keyword <> 'COLOR') and (Line.Keyword <> 'NAME');
-
-    Parser.Back;
-
-    if Lowercase(MaskName) = '*self' then
-      TPngInterface.MaskImageFromImage(Bmp, Bmp, aTheme.Colors[MaskColor]) // yes, this works :D
-    else
-      TPngInterface.MaskImageFromFile(Bmp, aPiece + '_mask_' + MaskName + '.png', aTheme.Colors[MaskColor]);
-  end;
+  Masker: TMasker;
 begin
   fGS := Lowercase(aCollection);
   fPiece := Lowercase(aPiece);
   O := GetInterface(false, false, false);
 
-  Parser := TNeoLemmixParser.Create;
+  Parser := TParser.Create;
   BMP := TBitmap32.Create;
-  MaskBMP := nil; // only created if needed, but kept until procedure finishes in case its needed again
+  Masker := TMasker.Create;
+  Masker.BMP := BMP;
+  Masker.Theme := aTheme;
+  Masker.Piece := fPiece;
   try
     ClearImages;
 
-    if not DirectoryExists(AppPath + SFStylesPieces + aCollection) then
-    raise Exception.Create('TMetaObject.Load: Collection "' + aCollection + '" does not exist.');
-    SetCurrentDir(AppPath + SFStylesPieces + aCollection + SFPiecesObjects);
+    if not DirectoryExists(AppPath + SFStyles + aCollection + SFPiecesObjects) then
+      raise Exception.Create('TMetaObject.Load: Collection "' + aCollection + '" does not exist or does not have objects.');
+    SetCurrentDir(AppPath + SFStyles + aCollection + SFPiecesObjects);
 
-    Parser.LoadFromFile(aPiece + '.nxob');
+    Parser.LoadFromFile(aPiece + '.nxmo');
+    Sec := Parser.MainSection;
+
     TPngInterface.LoadPngFile(aPiece + '.png', BMP);
 
-    DoHorizontal := false;
+    // Trigger effects
+    if Sec.Line['exit'] <> nil then fTriggerEffect := 1;
+    if Sec.Line['force_left'] <> nil then fTriggerEffect := 2;
+    if Sec.Line['force_right'] <> nil then fTriggerEffect := 3;
+    if Sec.Line['trap'] <> nil then fTriggerEffect := 4;
+    if Sec.Line['water'] <> nil then fTriggerEffect := 5;
+    if Sec.Line['fire'] <> nil then fTriggerEffect := 6;
+    if Sec.Line['one_way_left'] <> nil then fTriggerEffect := 7;
+    if Sec.Line['one_way_right'] <> nil then fTriggerEffect := 8;
+    // 9, 10 are unused
+    if Sec.Line['teleporter'] <> nil then fTriggerEffect := 11;
+    if Sec.Line['receiver'] <> nil then fTriggerEffect := 12;
+    // 13 is unused
+    if Sec.Line['pickup_skill'] <> nil then fTriggerEffect := 14;
+    if Sec.Line['locked_exit'] <> nil then fTriggerEffect := 15;
+    // 16 is unused
+    if Sec.Line['button'] <> nil then fTriggerEffect := 17;
+    if Sec.Line['radiation'] <> nil then fTriggerEffect := 18;
+    if Sec.Line['one_way_down'] <> nil then fTriggerEffect := 19;
+    if Sec.Line['updraft'] <> nil then fTriggerEffect := 20;
+    if Sec.Line['splitter'] <> nil then fTriggerEffect := 21;
+    if Sec.Line['slowfreeze'] <> nil then fTriggerEffect := 22;
+    if Sec.Line['window'] <> nil then fTriggerEffect := 23;
+    if Sec.Line['animation'] <> nil then fTriggerEffect := 24;
+    // 25 is unused
+    if Sec.Line['anti_splatpad'] <> nil then fTriggerEffect := 26;
+    if Sec.Line['splatpad'] <> nil then fTriggerEffect := 27;
+    // 28, 29 are unused
+    if Sec.Line['moving_background'] <> nil then fTriggerEffect := 30;
+    if Sec.Line['single_use_trap'] <> nil then fTriggerEffect := 31;
 
-    repeat
-      Line := Parser.NextLine;
+    fFrameCount := Sec.LineNumeric['frames'];
 
-      // Trigger effects
-      if Line.Keyword = 'EXIT' then fTriggerEffect := 1;
-      if Line.Keyword = 'OWL_FIELD' then fTriggerEffect := 2;
-      if Line.Keyword = 'OWR_FIELD' then fTriggerEffect := 3;
-      if Line.Keyword = 'TRAP' then fTriggerEffect := 4;
-      if Line.Keyword = 'WATER' then fTriggerEffect := 5;
-      if Line.Keyword = 'FIRE' then fTriggerEffect := 6;
-      if Line.Keyword = 'OWL_ARROW' then fTriggerEffect := 7;
-      if Line.Keyword = 'OWR_ARROW' then fTriggerEffect := 8;
-      if Line.Keyword = 'TELEPORTER' then fTriggerEffect := 11;
-      if Line.Keyword = 'RECEIVER' then fTriggerEffect := 12;
-      if Line.Keyword = 'LEMMING' then fTriggerEffect := 13;
-      if Line.Keyword = 'PICKUP' then fTriggerEffect := 14;
-      if Line.Keyword = 'LOCKED_EXIT' then fTriggerEffect := 15;
-      if Line.Keyword = 'BUTTON' then fTriggerEffect := 17;
-      if Line.Keyword = 'RADIATION' then fTriggerEffect := 18;
-      if Line.Keyword = 'OWD_ARROW' then fTriggerEffect := 19;
-      if Line.Keyword = 'UPDRAFT' then fTriggerEffect := 20;
-      if Line.Keyword = 'SPLITTER' then fTriggerEffect := 21;
-      if Line.Keyword = 'SLOWFREEZE' then fTriggerEffect := 22;
-      if Line.Keyword = 'WINDOW' then fTriggerEffect := 23;
-      if Line.Keyword = 'ANIMATION' then fTriggerEffect := 24;
-      if Line.Keyword = 'HINT' then fTriggerEffect := 25;
-      if Line.Keyword = 'ANTISPLAT' then fTriggerEffect := 26;
-      if Line.Keyword = 'SPLAT' then fTriggerEffect := 27;
-      if Line.Keyword = 'BACKGROUND' then fTriggerEffect := 30;
-      if Line.Keyword = 'TRAP_ONCE' then fTriggerEffect := 31;
+    DoHorizontal := Sec.Line['horizontal_strip'] <> nil;
 
-      if Line.Keyword = 'FRAMES' then
-        fFrameCount := Line.Numeric;
+    O.TriggerLeft := Sec.LineNumeric['trigger_x'];
+    O.TriggerTop := Sec.LineNumeric['trigger_y'];
+    O.TriggerWidth := Sec.LineNumeric['trigger_width'];
+    O.TriggerHeight := Sec.LineNumeric['trigger_height'];
 
-      if Line.Keyword = 'HORIZONTAL' then
-        DoHorizontal := true;
+    fSoundEffect := Sec.LineNumeric['sound'];
 
-      if Line.Keyword = 'TRIGGER_X' then
-        O.TriggerLeft := Line.Numeric;
+    if Sec.Line['random_start_frame'] <> nil then
+    begin
+      fPreviewFrameIndex := 0;
+      fRandomStartFrame := true;
+    end else begin
+      fPreviewFrameIndex := Sec.LineNumeric['preview_frame'];
+    end;
 
-      if Line.Keyword = 'TRIGGER_Y' then
-        O.TriggerTop := Line.Numeric;
+    fKeyFrame := Sec.LineNumeric['key_frame'];
 
-      if Line.Keyword = 'TRIGGER_W' then
-        O.TriggerWidth := Line.Numeric;
+    if Sec.Line['resize_horizontal'] <> nil then // This is messy. Should probably take Nepster's advice and split these properly into two Boolean values.
+    begin
+      if Sec.Line['resize_vertical'] <> nil then
+        O.Resizability := mos_Both
+      else
+        O.Resizability := mos_Horizontal;
+    end else begin
+      if Sec.Line['resize_vertical'] <> nil then
+        O.Resizability := mos_Vertical
+      else
+        O.Resizability := mos_None;
+    end;
 
-      if Line.Keyword = 'TRIGGER_H' then
-        O.TriggerHeight := Line.Numeric;
-
-      if Line.Keyword = 'SOUND' then
-        fSoundEffect := Line.Numeric;
-
-      if Line.Keyword = 'PREVIEW' then
-        fPreviewFrameIndex := Line.Numeric;
-
-      if Line.Keyword = 'KEYFRAME' then
-        fKeyFrame := Line.Numeric;
-
-      if Line.Keyword = 'RANDOM_FRAME' then
-        fRandomStartFrame := true;
-
-      if Line.Keyword = 'RESIZE' then
-      begin
-        if Lowercase(LeftStr(Line.Value, 3)) = 'hor' then  // kludgy, but allows both "horz" and "horizontal" and similar variations
-          O.Resizability := mos_Horizontal;
-        if Lowercase(LeftStr(Line.Value, 4)) = 'vert' then
-          O.Resizability := mos_Vertical;
-        if Lowercase(Line.Value) = 'both' then
-          O.Resizability := mos_Both;
-        if Lowercase(Line.Value) = 'none' then
-          O.Resizability := mos_None;
-      end;
-
-      if Line.Keyword = 'MASK' then
-        LoadApplyMask;
-    until Line.Keyword = '';
+    fIsMasked := Sec.DoForEachSection('mask', Masker.ApplyMask) <> 0;
 
     O.Images.Generate(BMP, fFrameCount, DoHorizontal);
 
@@ -373,7 +374,6 @@ begin
   finally
     Parser.Free;
     BMP.Free;
-    if MaskBMP <> nil then MaskBMP.Free;
   end;
 end;
 

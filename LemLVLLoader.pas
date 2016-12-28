@@ -6,8 +6,12 @@ interface
 uses
   Classes, SysUtils, StrUtils,
   //Dialogs, Controls,
+<<<<<<< HEAD
   LemBcGraphicSet,
   LemNeoLevelLoader,
+=======
+  //LemNeoLevelLoader,
+>>>>>>> master
   Dialogs,
   UMisc,
   Math,
@@ -78,7 +82,10 @@ type
   published
   end;
 
+  TTranslationItemType = (itTerrain, itObject, itBackground);
   TTranslationItem = record
+    ItemType: TTranslationItemType;
+    SrcGS: String;
     SrcName: String;
     DstGS: String;
     DstName: String;
@@ -91,22 +98,19 @@ type
     Flip: Boolean;
     Invert: Boolean;
     Rotate: Boolean;
-    OneWay: Boolean;
-    MorePieces: Boolean;
   end;
 
   TTranslationTable = class
     private
-      fTheme: String;
-      fTerrainArray: array of TTranslationItem;
-      fObjectArray: array of TTranslationItem;
-      procedure FindMatch(Item: TIdentifiedPiece);
-      procedure CreateExtraPiece(Item: TIdentifiedPiece; aLevel: TLevel);
-      procedure AddLemming(aObject: TInteractiveObject; aLevel: TLevel);
+      fCurrentSet: String;
+      fCurrentPos: Integer;
+      fMatchArray: array of TTranslationItem;
+      procedure LoadEntry(aSec: TParserSection; const aIteration: Integer);
     public
       constructor Create;
       destructor Destroy; override;
-      procedure LoadFromFile(aFilename: String);
+      procedure Clear;
+      procedure LoadForGS(aSet: String);
       procedure Apply(aLevel: TLevel);
   end;
 
@@ -188,9 +192,7 @@ end;
 constructor TTranslationTable.Create;
 begin
   inherited;
-  SetLength(fTerrainArray, 0);
-  SetLength(fObjectArray, 0);
-  fTheme := 'default';
+  SetLength(fMatchArray, 0);
 end;
 
 destructor TTranslationTable.Destroy;
@@ -198,65 +200,9 @@ begin
   inherited;
 end;
 
-procedure TTranslationTable.LoadFromFile(aFilename: String);
-var
-  Parser: TNeoLemmixParser;
-  Line: TParserLine;
-  ObjLen, TerLen: Integer;
-  NewRec: TTranslationItem;
-  GotFirst: Boolean;
-  CurrentlyObject: Boolean;
-
-  procedure ExtendTerrain;
-  begin
-    if Length(fTerrainArray) < TerLen then Exit;
-    SetLength(fTerrainArray, TerLen + 50);
-  end;
-
-  procedure ExtendObject;
-  begin
-    if Length(fObjectArray) < ObjLen then Exit;
-    SetLength(fObjectArray, ObjLen + 50);
-  end;
-
-  procedure TrimArrays;
-  begin
-    SetLength(fObjectArray, ObjLen);
-    SetLength(fTerrainArray, TerLen);
-  end;
-
-  procedure ClearTemp;
-  begin
-    if GotFirst then
-    begin
-      if CurrentlyObject then
-      begin
-        ExtendObject;
-        fObjectArray[ObjLen] := NewRec;
-        Inc(ObjLen);
-      end else begin
-        ExtendTerrain;
-        fTerrainArray[TerLen] := NewRec;
-        Inc(TerLen);
-      end;
-    end else
-      GotFirst := true;
-    NewRec.SrcName := '';
-    NewRec.DstGS := '';
-    NewRec.DstName := '';
-    NewRec.Width := -1;
-    NewRec.Height := -1;
-    NewRec.OffsetL := 0;
-    NewRec.OffsetT := 0;
-    NewRec.OffsetR := 0;
-    NewRec.OffsetB := 0;
-    NewRec.Flip := false;
-    NewRec.Invert := false;
-    NewRec.Rotate := false;
-    NewRec.OneWay := false;
-    NewRec.MorePieces := false;
-  end;
+procedure TTranslationTable.Clear;
 begin
+<<<<<<< HEAD
 
   Parser := TNeoLemmixParser.Create;
   ObjLen := Length(fObjectArray);
@@ -310,42 +256,63 @@ begin
 
       if Line.Keyword = 'LEMMING' then
         NewRec.DstName := '*lemming';
+=======
+  SetLength(fMatchArray, 0);
+end;
+>>>>>>> master
 
-      if (Line.Keyword = 'WIDTH') then
-        NewRec.Width := Line.Numeric;
+procedure TTranslationTable.LoadEntry(aSec: TParserSection; const aIteration: Integer);
+var
+  NewItem: TTranslationItem;
+begin
+  if aSec.Keyword = 'object' then NewItem.ItemType := itObject;
+  if aSec.Keyword = 'terrain' then NewItem.ItemType := itTerrain;
+  if aSec.Keyword = 'background' then NewItem.ItemType := itBackground;
 
-      if (Line.Keyword = 'HEIGHT') then
-        NewRec.Height := Line.Numeric;
+  NewItem.SrcGS := Lowercase(fCurrentSet);
+  NewItem.SrcName := aSec.LineTrimString['index'];
+  NewItem.DstGS := aSec.LineTrimString['collection'];
+  NewItem.DstName := aSec.LineTrimString['piece'];
 
-      if (Line.Keyword = 'OFFSET_LEFT') or (Line.Keyword = 'OFFSET_X') then
-        NewRec.OffsetL := Line.Numeric;
+  if Lowercase(aSec.LineTrimString['special']) = 'lemming' then
+    NewItem.DstName := '*lemming';
 
-      if (Line.Keyword = 'OFFSET_TOP') or (Line.Keyword = 'OFFSET_Y') then
-        NewRec.OffsetT := Line.Numeric;
+  NewItem.Width := aSec.LineNumeric['width'];
+  NewItem.Height := aSec.LineNumeric['height'];
 
-      if Line.Keyword = 'OFFSET_RIGHT' then
-        NewRec.OffsetR := Line.Numeric;
+  NewItem.OffsetL := aSec.LineNumeric['left_offset'];
+  NewItem.OffsetR := aSec.LineNumeric['right_offset'];
+  NewItem.OffsetT := aSec.LineNumeric['top_offset'];
+  NewItem.OffsetB := aSec.LineNumeric['bottom_offset'];
 
-      if Line.Keyword = 'OFFSET_BOTTOM' then
-        NewRec.OffsetB := Line.Numeric;
+  NewItem.Rotate := aSec.Line['rotate'] <> nil;
+  NewItem.Flip := aSec.Line['flip_horizontal'] <> nil;
+  NewItem.Invert := aSec.Line['flip_vertical'] <> nil;
 
-      if Line.Keyword = 'FLIP' then
-        NewRec.Flip := true;
+  fMatchArray[fCurrentPos] := NewItem;
+  Inc(fCurrentPos);
+end;
 
-      if Line.Keyword = 'INVERT' then
-        NewRec.Invert := true;
+procedure TTranslationTable.LoadForGS(aSet: String);
+var
+  Parser: TParser;
+  TotalEntries: Integer;
+begin
+  Parser := TParser.Create;
+  try
+    Parser.LoadFromFile(AppPath + SFStyles + aSet + '\' + SFTranslation);
+    fCurrentSet := aSet;
 
-      if Line.Keyword = 'ROTATE' then
-        NewRec.Rotate := true;
+    TotalEntries := Length(fMatchArray);
+    fCurrentPos := TotalEntries;
+    SetLength(fMatchArray, Length(fMatchArray) + Parser.MainSection.SectionList.Count);
 
-      if Line.Keyword = 'ONEWAY' then
-        NewRec.OneWay := true;
-        
-    until Line.Keyword = '';
+    TotalEntries := TotalEntries + Parser.MainSection.DoForEachSection('terrain', LoadEntry);
+    TotalEntries := TotalEntries + Parser.MainSection.DoForEachSection('object', LoadEntry);
+    TotalEntries := TotalEntries + Parser.MainSection.DoForEachSection('background', LoadEntry);
 
-    ClearTemp; // flush the last one!
+    SetLength(fMatchArray, TotalEntries);
   finally
-    TrimArrays;
     Parser.Free;
   end;
 end;
@@ -353,6 +320,7 @@ end;
 procedure TTranslationTable.Apply(aLevel: TLevel);
 var
   i: Integer;
+<<<<<<< HEAD
   Item: TIdentifiedPiece;
 begin
 
@@ -365,237 +333,177 @@ begin
     Item.Piece := '*special';
     TTerrain(Item).DrawingFlags := tdf_NoOneWay;
   end;
+=======
+  MatchIndex: Integer;
+  MatchRec: TTranslationItem;
+>>>>>>> master
 
-  i := 0;
-  while i < aLevel.Terrains.Count do
-  begin
-    Item := aLevel.Terrains[i];
-    CreateExtraPiece(Item, aLevel);
-    FindMatch(Item);
-    Inc(i);
-  end;
+  T: TTerrain;
+  O: TInteractiveObject;
+  L: TPreplacedLemming;
 
-  i := 0;
-  while i < aLevel.InteractiveObjects.Count do
-  begin
-    Item := aLevel.InteractiveObjects[i];
-    CreateExtraPiece(Item, aLevel);
-    FindMatch(Item);
-    Inc(i);
-  end;
+  PatchL, PatchT: Integer;
 
-  // Convert preplaced lemmings
-  for i := 0 to aLevel.InteractiveObjects.Count-1 do
-    if aLevel.InteractiveObjects[i].Piece = '*lemming' then
+  procedure LoadTables;
+  var
+    i: Integer;
+    SetList: array of String;
+
+    procedure AddToList(aValue: String);
+    var
+      i: Integer;
     begin
-      AddLemming(aLevel.InteractiveObjects[i], aLevel);
-      aLevel.InteractiveObjects[i].Piece := '*nil';
+      aValue := Lowercase(Trim(aValue));
+      for i := 0 to Length(SetList)-1 do
+        if SetList[i] = aValue then Exit;
+      SetLength(SetList, Length(SetList)+1);
+      SetList[Length(SetList)-1] := aValue;
+    end;
+  begin
+    Clear;
+    AddToList(aLevel.Info.GraphicSetName);
+    for i := 0 to aLevel.Terrains.Count-1 do
+      AddToList(aLevel.Terrains[i].GS);
+    for i := 0 to aLevel.InteractiveObjects.Count-1 do
+      AddToList(aLevel.InteractiveObjects[i].GS);
+
+    for i := 0 to Length(SetList)-1 do
+      LoadForGS(SetList[i]);
+  end;
+
+  function FindMatchIndex(aCollection, aName: String; aType: TTranslationItemType): Integer;
+  var
+    i: Integer;
+  begin
+    Result := -1;
+    for i := 0 to Length(fMatchArray)-1 do
+      if (fMatchArray[i].SrcGS = aCollection) and (fMatchArray[i].SrcName = aName) and (fMatchArray[i].ItemType = aType) then
+      begin
+        Result := i;
+        MatchRec := fMatchArray[i];
+        Exit;
+      end;
+  end;
+
+  procedure SetPatchValues(Flip, Invert, Rotate: Boolean);
+  begin
+    if Rotate then
+    begin
+      if Flip then
+        PatchL := MatchRec.OffsetT
+      else
+        PatchL := MatchRec.OffsetB;
+      if Invert then
+        PatchT := MatchRec.OffsetR
+      else
+        PatchT := MatchRec.OffsetL;
+    end else begin
+      if Flip then
+        PatchL := MatchRec.OffsetR
+      else
+        PatchL := MatchRec.OffsetL;
+      if Invert then
+        PatchT := MatchRec.OffsetB
+      else
+        PatchT := MatchRec.OffsetT;
+    end;
+  end;
+begin
+  LoadTables;
+
+  for i := 0 to aLevel.Terrains.Count-1 do
+  begin
+    T := aLevel.Terrains[i];
+    MatchIndex := FindMatchIndex(Lowercase(T.GS), T.Piece, itTerrain);
+    if MatchIndex = -1 then
+    begin
+      T.Piece := '*nil';
+      Continue;
     end;
 
-  // Remove nil'd pieces
+    T.GS := MatchRec.DstGS;
+    T.Piece := MatchRec.DstName;
+
+    SetPatchValues(T.Flip, T.Invert, T.Rotate);
+    T.Left := T.Left + PatchL;
+    T.Top := T.Top + PatchT;
+
+    if T.Rotate and MatchRec.Rotate then
+    begin
+      T.Flip := not T.Flip;
+      T.Invert := not T.Invert;
+    end;
+
+    T.Rotate := T.Rotate xor MatchRec.Rotate;
+    T.Flip := T.Flip xor MatchRec.Flip;
+    T.Invert := T.Invert xor MatchRec.Invert;
+  end;
+
   for i := aLevel.Terrains.Count-1 downto 0 do
-    if Lowercase(aLevel.Terrains[i].Piece) = '*nil' then
+    if aLevel.Terrains[i].Piece = '*nil' then
       aLevel.Terrains.Delete(i);
 
+  for i := 0 to aLevel.InteractiveObjects.Count-1 do
+  begin
+    O := aLevel.InteractiveObjects[i];
+    MatchIndex := FindMatchIndex(Lowercase(O.GS), O.Piece, itObject);
+    if MatchIndex = -1 then
+    begin
+      O.Piece := '*nil';
+      Continue;
+    end;
+
+    O.GS := MatchRec.DstGS;
+    O.Piece := MatchRec.DstName;
+
+    SetPatchValues(O.Flip, O.Invert, O.Rotate);
+    O.Left := O.Left + PatchL;
+    O.Top := O.Top + PatchT;
+
+    if O.Rotate and MatchRec.Rotate then
+    begin
+      O.Flip := not O.Flip;
+      O.Invert := not O.Invert;
+    end;
+
+    O.Rotate := O.Rotate xor MatchRec.Rotate;
+    O.Flip := O.Flip xor MatchRec.Flip;
+    O.Invert := O.Invert xor MatchRec.Invert;
+  end;
+
   for i := aLevel.InteractiveObjects.Count-1 downto 0 do
-    if Lowercase(aLevel.InteractiveObjects[i].Piece) = '*nil' then
+  begin
+    O := aLevel.InteractiveObjects[i];
+
+    if O.Piece = '*lemming' then
+    begin
+      L := aLevel.PreplacedLemmings.Insert(0);
+      L.X := O.Left;
+      L.Y := O.Top;
+      if O.DrawingFlags and odf_FlipLem <> 0 then
+        L.Dx := -1
+      else
+        L.Dx := 1;
+      L.IsClimber := O.TarLev and 1 <> 0;
+      L.IsSwimmer := O.TarLev and 2 <> 0;
+      L.IsFloater := O.TarLev and 4 <> 0;
+      L.IsGlider := O.TarLev and 8 <> 0;
+      L.IsDisarmer := O.TarLev and 16 <> 0;
+      L.IsBlocker := O.TarLev and 32 <> 0;
+      L.IsZombie := O.TarLev and 64 <> 0;
+
+      O.Piece := '*nil';
+    end;
+
+    if O.Piece = '*nil' then
       aLevel.InteractiveObjects.Delete(i);
-
-  aLevel.Info.GraphicSetName := fTheme;
-end;
-
-procedure TTranslationTable.AddLemming(aObject: TInteractiveObject; aLevel: TLevel);
-var
-  L: TPreplacedLemming;
-begin
-  L := aLevel.PreplacedLemmings.Add;
-  L.X := aObject.Left;
-  L.Y := aObject.Top;
-  if (aObject.DrawingFlags and odf_FlipLem) <> 0 then
-    L.Dx := -1
-  else
-    L.Dx := 1;
-
-  L.IsClimber := (aObject.TarLev and $01) <> 0;
-  L.IsSwimmer := (aObject.TarLev and $02) <> 0;
-  L.IsFloater := (aObject.TarLev and $04) <> 0;
-  L.IsGlider := (aObject.TarLev and $08) <> 0;
-  L.IsDisarmer := (aObject.TarLev and $10) <> 0;
-  L.IsBlocker := (aObject.TarLev and $20) <> 0;
-  L.IsZombie := (aObject.TarLev and $40) <> 0;
-end;
-
-procedure TTranslationTable.CreateExtraPiece(Item: TIdentifiedPiece; aLevel: TLevel);
-var
-  TransItem: TTranslationItem;
-  T: TTerrain absolute Item;
-  O: TInteractiveObject absolute Item;
-  T2: TTerrain;
-  O2: TInteractiveObject;
-  ItemIndex: Integer;
-  i: Integer;
-begin
-  TransItem.MorePieces := false;
-  ItemIndex := 0;
-
-  if Item is TTerrain then
-  begin
-    for i := 0 to aLevel.Terrains.Count-1 do
-      if T = aLevel.Terrains[i] then
-      begin
-        ItemIndex := i;
-        Break;
-      end;
-
-    for i := 0 to Length(fTerrainArray)-1 do
-      if fTerrainArray[i].SrcName = Item.Piece then
-      begin
-        TransItem := fTerrainArray[i];
-        Break;
-      end;
-
-    if TransItem.MorePieces then
-    begin
-      T2 := aLevel.Terrains.Insert(ItemIndex + 1);
-      T2.DrawingFlags := T.DrawingFlags;
-      T2.GS := T.GS;
-      T2.Piece := '*and' + IntToStr(i);
-      T2.Left := T.Left;
-      T2.Top := T.Top;
-    end;
-  end else begin
-    for i := 0 to aLevel.InteractiveObjects.Count-1 do
-      if O = aLevel.InteractiveObjects[i] then
-      begin
-        ItemIndex := i;
-        Break;
-      end;
-
-    for i := 0 to Length(fObjectArray)-1 do
-      if fObjectArray[i].SrcName = Item.Piece then
-      begin
-        TransItem := fObjectArray[i];
-        Break;
-      end;
-
-    if TransItem.MorePieces then
-    begin
-      O2 := aLevel.InteractiveObjects.Insert(ItemIndex + 1);
-      O2.DrawingFlags := O.DrawingFlags;
-      O2.IsFake := O.IsFake;
-      O2.Skill := O.Skill;
-      O2.TarLev := O.TarLev;
-      O2.GS := O.GS;
-      O2.Piece := '*and' + IntToStr(i);
-      O2.Left := O.Left;
-      O2.Top := O.Top;
-    end;
   end;
-end;
 
-procedure TTranslationTable.FindMatch(Item: TIdentifiedPiece);
-var
-  TransItem: TTranslationItem;
-  ArrayLen: Integer;
-  i: Integer;
-  Flip, Inv, Rotate: Boolean;
-  dx, dy: Integer;
-begin
-  if Item is TTerrain then
-    ArrayLen := Length(fTerrainArray)
+  MatchIndex := FindMatchIndex(Lowercase(aLevel.Info.GraphicSetName), aLevel.Info.Background, itBackground);
+  if MatchIndex = -1 then
+    aLevel.Info.Background := ''
   else
-    ArrayLen := Length(fObjectArray);
-
-  for i := 0 to ArrayLen-1 do
-  begin
-    if Item is TTerrain then
-      TransItem := fTerrainArray[i]
-    else
-      TransItem := fObjectArray[i];
-    if Lowercase(Item.Piece) = Lowercase(TransItem.SrcName) then
-    begin
-      Item.GS := TransItem.DstGS;
-      Item.Piece := TransItem.DstName;
-
-      Flip := Item.Flip;
-      Inv := Item.Invert;
-      Rotate := Item.Rotate;
-
-      // Does the translation say rotate?
-      if TransItem.Rotate then
-        if not Rotate then
-          Rotate := true
-        else begin
-          // To change from 90 to 180, we turn rotate off, and flip the other two
-          Rotate := false;
-          Flip := not Item.Flip;
-          Inv := not Item.Invert;
-        end;
-
-      if TransItem.Flip then
-        if Rotate then
-          Inv := not Inv
-        else
-          Flip := not Flip;
-
-      if TransItem.Invert then
-        if Rotate then
-          Flip := not Flip
-        else
-          Inv := not Inv;
-
-      // Offset to apply to left edge
-      //   Normal: Left
-      //   Flipped: Right
-      //   Rotated: Bottom
-      //   Rotate-Flip: Top
-
-      if Rotate then
-      begin
-        if Flip then
-          dx := TransItem.OffsetT
-        else
-          dx := TransItem.OffsetB;
-
-        if Inv then
-          dy := TransItem.OffsetR
-        else
-          dy := TransItem.OffsetL;
-      end else begin
-        if Flip then
-          dx := TransItem.OffsetR
-        else
-          dx := TransItem.OffsetL;
-
-        if Inv then
-          dy := TransItem.OffsetB
-        else
-          dy := TransItem.OffsetT;
-      end;
-
-      // Offset to apply to top edge
-      //   Normal: Top
-      //   Inverted: Bottom
-      //   Rotated: Left
-      //   Rotate-Flip: Right
-
-      Item.Flip := Flip;
-      Item.Invert := Inv;
-      Item.Rotate := Rotate;
-      Item.Left := Item.Left + dx;
-      Item.Top := Item.Top + dy;
-      if TransItem.OneWay then TTerrain(Item).DrawingFlags := TTerrain(Item).DrawingFlags and not tdf_NoOneWay;
-
-      if Item is TInteractiveObject then
-        with TInteractiveObject(Item) do
-        begin
-          Width := TransItem.Width;
-          Height := TransItem.Height;
-        end;
-
-      Exit;
-    end;
-  end;
+    aLevel.Info.Background := MatchRec.DstGS + ':' + MatchRec.DstName;
 end;
 
 { TStyleName }
@@ -770,37 +678,27 @@ class procedure TLVLLoader.LoadLevelFromStream(aStream: TStream; aLevel: TLevel;
 var
   b: byte;
   i, i2: integer;
+<<<<<<< HEAD
   TempStream: TMemoryStream;
   TempLevel: TLevel;
+=======
+  //TempStream: TMemoryStream;
+  //TempLevel: TLevel;
+  Trans: TTranslationTable;
+>>>>>>> master
 begin
-  SetLength(aLevel.Info.WindowOrder, 0); //kludgy bug fix
-
-  TempStream := TMemoryStream.Create;
-  TempLevel := TLevel.Create(nil);
   aStream.Seek(0, soFromBeginning);
   aStream.Read(b, 1);
   aStream.Seek(0, soFromBeginning);
 
-  case b of
-    0: LoadTradLevelFromStream(aStream, TempLevel);
-  1..3: LoadNeoLevelFromStream(aStream, TempLevel);
-    4: LoadNewNeoLevelFromStream(aStream, TempLevel);
-    else begin
-      TNeoLevelLoader.LoadLevelFromStream(aStream, aLevel);
-      Exit;
-    end;
-  end;
+  aLevel.Clear;
 
-  // easiest way to avoid issues with older level formats is to save as a new level then re-load that
-  TempStream.Seek(0, soFromBeginning);
-  StoreLevelInStream(TempLevel, TempStream);
-  TempStream.Seek(0, soFromBeginning);
-  if OddLoad = 2 then
-    LoadNewNeoLevelFromStream(TempStream, aLevel, 0)
-  else
-    LoadNewNeoLevelFromStream(TempStream, aLevel, OddLoad);
-  TempLevel.Free;
-  TempStream.Free;
+  case b of
+    0: LoadTradLevelFromStream(aStream, aLevel);
+  1..3: LoadNeoLevelFromStream(aStream, aLevel);
+    4: LoadNewNeoLevelFromStream(aStream, aLevel);
+    else aLevel.LoadFromStream(aStream);
+  end;
 
   // if the level has no Level ID, make one.
   // must be pseudo-random to enough extent to generate a different ID for each level,
@@ -853,22 +751,24 @@ begin
     aLevel.Info.LevelID := aLevel.Info.LevelID + aLevel.InteractiveObjects.Count + aLevel.Terrains.Count + aLevel.Steels.Count;
   end;
 
+<<<<<<< HEAD
   // Apply translation table if one exists
   (*if FileExists(AppPath + SFStylesTranslation + Trim(aLevel.Info.GraphicSetName) + '.nxtt') then
+=======
+  if b < 5 then  // earlier in this procedure, this was used to differentiate between formats. >5 = NXLV format = does not need translation table
+>>>>>>> master
   begin
     Trans := TTranslationTable.Create;
-    Trans.LoadFromFile(AppPath + SFStylesTranslation + Trim(aLevel.Info.GraphicSetName) + '.nxtt');
-
-    if aLevel.Info.VgaspecFile <> '' then
-      if FileExists(AppPath + SFStylesTranslation + 'x_' + Trim(aLevel.Info.VgaspecFile) + '.nxtt') then
-        Trans.LoadFromFile(AppPath + SFStylesTranslation + 'x_' + Trim(aLevel.Info.VgaspecFile) + '.nxtt');
-
     Trans.Apply(aLevel);
     Trans.Free;
+<<<<<<< HEAD
   end;*)
 
   BcTranslate(aLevel);
 
+=======
+  end;
+>>>>>>> master
 end;
 
 
@@ -888,6 +788,7 @@ var
   Ter: TTerrain;
   Steel: TSteel;
   //SFinder: TStyleFinder;
+  GraphicSet: Integer;
   GSNames: array of String;
   GSName: array[0..15] of Char;
 
@@ -913,11 +814,10 @@ begin
     begin
       if OddLoad <> 1 then
       begin
-        ClearLevel;
-        DisplayPercent   := 0;
+        aLevel.Clear;
         ReleaseRate      := Buf.ReleaseRate;
         ReleaseRateLocked := (Buf.LevelOptions2 and 1) <> 0;
-        BackgroundIndex := Buf.BgIndex;
+        Background := IntToStr(Buf.BgIndex);
 
         LemmingsCount    := Buf.LemmingsCount;
         RescueCount      := Buf.RescueCount;
@@ -948,17 +848,12 @@ begin
         DiggerCount := Buf.DiggerCount;
         ClonerCount := Buf.ClonerCount;
 
-        SuperLemming     := 0;
-
-        GimmickSet := Buf.Gimmick;
-
         Title            := Buf.LevelName;
         Author           := Buf.LevelAuthor;
         GraphicSet := Buf.MusicNumber shl 8;
         LevelID := Buf.LevelID;
       end;
 
-      fOddTarget       := (Buf.RefSection shl 8) + (Buf.RefLevel);
       if (OddLoad = 2) and (Buf.LevelOptions and 16 <> 0) then
       begin
         LevelOptions := $71;
@@ -989,27 +884,12 @@ begin
           if ScreenYPosition > (Height - 160) then ScreenYPosition := (Height - 160);
         end;
 
-        GraphicSetFile := 'v_' + trim(Buf.StyleName) + '.dat';
-        GraphicMetaFile := 'g_' + trim(Buf.StyleName) + '.dat';
         GraphicSetName := trim(Buf.StyleName);
 
         SetLength(GSNames, 1);
         GSNames[0] := GraphicSetName; // fallback in case lvl file has no graphic set list, as most won't
 
-        if trim(Buf.VgaspecName) = 'none' then
-        begin
-          VgaspecFile := '';
-          GraphicSetEx := 0;
-        end else begin
-          VgaspecFile := trim(Buf.VgaspecName);
-          GraphicSetEx := 255;
-        end;
-
-        GraphicSet       := 255 + (GraphicSet and $FF00);
-
         LevelOptions := Buf.LevelOptions;
-        VgaspecX := (Buf.VgaspecX * 8) div LRes;
-        VgaspecY := (Buf.VgaspecY * 8) div LRes;
       end;
       if LevelOptions and $2 = 0 then
         LevelOptions := LevelOptions and $F7;
@@ -1033,7 +913,7 @@ begin
              Obj.Left := (O.XPos * 8) div LRes;
              Obj.Top := (O.YPos * 8) div LRes;
              Obj.GS := IntToStr(O.GSIndex);
-             Obj.Piece := 'O' + IntToStr(O.ObjectID);
+             Obj.Piece := IntToStr(O.ObjectID);
              Obj.TarLev := O.LValue;
              if O.ObjectFlags and $1 <> 0 then
                Obj.DrawingFlags := Obj.DrawingFlags or odf_NoOverwrite;
@@ -1066,7 +946,7 @@ begin
              Ter.Left := (T.XPos * 8) div LRes;
              Ter.Top := (T.YPos * 8) div LRes;
              Ter.GS := IntToStr(T.GSIndex);
-             Ter.Piece := 'T' + IntToStr(T.TerrainID);
+             Ter.Piece := IntToStr(T.TerrainID);
              if T.TerrainFlags and $1 <> 0 then
                Ter.DrawingFlags := Ter.DrawingFlags or tdf_NoOverwrite;
              if T.TerrainFlags and $2 <> 0 then
@@ -1126,11 +1006,7 @@ begin
              end;
              if OddLoad <> 1 then
              begin
-               Info.GimmickSet2 := Buf2.GimmickFlags2;
-               Info.GimmickSet3 := Buf2.GimmickFlags3;
                Info.MusicFile := Trim(Buf2.MusicName);
-               Info.BnsRank := Buf2.BnsRedirectRank;
-               Info.BnsLevel := Buf2.BnsRedirectLevel;
              end;
            end;
         6: begin
@@ -1163,10 +1039,6 @@ begin
         255: MusicFile := 'gimmick';
           else  MusicFile := 'track_' + LeadZeroStr(Buf.MusicNumber, 2); // best compatibility with existing packs
         end;
-        GimmickSet2 := 0;
-        GimmickSet3 := 0;
-        BnsRank := Buf.RefSection;
-        BnsLevel := Buf.RefLevel;
       end;
 
     (*if (OddLoad = 2) and (Info.LevelOptions and $10 <> 0) then
@@ -1203,6 +1075,7 @@ var
   Obj: TInteractiveObject;
   Ter: TTerrain;
   Steel: TSteel;
+  GraphicSet: Integer;
   //SkTemp: array[0..15] of byte;
   //SkT2: array[0..7] of byte;
   SFinder: TStyleFinder;
@@ -1218,8 +1091,7 @@ begin
     begin
       if OddLoad <> 1 then
       begin
-      ClearLevel;
-      DisplayPercent   := {Buf.ReleaseRate mod 256} 0;
+      aLevel.Clear;
       ReleaseRate      := SwapWord(Buf.ReleaseRate) mod 256;
       LemmingsCount    := SwapWord(Buf.LemmingsCount);
       RescueCount      := SwapWord(Buf.RescueCount);
@@ -1277,11 +1149,6 @@ begin
         DiggerCount := SkTemp[14];
         ClonerCount := SkTemp[15];
       end;}
-      if Buf.Reserved = $FFFF then
-        GimmickSet := 1
-      else
-        GimmickSet := 0;
-      GraphicSetEx     := Buf.GraphicSetEx;
       LevelOptions     := Buf.LevelOptions and $10;
       {if (LevelOptions and 32) <> 0 then
         begin
@@ -1308,7 +1175,6 @@ begin
         else MusicFile := '?';
       end;
       end;
-      fOddTarget       := (((Buf.BuilderCount) mod 256) shl 8) + ((Buf.BasherCount) mod 256);
       if (OddLoad = 2) and (LevelOptions and $10 <> 0) then
       begin
         LevelOptions := LevelOptions and $71;
@@ -1320,28 +1186,13 @@ begin
       Height := 160;
       if ScreenPosition > (Width - 320) then ScreenPosition := (Width - 320);
       GraphicSet       := (SwapWord(Buf.GraphicSet) and $00FF) + (GraphicSet and $FF00);
-      GraphicSetEx     := Buf.GraphicSetEx;
 
       SFinder := TStyleFinder.Create;
-
-      GraphicSetFile := 'vgagr' + i2s(GraphicSet mod 256) + '.dat';
-      GraphicMetaFile := 'ground' + i2s(GraphicSet mod 256) + 'o.dat';
-      if GraphicSetEx > 0 then
-        VgaspecFile := 'vgaspec' + i2s(GraphicSetEx - 1) + '.dat'
-        else
-        VgaspecFile := '';
 
       if SFinder.FindName(GraphicSet mod 256, false) <> '' then
         GraphicSetName := SFinder.FindName(GraphicSet mod 256, false);
 
       SFinder.Free;
-
-      VgaspecX := 304;
-      VgaspecY := 0;
-
-
-      GimmickSet2 := 0;
-      GimmickSet3 := 0;
 
       {if (LevelOptions) and $2 = 0 then
         LevelOptions := LevelOptions and $77
@@ -1487,8 +1338,7 @@ begin
     begin
       if OddLoad <> 1 then
       begin
-      ClearLevel;
-      DisplayPercent   := {Buf.ReleaseRate mod 256} 0;
+      aLevel.Clear;
       ReleaseRate      := Buf.ReleaseRate;
       LemmingsCount    := Buf.LemmingsCount;
       RescueCount      := Buf.RescueCount;
@@ -1519,15 +1369,8 @@ begin
         DiggerCount := Buf.DiggerCount;
         ClonerCount := Buf.ClonerCount;
 
-      SuperLemming     := 0;
-
-        GimmickSet := Buf.Gimmick;
-        GimmickSet2 := 0;
-        GimmickSet3 := 0;
-
       Title            := Buf.LevelName;
       Author           := Buf.LevelAuthor;
-      GraphicSet := Buf.MusicNumber shl 8;
       case Buf.MusicNumber of
         0: MusicFile := '';
       253: MusicFile := '*';
@@ -1536,7 +1379,6 @@ begin
         else MusicFile := '?';
       end;
       end;
-      fOddTarget       := (Buf.RefSection shl 8) + (Buf.RefLevel);
       if (OddLoad = 2) and (Buf.LevelOptions and 16 <> 0) then
       begin
         LevelOptions := $71;
@@ -1572,36 +1414,12 @@ begin
         Buf.GraphicSet := 255;
       end else begin
         GraphicSetName := SFinder.FindName(Buf.GraphicSet, false);
-        GraphicSetFile := 'vgagr' + i2s(Buf.GraphicSet) + '.dat';
-        GraphicMetaFile := 'ground' + i2s(Buf.GraphicSet) + 'o.dat';
-      end;
-
-      if trim(Buf.VgaspecName) <> '' then
-      begin
-        if trim(Buf.VgaspecName) = 'none' then
-        begin
-          Buf.GraphicSetEx := 0;
-          VgaspecFile := ''
-        end else begin
-          Buf.GraphicSetEx := 255;
-          VgaspecFile := trim(Buf.VgaspecName);
-        end;
-      end else begin
-        if Buf.GraphicSetEx = 0 then
-          VgaspecFile := ''
-        else begin
-          if SFinder.FindName(Buf.GraphicSetEx, true) <> '' then
-            VgaSpecFile := SFinder.FindName(Buf.GraphicSetEx, true);
-        end;
       end;
 
       SFinder.Free;
 
-      GraphicSet       := Buf.GraphicSet + (GraphicSet and $FF00);
-      GraphicSetEx     := Buf.GraphicSetEx;
       LevelOptions := Buf.LevelOptions;
-      VgaspecX := Buf.VgaspecX;
-      VgaspecY := Buf.VgaspecY;
+
       for x := 0 to 31 do
         TempWindowOrder[x] := Buf.WindowOrder[x];
       end;
@@ -1718,6 +1536,7 @@ end;
 
 
 class procedure TLVLLoader.StoreLevelInStream(aLevel: TLevel; aStream: TStream);
+<<<<<<< HEAD
 var
   //Int16: SmallInt; Int32: Integer;
   {H,} i: Integer;
@@ -2004,6 +1823,10 @@ begin
     aStream.Write(b, 1);
 
   end;
+=======
+begin
+  aLevel.SaveToStream(aStream);
+>>>>>>> master
 end;
 
 end.

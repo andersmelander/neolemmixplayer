@@ -4,15 +4,16 @@ unit LemNeoPieceManager;
 // graphic sets were in the past. It could be thought of as a huge
 // dynamic graphic set.
 
-
-// TODO: New changes probably cause recolorable pieces to not recolor when the theme is changed.
-
 interface
 
 uses
   Dialogs,
+<<<<<<< HEAD
   LemBCGraphicSet,
   LemNeoParser, PngInterface, LemNeoTheme,
+=======
+  PngInterface, LemNeoTheme,
+>>>>>>> master
   LemMetaTerrain, LemMetaObject, LemTypes, GR32, LemStrings,
   StrUtils, Classes, SysUtils;
 
@@ -73,9 +74,6 @@ var
 
 implementation
 
-uses
-  LemMetaConstruct;
-
 // These two standalone functions are just to help shifting labels around
 
 function SplitIdentifier(Identifier: String): TLabelRecord;
@@ -132,7 +130,7 @@ begin
   for i := fObjects.Count-1 downto 0 do
   begin
     fObjects[i].CyclesSinceLastUse := fObjects[i].CyclesSinceLastUse + 1;
-    if fObjects[i].CyclesSinceLastUse >= RETAIN_PIECE_CYCLES then
+    if (fObjects[i].CyclesSinceLastUse >= RETAIN_PIECE_CYCLES) or (fObjects[i].IsMasked) then
       fObjects.Delete(i);
   end;
 end;
@@ -204,12 +202,21 @@ begin
   Result := FindTerrainIndexByIdentifier(Identifier);
   fIsObtaining := false;
 
+<<<<<<< HEAD
   (*BasePath := AppPath + SFStylesPieces + TerrainLabel.GS + SFPiecesTerrain + TerrainLabel.Piece;
 
   if FileExists(BasePath + '.png') then  // .nxtp is optional, but .png is not :)
     T := TMetaTerrain.Create
   else if FileExists(BasePath + '.nxcs') then
     T := TMetaConstruct.Create;
+=======
+  BasePath := AppPath + SFStyles + TerrainLabel.GS + SFPiecesTerrain + TerrainLabel.Piece;
+
+  if FileExists(BasePath + '.png') then  // .nxtp is optional, but .png is not :)
+    T := TMetaTerrain.Create
+  else
+    raise Exception.Create('TNeoPieceManager.ObtainTerrain: Could not find terrain piece: ' + Identifier);
+>>>>>>> master
   fTerrains.Add(T);
   T.Load(TerrainLabel.GS, TerrainLabel.Piece);*)
 end;
