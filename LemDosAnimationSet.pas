@@ -199,7 +199,7 @@ procedure TBaseDosAnimationSet.DoReadMetaData(XmasPal : Boolean = false);
   begin
     Parser := TParser.Create;
     try
-      Parser.LoadFromFile('scheme.nxmi');
+      Parser.LoadFromFile(fLemmingPrefix + '_scheme.nxmi');
       AnimSec := Parser.MainSection.Section['animations'];
       for i := 0 to 23 do
       begin
@@ -325,7 +325,7 @@ begin
         for iAnimation := 0 to Count-2 do // -2 to leave out the stoner placeholder
         begin
           MLA := fMetaLemmingAnimations[iAnimation];
-          Fn := RightStr(MLA.Description, Length(MLA.Description)-1);
+          Fn := fLemmingPrefix + '_' + RightStr(MLA.Description, Length(MLA.Description)-1);
 
           TPngInterface.LoadPngFile(Fn + '.png', TempBitmap);
           if FileExists(Fn + '_mask.png') then
@@ -338,16 +338,7 @@ begin
             X := 0
           else
             X := MLA.Width;
-<<<<<<< HEAD
-          //MainExtractor.ExtractBitmapByName(TempBitmap, Fn, Pal[7]);
-          TPngInterface.LoadPngFile(AppPath + 'gfx/sprites/' + fLemmingPrefix + '_' + Fn + '.png', TempBitmap);
-          //if FileExists(AppPath + 'gfx/sprites/' + fLemmingPrefix + '/' + Fn + '_mask.png') then
-            TPngInterface.MaskImageFromFile(TempBitmap, AppPath + 'gfx/sprites/' + fLemmingPrefix + '_' + Fn + '_mask.png', Pal[7]);
-          MLA.Width := TempBitmap.Width div 2;
-          MLA.Height := TempBitmap.height div MLA.FrameCount;
-=======
 
->>>>>>> master
           Bmp := TBitmap32.Create;
           Bmp.SetSize(MLA.Width, MLA.Height * MLA.FrameCount);
           TempBitmap.DrawTo(Bmp, 0, 0, Rect(X, 0, X + MLA.Width, MLA.Height * MLA.FrameCount));

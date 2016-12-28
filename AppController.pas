@@ -5,13 +5,8 @@ interface
 
 uses
   SharedGlobals,
-<<<<<<< HEAD
   LemTypes, LemRendering, LemLevel, LemDosStyle, LemBCGraphicSet,
-  TalisData, LemDosMainDAT, LemStrings, LemNeoParser,
-=======
-  LemTypes, LemRendering, LemLevel, LemDosStyle,
   TalisData, LemDosMainDAT, LemStrings, LemNeoParserOld,
->>>>>>> master
   GameControl, GameSound, LemVersion,
   LemNeoPieceManager, // to initially create it
   FBaseDosForm,
