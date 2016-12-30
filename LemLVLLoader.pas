@@ -1247,7 +1247,9 @@ begin
       Buf.ScreenYPosition := ScreenYPosition;
 
       Buf.Resolution := 8;
-      Buf.BgIndex := StrToIntDef(Background, 0);
+      k := Background;
+      k := MidStr(k, Pos('BG', k) + 2, Length(k));
+      Buf.BgIndex := StrToIntDef(k, 0);
 
       Buf.Width := Width;
       Buf.Height := Height;
