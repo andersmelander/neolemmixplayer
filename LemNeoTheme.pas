@@ -68,11 +68,11 @@ var
   i: Integer;
 begin
   SetLength(fColors, 3);
-  fColors[0].Name := 'MASK';
+  fColors[0].Name := MASK_COLOR;
   fColors[0].Color := aBc.MaskColor;
-  fColors[1].Name := 'MINIMAP';
+  fColors[1].Name := MINIMAP_COLOR;
   fColors[1].Color := aBc.MinimapColor;
-  fColors[2].Name := 'BACKGROUND';
+  fColors[2].Name := BACKGROUND_COLOR;
   fColors[2].Color := aBc.BackgroundColor;
 
   fLemmings := aBc.Lemmings;
