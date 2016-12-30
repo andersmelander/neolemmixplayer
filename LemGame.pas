@@ -2049,7 +2049,7 @@ begin
 
   // New animation
   i := AnimationIndices[NewAction, (L.LemDx = -1)];
-  TempMetaAnim := Style.AnimationSet.MetaLemmingAnimations[i];
+  TempMetaAnim :=  fRenderer.LemmingAnimations.MetaLemmingAnimations[i];
   L.LemMaxFrame := TempMetaAnim.FrameCount - 1;
   L.LemKeyFrame := TempMetaAnim.KeyFrame;
   L.LemMaxPhysicsFrame := TempMetaAnim.PhysicsFrameCount - 1;
@@ -2101,7 +2101,7 @@ begin
   begin
     LemDX := -LemDX;
     i := AnimationIndices[LemAction, (LemDx = -1)];
-    TempMetaAnim := Style.AnimationSet.MetaLemmingAnimations[i];
+    TempMetaAnim := fRenderer.LemmingAnimations.MetaLemmingAnimations[i];
     LemMaxFrame := TempMetaAnim.FrameCount - 1;
     LemKeyFrame := TempMetaAnim.KeyFrame;
     LemMaxPhysicsFrame := TempMetaAnim.PhysicsFrameCount - 1;
