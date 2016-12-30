@@ -1165,6 +1165,7 @@ var
   T: TNewNeoLVLTerrain;
   S: TNewNeoLVLSteel;
   Obj: TInteractiveObject;
+  Lem: TPreplacedLemming;
   Ter: TTerrain;
   Steel: TSteel;
   Buf: TNeoLVLHeader;
@@ -1175,6 +1176,8 @@ var
 
   b: Byte;
   //w: Word;
+
+  PPStyle, PPIndex: Integer;
 
   function GetStyleID(aLabel: String): Integer;
   var
@@ -1303,7 +1306,7 @@ begin
 
       O.XPos := Obj.Left;
       O.YPos := Obj.Top;
-      O.ObjectID := StrToIntDef(MidStr(Obj.Piece, 2, Length(Obj.Piece)), 0);
+      O.ObjectID := StrToIntDef(Obj.Piece, 0);
       O.LValue := Obj.TarLev;
       O.SValue := Obj.Skill;
 
@@ -1334,6 +1337,43 @@ begin
     end;
 
     {-------------------------------------------------------------------------------
+      set the preplaced lemmings.
+    -------------------------------------------------------------------------------}
+
+    PPStyle := GetStyleID('dirt');
+    PPIndex := 11;
+    // offset is 2, 9
+    for i := 0 to PreplacedLemmings.Count-1 do
+    begin
+      FillChar(O, Sizeof(O), 0);
+
+      Lem := PreplacedLemmings[i];
+
+      O.XPos := Lem.X - 2;
+      O.YPos := Lem.Y - 9;
+      O.ObjectID := PPIndex;
+
+      if Lem.IsClimber then O.LValue := O.LValue or 1;
+      if Lem.IsSwimmer then O.LValue := O.LValue or 2;
+      if Lem.IsFloater then O.LValue := O.LValue or 4;
+      if Lem.IsGlider then O.LValue := O.LValue or 8;
+      if Lem.IsDisarmer then O.LValue := O.LValue or 16;
+      if Lem.IsBlocker then O.LValue := O.LValue or 32;
+      if Lem.IsZombie then O.LValue := O.LValue or 64;
+
+      O.ObjectFlags := $80;
+
+      if Lem.Dx < 0 then
+        O.ObjectFlags := O.ObjectFlags or $8;
+
+      O.GSIndex := PPStyle;
+
+      b := 1;
+      aStream.Write(b, 1);
+      aStream.Write(O, SizeOf(O));
+    end;
+
+    {-------------------------------------------------------------------------------
       set the terrain
     -------------------------------------------------------------------------------}
     for i := 0 to Terrains.Count - 1 do
@@ -1344,7 +1384,7 @@ begin
 
       T.XPos := Ter.Left;
       T.YPos := Ter.Top;
-      T.TerrainID := StrToIntDef(MidStr(Ter.Piece, 2, Length(Ter.Piece)), 0);
+      T.TerrainID := StrToIntDef(Ter.Piece, 0);
 
       T.TerrainFlags := $80;
 
