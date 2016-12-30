@@ -336,7 +336,7 @@ begin
           Fn := fLemmingPrefix + '_' + RightStr(MLA.Description, Length(MLA.Description)-1);
 
           TPngInterface.LoadPngFile(Fn + '.png', TempBitmap);
-          if FileExists(Fn + '_mask.png') then
+          //if FileExists(Fn + '_mask.png') then
             TPngInterface.MaskImageFromFile(TempBitmap, Fn + '_mask.png', Pal[7]);
 
           MLA.Width := TempBitmap.Width div 2;
