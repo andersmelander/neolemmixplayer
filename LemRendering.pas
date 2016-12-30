@@ -172,7 +172,7 @@ type
 implementation
 
 uses
-  UTools;
+  GameControl, UTools;
 
 { TRenderer }
 
@@ -1729,6 +1729,7 @@ procedure TRenderer.PrepareGameRendering(const Info: TRenderInfoRec; XmasPal: Bo
 var
   i: Integer;
   LowPal, Pal: TArrayOfColor32;
+  LemSprites: String;
 begin
 
   Inf := Info;
@@ -1755,7 +1756,13 @@ begin
     Pal[i] := PARTICLE_COLORS[i mod 8];
 
   fAni.ClearData;
-  fAni.LemmingPrefix := fTheme.Lemmings;
+  if (GameParams.SysDat.Options3 and 128) <> 0 then
+    LemSprites := 'default'
+  else if (GameParams.SysDat.Options3 and 64) <> 0 then
+    LemSprites := 'xmas'
+  else
+    LemSprites := fTheme.Lemmings;
+  fAni.LemmingPrefix := LemSprites;
   fAni.AnimationPalette := Pal;
   fAni.MainDataFile := 'main.dat';
   fAni.ReadData;

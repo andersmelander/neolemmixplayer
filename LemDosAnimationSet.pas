@@ -324,8 +324,8 @@ begin
   if fMetaLemmingAnimations.Count = 0 then
     ReadMetaData;
 
-  if not DirectoryExists(AppPath + SFStyles + fLemmingPrefix + SFPiecesLemmings) then fLemmingPrefix := 'default';
-  SetCurrentDir(AppPath + SFStyles + fLemmingPrefix + SFPiecesLemmings);
+  //if not DirectoryExists(AppPath + SFStyles + fLemmingPrefix + SFPiecesLemmings) then fLemmingPrefix := 'default';
+  //SetCurrentDir(AppPath + SFStyles + fLemmingPrefix + SFPiecesLemmings);
 
   try
 
