@@ -402,13 +402,38 @@ begin
                    end;
                  end;
         ldtMusic: begin
+                    // ldtMusic is the most complicated one. We search in several places until we find it.
+                    // We also must check for various formats; so any extension passed is ignored. Parts
+                    // of this are implemented in MusicFileInArchive and TryMusicPacks subfunctions.
+
+                    // First place: The pack's associated music pack.
+                    // Second place: The NXP.
+                    // Third place: Music folder.
+                    // Final place: lemdata
                     if FormatDateTime('mmdd', Now) = '0401' then
                       aFilename := 'orig_00'; // April fools prank. "orig_00" is a rickroll.
 
-                    if FindInMusicFolder = '' then
-                      FreeAndNil(Result)
-                    else
-                      Result.LoadFromFile(AppPath + 'music/' + FindInMusicFolder);
+                    if not IsSingleLevelMode then
+                    begin
+                      if FileExists(ChangeFileExt(GameFile, '_Music.dat')) then
+                        Arc.OpenArchive(ChangeFileExt(GameFile, '_Music.dat'), amOpen);
+                    end;
+                    if MusicFileInArchive then
+                    begin
+                      Arc.ExtractFile(aFilename, Result);
+                    end else
+                      if FindInMusicFolder = '' then
+                      begin
+                        if not (MusicFileInArchive or IsSingleLevelMode) then Arc.OpenArchive(GameFile, amOpen);
+                        if not MusicFileInArchive then Arc.OpenResource(HINSTANCE, 'lemdata', 'archive');
+                        MusicFileInArchive; // Sets aFilename to the one that actually exists.
+                        if FileInArchive then
+                          Arc.ExtractFile(aFilename, Result)
+                        else
+                          FreeAndNil(Result);
+                      end else begin
+                        Result.LoadFromFile(AppPath + 'music/' + FindInMusicFolder);
+                      end;
                   end;
       end;
       if Result <> nil then Result.Position := 0;
