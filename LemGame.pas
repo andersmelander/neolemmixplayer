@@ -1494,9 +1494,9 @@ begin
   Ani.AnimationPalette := Copy(Pal);
   Ani.ClearData;
   if (GameParams.SysDat.Options3 and 128) <> 0 then
-    Ani.LemmingPrefix := 'lemming'
+    Ani.LemmingPrefix := 'default'
   else if (GameParams.SysDat.Options3 and 64) <> 0 then
-    Ani.LemmingPrefix := 'xlemming'
+    Ani.LemmingPrefix := 'xmas'
   else
     Ani.LemmingPrefix := Renderer.Theme.Lemmings;
   Ani.ReadData;

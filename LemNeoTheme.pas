@@ -75,10 +75,7 @@ begin
   fColors[2].Name := 'BACKGROUND';
   fColors[2].Color := aBc.BackgroundColor;
 
-  if aBc.XmasLemmings then
-    fLemmings := 'xmas'
-  else
-    fLemmings := 'default';
+  fLemmings := aBc.Lemmings;
 end;
 
 procedure TNeoTheme.Load(aSet: String);

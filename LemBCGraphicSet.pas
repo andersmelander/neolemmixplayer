@@ -80,7 +80,7 @@ type
       fMaskColor: TColor32;
       fMinimapColor: TColor32;
       fBackgroundColor: TColor32;
-      fXmasLemmings: Boolean;
+      fLemmings: String;
       fObjectCount: Integer;
       fTerrainCount: Integer;
       fObjectData: TObjectDataArray;
@@ -102,7 +102,7 @@ type
       property MaskColor: TColor32 read fMaskColor;
       property MinimapColor: TColor32 read fMinimapColor;
       property BackgroundColor: TColor32 read fBackgroundColor;
-      property XmasLemmings: Boolean read fXmasLemmings;
+      property Lemmings: String read fLemmings;
       property ObjectCount: Integer read fObjectCount;
       property TerrainCount: Integer read fTerrainCount;
       property ObjectData: TObjectDataArray read fObjectData;
@@ -301,6 +301,8 @@ begin
         Exit;
       end;
 
+      fLemmings := 'lemming';
+
       Decompressor.DecompressSection(CmpStream, fDataStream);
 
       MetaStream.Position := 0;
@@ -348,7 +350,9 @@ begin
                  end;
           $06FF: begin
                    s := ReadString(MetaStream);
-                   fXmasLemmings := (LowerCase(s) = 'xlemming');
+                   fLemmings := LowerCase(s);
+                   if fLemmings = 'lemming' then fLemmings := 'default';
+                   if fLemmings = 'xlemming' then fLemmings := 'xmas';
                  end;
           else Break;
         end;
