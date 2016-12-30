@@ -131,6 +131,8 @@ var
 begin
   SetLength(fSwaps, 0);
   S := CreateDataStream(aName + '_scheme.nxmi', ldtLemmings);
+  if S = nil then
+    S := CreateDataStream('default_scheme.nxmi', ldtLemmings);
   Parser := TParser.Create;
   try
     Parser.LoadFromStream(S);

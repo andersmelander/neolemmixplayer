@@ -44,6 +44,7 @@ type
 
       function GetMetaTerrain(Identifier: String): TMetaTerrain;
       function GetMetaObject(Identifier: String): TMetaObject;
+      function GetBackground(Identifier: String): TBitmap32;
 
       property TerrainCount: Integer read GetTerrainCount;
       property ObjectCount: Integer read GetObjectCount;
@@ -60,6 +61,7 @@ type
 
       property Terrains[Identifier: String]: TMetaTerrain read GetMetaTerrain;
       property Objects[Identifier: String]: TMetaObject read GetMetaObject;
+      property Backgrounds[Identifier: String]: TBitmap32 read GetBackground;
   end;
 
   function SplitIdentifier(Identifier: String): TLabelRecord;
@@ -321,6 +323,29 @@ var
 begin
   i := FindObjectIndexByIdentifier(Identifier);
   Result := fObjects[i];
+end;
+
+function TNeoPieceManager.GetBackground(Identifier: String): TBitmap32;
+var
+  BgLabel: TLabelRecord;
+  i: Integer;
+begin
+  // needs custom code to avoid tripping up on graphic sets that lack backgrounds
+
+  Result := nil;
+
+  BgLabel := SplitIdentifier(Identifier);
+
+  if not CheckForGraphicSet(BgLabel.GS) then
+    ObtainGraphicSet(BgLabel.GS);
+
+  for i := 0 to fObjects.Count-1 do
+    if (fObjects[i].GS = BgLabel.GS) and (fObjects[i].Piece = BgLabel.Piece) then
+    begin
+      Result := fObjects[i].Images[false, false, false][0];
+      Exit;
+    end;
+
 end;
 
 // And the stuff for communicating with the theme

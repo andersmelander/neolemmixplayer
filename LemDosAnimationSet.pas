@@ -199,6 +199,11 @@ procedure TBaseDosAnimationSet.DoReadMetaData(XmasPal : Boolean = false);
     S: TMemoryStream;
   begin
     S := CreateDataStream(fLemmingPrefix + '_scheme.nxmi', ldtLemmings);
+    if S = nil then
+    begin
+      fLemmingPrefix := 'default';
+      S := CreateDataStream(fLemmingPrefix + '_scheme.nxmi', ldtLemmings);
+    end;
     Parser := TParser.Create;
     try
       Parser.LoadFromStream(S);
@@ -270,7 +275,6 @@ begin
     ShowMessage('Missing an animation? Total: ' + IntToStr(fMetaLemmingAnimations.Count));
 
   if fLemmingPrefix = '' then fLemmingPrefix := 'default';
-  SetCurrentDir(AppPath + SFStyles + fLemmingPrefix + SFPiecesLemmings);
   LoadPositionData;
 
   // Setting the foot position of the stoner mask.
@@ -320,6 +324,7 @@ begin
   if fMetaLemmingAnimations.Count = 0 then
     ReadMetaData;
 
+  if not DirectoryExists(AppPath + SFStyles + fLemmingPrefix + SFPiecesLemmings) then fLemmingPrefix := 'default';
   SetCurrentDir(AppPath + SFStyles + fLemmingPrefix + SFPiecesLemmings);
 
   try

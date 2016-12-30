@@ -1598,8 +1598,16 @@ var
   end;
 
   procedure LoadBackgroundImage;
+  var
+    Bmp: TBitmap32;
   begin
-    BgImg.Assign(PieceManager.Objects[Inf.Level.Info.Background].Images[false, false, false][0]);
+    Bmp := PieceManager.Backgrounds[Inf.Level.Info.Background];
+    if Bmp <> nil then
+      BgImg.Assign(Bmp)
+    else begin
+      BgImg.SetSize(320, 160);
+      BgImg.Clear($FF000000 or fBgColor);
+    end;
   end;
 begin
   if Inf.Level = nil then Exit;
@@ -1614,7 +1622,7 @@ begin
 
   // Background layer
   fBgColor := Theme.Colors[BACKGROUND_COLOR] and $FFFFFF;
-  fLayers[rlBackground].Clear($FF000000 or fBgColor);
+  //fLayers[rlBackground].Clear($FF000000 or fBgColor);
 
   if DoBackground and (Inf.Level.Info.Background <> '') then
   begin
@@ -1750,7 +1758,6 @@ begin
   fAni.LemmingPrefix := fTheme.Lemmings;
   fAni.AnimationPalette := Pal;
   fAni.MainDataFile := 'main.dat';
-  fAni.ReadMetaData;
   fAni.ReadData;
 
   fRecolorer.LoadSwaps(fTheme.Lemmings);
