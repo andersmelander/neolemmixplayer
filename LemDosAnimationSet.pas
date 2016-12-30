@@ -423,7 +423,7 @@ begin
   fMineMasksRTLBitmap     := nil;
   fCountDownDigitsBitmap  := nil;
   fHighlightBitmap        := nil;
-  fLemmingPrefix := 'lemming';
+  fLemmingPrefix := 'default';
 end;
 
 constructor TBaseDosAnimationSet.Create;
