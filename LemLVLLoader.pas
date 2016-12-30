@@ -142,6 +142,10 @@ begin
     end;
   end;
 
+  // And backgrounds
+  if aLevel.Info.Background <> '' then
+    aLevel.Info.Background := aLevel.Info.GraphicSetName + ':BG' + aLevel.Info.Background;
+
 end;
 
 { TStyleName }

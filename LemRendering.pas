@@ -1598,20 +1598,8 @@ var
   end;
 
   procedure LoadBackgroundImage;
-  var
-    Collection, Piece: String;
-    SplitPos: Integer;
   begin
-    SplitPos := pos(':', Inf.Level.Info.Background);
-    Collection := LeftStr(Inf.Level.Info.Background, SplitPos-1);
-    Piece := RightStr(Inf.Level.Info.Background, Length(Inf.Level.Info.Background)-SplitPos);
-
-    if FileExists(AppPath + SFStyles + Collection + '\backgrounds\' + Piece + '.png') then
-      TPngInterface.LoadPngFile((AppPath + SFStyles + Collection + '\backgrounds\' + Piece + '.png'), BgImg)
-    else begin
-      BgImg.SetSize(320, 160);
-      BgImg.Clear(fTheme.Colors['background']);
-    end;
+    BgImg.Assign(PieceManager.Objects[Inf.Level.Info.Background].Images[false, false, false][0]);
   end;
 begin
   if Inf.Level = nil then Exit;

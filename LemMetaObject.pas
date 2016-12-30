@@ -386,6 +386,7 @@ var
   TempBmp: TBitmap32;
 
   i: Integer;
+  n: Integer;
   lw: LongWord;
 begin
   TempBmp := TBitmap32.Create;
@@ -408,7 +409,19 @@ begin
     fVariableInfo[0].Height := O.Images[0].Height;
 
     fGS := aSet.Name;
-    fPiece := IntToStr(aIndex);
+
+    if OI.TriggerEff <> 32 then
+      fPiece := IntToStr(aIndex)
+    else begin
+      n := 0;
+      for i := 0 to aSet.ObjectCount-1 do
+        if i = aIndex then
+        begin
+          fPiece := 'BG' + IntToStr(n);
+          Break;
+        end else if aSet.ObjectData[i].TriggerEff = 32 then
+          Inc(n);
+    end;
 
     fFrameCount := OI.FrameCount;
     O.TriggerLeft := OI.PTriggerX;
