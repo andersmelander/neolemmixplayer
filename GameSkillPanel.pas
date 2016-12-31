@@ -54,7 +54,7 @@ type
     fSkillUnwhite  : TBitmap32;
     fSkillLock     : TBitmap32;
     fSkillInfinite : TBitmap32;
-    fSkillIcons    : array[0..15] of TBitmap32;
+    fSkillIcons    : array[0..16] of TBitmap32;
     fInfoFont      : array[0..44] of TBitmap32; {%} { 0..9} {A..Z} // make one of this!
     fGame          : TLemmingGame;
     { TODO : do something with this hardcoded shit }
@@ -179,7 +179,7 @@ begin
   for i := 0 to 44 do
     fInfoFont[i] := TBitmap32.Create;
 
-  for i := 0 to 15 do
+  for i := 0 to 16 do
     fSkillIcons[i] := TBitmap32.Create;
 
   for c := '0' to '9' do
@@ -229,7 +229,7 @@ begin
     for i := 0 to 1 do
       fSkillFont[c, i].Free;
 
-  for i := 0 to 15 do
+  for i := 0 to 16 do
     fSkillIcons[i].Free;
 
   fSkillInfinite.Free;
@@ -638,7 +638,7 @@ var
   TempBmp: TBitmap32;
   SrcRect: TRect;
 const
-  SKILL_NAMES: array[0..15] of string = (
+  SKILL_NAMES: array[0..16] of string = (
                  'walker',
                  'climber',
                  'swimmer',
@@ -652,6 +652,7 @@ const
                  'builder',
                  'stacker',
                  'basher',
+                 'fencer',
                  'miner',
                  'digger',
                  'cloner'
@@ -745,7 +746,7 @@ begin
     // Skill icons
     GetGraphic('skill_icons.png', TempBmp);
     SrcRect := Rect(0, 0, 16, 23);
-    for i := 0 to 15 do
+    for i := 0 to 16 do
     begin
       fSkillIcons[i].SetSize(16, 23);
       fSkillIcons[i].Clear;
@@ -757,7 +758,7 @@ begin
         SrcRect := Rect(0, 0, 16, 23);
     end;
 
-    for i := 0 to 15 do
+    for i := 0 to 16 do
     begin
       GetGraphic('icon_' + SKILL_NAMES[i] + '.png', TempBmp);
       TempBmp.DrawTo(fSkillIcons[i]);
@@ -810,22 +811,19 @@ end;
 
 procedure TSkillPanelToolbar.SetSkillIcons;
 var
-  Org, R, SrcRect: TRect;
-  x : Integer;
+  Org, R: TRect;
+  Skill: TSkillPanelButton;
 begin
   Org := Rect(33, 16, 47, 38); // exact position of first button
   R := Org;
-  for x := 0 to 15 do
+  for Skill := Low(TSkillPanelButton) to High(TSkillPanelButton) do
   begin
-    if Level.Info.SkillTypes and Trunc(IntPower(2, (15-x))) <> 0 then
+    if Skill in Level.Info.Skillset then
     begin
-      //fActiveButtons[i] := TSkillPanelButton(x);
-      //Game.fActiveSkills[i] := TSkillPanelButton(x);
-      fButtonRects[TSkillPanelButton(x)] := R;
+      fButtonRects[Skill] := R;
 
-      SrcRect := Rect(0, 0, 14, 22);
-      fSkillIcons[x].DrawTo(fImg.Bitmap, R.Left, R.Top{, SrcRect});
-      fSkillIcons[x].DrawTo(fOriginal, R.Left, R.Top{, SrcRect});
+      fSkillIcons[Integer(Skill)].DrawTo(fImg.Bitmap, R.Left, R.Top{, SrcRect});
+      fSkillIcons[Integer(Skill)].DrawTo(fOriginal, R.Left, R.Top{, SrcRect});
 
       RectMove(R, 16, 0);
     end;

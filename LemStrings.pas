@@ -169,6 +169,8 @@ resourcestring
 
   SCloner = 'Cloner';
 
+  SFencer = 'Fencer';
+
   SZombie = 'Zombie';
 
   SGhost = 'Ghost';
@@ -622,7 +624,8 @@ const
     SSwimmer,
     SGlider,
     SMechanic,
-    SCloner
+    SCloner,
+    SFencer
   );
 
  ResultStrings: array[0..8] of string = (

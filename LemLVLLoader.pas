@@ -22,7 +22,8 @@ uses
   LemLemming,
   LemNeoPieceManager,
   LemMetaObject,
-  LemTypes;
+  LemTypes,
+  LemCore;
 
 type
   TStyleName = class
@@ -420,6 +421,19 @@ var
   HasSubHeader: Boolean;
 
   SkipObjects: Array of Integer;
+
+  procedure AddSkill(aSkill: TSkillPanelButton);
+  begin
+    if x2 < 8 then
+      aLevel.Info.Skillset := aLevel.Info.Skillset + [aSkill];
+    Inc(x2);
+  end;
+
+  procedure SetSkillCount(aSkill: TSkillPanelButton; aCount: Integer);
+  begin
+    if not(aSkill in aLevel.Info.Skillset) then Exit;
+    aLevel.Info.SkillCount[aSkill] := aCount;
+  end;
 begin
   SetLength(SkipObjects, 0);
   HasSubHeader := false;
@@ -443,30 +457,42 @@ begin
         RescueCount      := Buf.RescueCount;
         TimeLimit        := Buf.TimeLimit; // internal structure now matches NeoLemmix file format structure (just a number of seconds)
 
-        SkillTypes := Buf.Skillset;
         x2 := 0;
-        for x := 0 to 15 do
-        begin
-          x3 := Trunc(IntPower(2, (15-x)));
-          if (SkillTypes and x3) <> 0 then Inc(x2);
-          if x2 > 8 then SkillTypes := SkillTypes and (not x3);
-        end;
-        WalkerCount := Buf.WalkerCount;
-        ClimberCount := Buf.ClimberCount;
-        SwimmerCount := Buf.SwimmerCount;
-        FloaterCount := Buf.FloaterCount;
-        GliderCount := Buf.GliderCount;
-        MechanicCount := Buf.MechanicCount;
-        BomberCount := Buf.BomberCount;
-        StonerCount := Buf.StonerCount;
-        BlockerCount := Buf.BlockerCount;
-        PlatformerCount := Buf.PlatformerCount;
-        BuilderCount := Buf.BuilderCount;
-        StackerCount := Buf.StackerCount;
-        BasherCount := Buf.BasherCount;
-        MinerCount := Buf.MinerCount;
-        DiggerCount := Buf.DiggerCount;
-        ClonerCount := Buf.ClonerCount;
+        if Buf.Skillset and $8000 <> 0 then AddSkill(spbWalker);
+        if Buf.Skillset and $4000 <> 0 then AddSkill(spbClimber);
+        if Buf.Skillset and $2000 <> 0 then AddSkill(spbSwimmer);
+        if Buf.Skillset and $1000 <> 0 then AddSkill(spbFloater);
+        if Buf.Skillset and $800 <> 0 then AddSkill(spbGlider);
+        if Buf.Skillset and $400 <> 0 then AddSkill(spbDisarmer);
+        if Buf.Skillset and $200 <> 0 then AddSkill(spbBomber);
+        if Buf.Skillset and $100 <> 0 then AddSkill(spbStoner);
+        if Buf.Skillset and $80 <> 0 then AddSkill(spbBlocker);
+        if Buf.Skillset and $40 <> 0 then AddSkill(spbPlatformer);
+        if Buf.Skillset and $20 <> 0 then AddSkill(spbBuilder);
+        if Buf.Skillset and $10 <> 0 then AddSkill(spbStacker);
+        if Buf.Skillset and $8 <> 0 then AddSkill(spbBasher);
+        if Buf.Skillset and $4 <> 0 then AddSkill(spbMiner);
+        if Buf.Skillset and $2 <> 0 then AddSkill(spbDigger);
+        if Buf.Skillset and $1 <> 0 then AddSkill(spbCloner);
+        if Buf.LevelOptions2 and $2 <> 0 then AddSkill(spbFencer);
+
+        SetSkillCount(spbWalker, Buf.WalkerCount);
+        SetSkillCount(spbClimber, Buf.ClimberCount);
+        SetSkillCount(spbSwimmer, Buf.SwimmerCount);
+        SetSkillCount(spbFloater, Buf.FloaterCount);
+        SetSkillCount(spbGlider, Buf.GliderCount);
+        SetSkillCount(spbDisarmer, Buf.MechanicCount);
+        SetSkillCount(spbBomber, Buf.BomberCount);
+        SetSkillCount(spbStoner, Buf.StonerCount);
+        SetSkillCount(spbBlocker, Buf.BlockerCount);
+        SetSkillCount(spbPlatformer, Buf.PlatformerCount);
+        SetSkillCount(spbBuilder, Buf.BuilderCount);
+        SetSkillCount(spbStacker, Buf.StackerCount);
+        SetSkillCount(spbBasher, Buf.BasherCount);
+        SetSkillCount(spbMiner, Buf.MinerCount);
+        SetSkillCount(spbDigger, Buf.DiggerCount);
+        SetSkillCount(spbCloner, Buf.ClonerCount);
+        SetSkillCount(spbFencer, Buf.FencerCount);
 
         Title            := Buf.LevelName;
         Author           := Buf.LevelAuthor;
@@ -716,74 +742,16 @@ begin
       LemmingsCount    := SwapWord(Buf.LemmingsCount);
       RescueCount      := SwapWord(Buf.RescueCount);
       TimeLimit        := (Buf.TimeMinutes * 60){ + Buf.TimeSeconds};
-      {if (Buf.LevelOptions and 64) = 0 then
-      begin}
-        SkillTypes := $52AE;
-        ClimberCount     := SwapWord(Buf.ClimberCount) mod 256;
-        FloaterCount     := SwapWord(Buf.FloaterCount) mod 256;
-        BomberCount      := SwapWord(Buf.BomberCount) mod 256;
-        BlockerCount     := SwapWord(Buf.BlockerCount) mod 256;
-        BuilderCount     := SwapWord(Buf.BuilderCount) mod 256;
-        BasherCount      := SwapWord(Buf.BasherCount) mod 256;
-        MinerCount       := SwapWord(Buf.MinerCount) mod 256;
-        DiggerCount      := SwapWord(Buf.DiggerCount) mod 256;
-      {end else begin
-        SkillTypes := ((Buf.MinerCount mod 256) shl 8) + (Buf.DiggerCount mod 256);
-        SkT2[0]     := SwapWord(Buf.ClimberCount) mod 256;
-        SkT2[1]     := SwapWord(Buf.FloaterCount) mod 256;
-        SkT2[2]      := SwapWord(Buf.BomberCount) mod 256;
-        SkT2[3]     := SwapWord(Buf.BlockerCount) mod 256;
-        SkT2[4]     := SwapWord(Buf.BuilderCount) mod 256;
-        SkT2[5]      := SwapWord(Buf.BasherCount) mod 256;
-        SkT2[6]       := SwapWord(Buf.MinerCount) mod 256;
-        SkT2[7]      := SwapWord(Buf.DiggerCount) mod 256;
-        x2 := 0;
-        for x := 0 to 15 do
-        begin
-          x3 := Trunc(IntPower(2, (15-x)));
-          if (x2 <= 7) then
-          begin
-          if (SkillTypes and x3) <> 0 then
-          begin
-            SkTemp[x] := SkT2[x2];
-            Inc(x2);
-          end else
-            SkTemp[x] := 0;
-          end else
-            SkillTypes := SkillTypes and (not x3);
-        end;
-        WalkerCount := SkTemp[0];
-        ClimberCount := SkTemp[1];
-        SwimmerCount := SkTemp[2];
-        FloaterCount := SkTemp[3];
-        GliderCount := SkTemp[4];
-        MechanicCount := SkTemp[5];
-        BomberCount := SkTemp[6];
-        StonerCount := SkTemp[7];
-        BlockerCount := SkTemp[8];
-        PlatformerCount := SkTemp[9];
-        BuilderCount := SkTemp[10];
-        StackerCount := SkTemp[11];
-        BasherCount := SkTemp[12];
-        MinerCount := SkTemp[13];
-        DiggerCount := SkTemp[14];
-        ClonerCount := SkTemp[15];
-      end;}
-      LevelOptions     := Buf.LevelOptions and $10;
-      {if (LevelOptions and 32) <> 0 then
-        begin
-        GimmickSet := ((Buf.ClimberCount mod 256) shl 24) + ((Buf.FloaterCount mod 256) shl 16) +
-                      ((Buf.BomberCount mod 256) shl 8) + (Buf.BlockerCount mod 256);
-        fSuperlem := (GimmickSet and 1 <> 0);
-        fKaroshi := (GimmickSet and 8 <> 0);
-        SuperLemming := 0;
-        end else begin
-        GimmickSet := 0;
-        fSuperlem := false;
-        fKaroshi := false;
-        if (SuperLemming = $4201) or (SuperLemming = $4209) or (SuperLemming = $420A) or (SuperLemming = $FFFF) then fSuperLem := true;
-        if (SuperLemming = $4204) or (SuperLemming = $4209) then fKaroshi := true;
-        end;}
+      Skillset := [spbClimber, spbFloater, spbBomber, spbBlocker, spbBuilder, spbBasher, spbMiner, spbDigger];
+      SkillCount[spbClimber]     := SwapWord(Buf.ClimberCount) mod 256;
+      SkillCount[spbFloater]     := SwapWord(Buf.FloaterCount) mod 256;
+      SkillCount[spbBomber]      := SwapWord(Buf.BomberCount) mod 256;
+      SkillCount[spbBlocker]     := SwapWord(Buf.BlockerCount) mod 256;
+      SkillCount[spbBuilder]     := SwapWord(Buf.BuilderCount) mod 256;
+      SkillCount[spbBasher]      := SwapWord(Buf.BasherCount) mod 256;
+      SkillCount[spbMiner]       := SwapWord(Buf.MinerCount) mod 256;
+      SkillCount[spbDigger]      := SwapWord(Buf.DiggerCount) mod 256;
+      LevelOptions     := 0;
       Title            := Buf.LevelName;
       Author           := '';
       GraphicSet := SwapWord(Buf.GraphicSet);
@@ -944,6 +912,19 @@ var
   Steel: TSteel;
   SFinder: TStyleFinder;
   TempWindowOrder: Array[0..31] of Byte;
+
+  procedure AddSkill(aSkill: TSkillPanelButton);
+  begin
+    if x2 < 8 then
+      aLevel.Info.Skillset := aLevel.Info.Skillset + [aSkill];
+    Inc(x2);
+  end;
+
+  procedure SetSkillCount(aSkill: TSkillPanelButton; aCount: Integer);
+  begin
+    if not(aSkill in aLevel.Info.Skillset) then Exit;
+    aLevel.Info.SkillCount[aSkill] := aCount;
+  end;
 begin
   with aLevel do
   begin
@@ -964,30 +945,40 @@ begin
       RescueCount      := Buf.RescueCount;
       TimeLimit        := Buf.TimeLimit; // internal structure now matches NeoLemmix file format structure (just a number of seconds)
 
-        SkillTypes := Buf.Skillset;
         x2 := 0;
-        for x := 0 to 15 do
-        begin
-          x3 := Trunc(IntPower(2, (15-x)));
-          if (SkillTypes and x3) <> 0 then Inc(x2);
-          if x2 > 8 then SkillTypes := SkillTypes and (not x3);
-        end;
-        WalkerCount := Buf.WalkerCount;
-        ClimberCount := Buf.ClimberCount;
-        SwimmerCount := Buf.SwimmerCount;
-        FloaterCount := Buf.FloaterCount;
-        GliderCount := Buf.GliderCount;
-        MechanicCount := Buf.MechanicCount;
-        BomberCount := Buf.BomberCount;
-        StonerCount := Buf.StonerCount;
-        BlockerCount := Buf.BlockerCount;
-        PlatformerCount := Buf.PlatformerCount;
-        BuilderCount := Buf.BuilderCount;
-        StackerCount := Buf.StackerCount;
-        BasherCount := Buf.BasherCount;
-        MinerCount := Buf.MinerCount;
-        DiggerCount := Buf.DiggerCount;
-        ClonerCount := Buf.ClonerCount;
+        if Buf.Skillset and $8000 <> 0 then AddSkill(spbWalker);
+        if Buf.Skillset and $4000 <> 0 then AddSkill(spbClimber);
+        if Buf.Skillset and $2000 <> 0 then AddSkill(spbSwimmer);
+        if Buf.Skillset and $1000 <> 0 then AddSkill(spbFloater);
+        if Buf.Skillset and $800 <> 0 then AddSkill(spbGlider);
+        if Buf.Skillset and $400 <> 0 then AddSkill(spbDisarmer);
+        if Buf.Skillset and $200 <> 0 then AddSkill(spbBomber);
+        if Buf.Skillset and $100 <> 0 then AddSkill(spbStoner);
+        if Buf.Skillset and $80 <> 0 then AddSkill(spbBlocker);
+        if Buf.Skillset and $40 <> 0 then AddSkill(spbPlatformer);
+        if Buf.Skillset and $20 <> 0 then AddSkill(spbBuilder);
+        if Buf.Skillset and $10 <> 0 then AddSkill(spbStacker);
+        if Buf.Skillset and $8 <> 0 then AddSkill(spbBasher);
+        if Buf.Skillset and $4 <> 0 then AddSkill(spbMiner);
+        if Buf.Skillset and $2 <> 0 then AddSkill(spbDigger);
+        if Buf.Skillset and $1 <> 0 then AddSkill(spbCloner);
+
+        SetSkillCount(spbWalker, Buf.WalkerCount);
+        SetSkillCount(spbClimber, Buf.ClimberCount);
+        SetSkillCount(spbSwimmer, Buf.SwimmerCount);
+        SetSkillCount(spbFloater, Buf.FloaterCount);
+        SetSkillCount(spbGlider, Buf.GliderCount);
+        SetSkillCount(spbDisarmer, Buf.MechanicCount);
+        SetSkillCount(spbBomber, Buf.BomberCount);
+        SetSkillCount(spbStoner, Buf.StonerCount);
+        SetSkillCount(spbBlocker, Buf.BlockerCount);
+        SetSkillCount(spbPlatformer, Buf.PlatformerCount);
+        SetSkillCount(spbBuilder, Buf.BuilderCount);
+        SetSkillCount(spbStacker, Buf.StackerCount);
+        SetSkillCount(spbBasher, Buf.BasherCount);
+        SetSkillCount(spbMiner, Buf.MinerCount);
+        SetSkillCount(spbDigger, Buf.DiggerCount);
+        SetSkillCount(spbCloner, Buf.ClonerCount);
 
       Title            := Buf.LevelName;
       Author           := Buf.LevelAuthor;
@@ -1216,29 +1207,52 @@ begin
       Buf.LemmingsCount := LemmingsCount;
       Buf.RescueCount   := RescueCount;
       Buf.TimeLimit     := TimeLimit;
-      Buf.Skillset      := SkillTypes;
 
-      if (SkillTypes and $8000 <> 0) then Buf.WalkerCount := WalkerCount;
-      if (SkillTypes and $4000 <> 0) then Buf.ClimberCount := ClimberCount;
-      if (SkillTypes and $2000 <> 0) then Buf.SwimmerCount := SwimmerCount;
-      if (SkillTypes and $1000 <> 0) then Buf.FloaterCount := FloaterCount;
-      if (SkillTypes and $0800 <> 0) then Buf.GliderCount := GliderCount;
-      if (SkillTypes and $0400 <> 0) then Buf.MechanicCount := MechanicCount;
-      if (SkillTypes and $0200 <> 0) then Buf.BomberCount := BomberCount;
-      if (SkillTypes and $0100 <> 0) then Buf.StonerCount := StonerCount;
-      if (SkillTypes and $0080 <> 0) then Buf.BlockerCount := BlockerCount;
-      if (SkillTypes and $0040 <> 0) then Buf.PlatformerCount := PlatformerCount;
-      if (SkillTypes and $0020 <> 0) then Buf.BuilderCount := BuilderCount;
-      if (SkillTypes and $0010 <> 0) then Buf.StackerCount := StackerCount;
-      if (SkillTypes and $0008 <> 0) then Buf.BasherCount := BasherCount;
-      if (SkillTypes and $0004 <> 0) then Buf.MinerCount := MinerCount;
-      if (SkillTypes and $0002 <> 0) then Buf.DiggerCount := DiggerCount;
-      if (SkillTypes and $0001 <> 0) then Buf.ClonerCount := ClonerCount;
+      Buf.Skillset := 0;
+      if spbWalker in Skillset then Buf.Skillset := Buf.Skillset or $8000;
+      if spbClimber in Skillset then Buf.Skillset := Buf.Skillset or $4000;
+      if spbSwimmer in Skillset then Buf.Skillset := Buf.Skillset or $2000;
+      if spbFloater in Skillset then Buf.Skillset := Buf.Skillset or $1000;
+      if spbGlider in Skillset then Buf.Skillset := Buf.Skillset or $800;
+      if spbDisarmer in Skillset then Buf.Skillset := Buf.Skillset or $400;
+      if spbBomber in Skillset then Buf.Skillset := Buf.Skillset or $200;
+      if spbStoner in Skillset then Buf.Skillset := Buf.Skillset or $100;
+      if spbBlocker in Skillset then Buf.Skillset := Buf.Skillset or $80;
+      if spbPlatformer in Skillset then Buf.Skillset := Buf.Skillset or $40;
+      if spbBuilder in Skillset then Buf.Skillset := Buf.Skillset or $20;
+      if spbStacker in Skillset then Buf.Skillset := Buf.Skillset or $10;
+      if spbBasher in Skillset then Buf.Skillset := Buf.Skillset or $8;
+      if spbMiner in Skillset then Buf.Skillset := Buf.Skillset or $4;
+      if spbDigger in Skillset then Buf.Skillset := Buf.Skillset or $2;
+      if spbCloner in Skillset then Buf.Skillset := Buf.Skillset or $1;
+
+      if (Buf.Skillset and $8000 <> 0) then Buf.WalkerCount := SkillCount[spbWalker];
+      if (Buf.Skillset and $4000 <> 0) then Buf.ClimberCount := SkillCount[spbClimber];
+      if (Buf.Skillset and $2000 <> 0) then Buf.SwimmerCount := SkillCount[spbSwimmer];
+      if (Buf.Skillset and $1000 <> 0) then Buf.FloaterCount := SkillCount[spbFloater];
+      if (Buf.Skillset and $0800 <> 0) then Buf.GliderCount := SkillCount[spbGlider];
+      if (Buf.Skillset and $0400 <> 0) then Buf.MechanicCount := SkillCount[spbDisarmer];
+      if (Buf.Skillset and $0200 <> 0) then Buf.BomberCount := SkillCount[spbBomber];
+      if (Buf.Skillset and $0100 <> 0) then Buf.StonerCount := SkillCount[spbStoner];
+      if (Buf.Skillset and $0080 <> 0) then Buf.BlockerCount := SkillCount[spbBlocker];
+      if (Buf.Skillset and $0040 <> 0) then Buf.PlatformerCount := SkillCount[spbPlatformer];
+      if (Buf.Skillset and $0020 <> 0) then Buf.BuilderCount := SkillCount[spbBuilder];
+      if (Buf.Skillset and $0010 <> 0) then Buf.StackerCount := SkillCount[spbStacker];
+      if (Buf.Skillset and $0008 <> 0) then Buf.BasherCount := SkillCount[spbBasher];
+      if (Buf.Skillset and $0004 <> 0) then Buf.MinerCount := SkillCount[spbMiner];
+      if (Buf.Skillset and $0002 <> 0) then Buf.DiggerCount := SkillCount[spbDigger];
+      if (Buf.Skillset and $0001 <> 0) then Buf.ClonerCount := SkillCount[spbCloner];
 
       Buf.LevelOptions := LevelOptions;
 
       if ReleaseRateLocked then
         Buf.LevelOptions2 := Buf.LevelOptions2 or 1;
+
+      if spbFencer in Skillset then
+      begin
+        Buf.LevelOptions2 := Buf.LevelOptions2 or 2;
+        Buf.FencerCount := SkillCount[spbFencer];
+      end;
 
       //Buf.GraphicSetEx := GraphicSetEx;
       //Buf.GraphicSet   := GraphicSet;
