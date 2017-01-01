@@ -4381,17 +4381,18 @@ begin
 end;
 
 function TLemmingGame.HandleFencing(L: TLemming): Boolean;
-// This is almost an exact copy of HandleBasher except for which mask to use.
+// This is based off HandleBashing but has some changes.
 var
   LemDy, AdjustedFrame, n: Integer;
   ContinueWork: Boolean;
+  NeedUndoMoveUp: Boolean;
 
   function FencerIndestructibleCheck(x, y, Direction: Integer): Boolean;
   begin
     // check for indestructible terrain 3, 4 and 5 pixels above (x, y)
-    Result := (    (HasIndestructibleAt(x, y - 3, Direction, baBashing))
-                or (HasIndestructibleAt(x, y - 4, Direction, baBashing))
-                or (HasIndestructibleAt(x, y - 5, Direction, baBashing))
+    Result := (    (HasIndestructibleAt(x, y - 3, Direction, baFencing))
+//                or (HasIndestructibleAt(x, y - 4, Direction, baFencing))
+//                or (HasIndestructibleAt(x, y - 5, Direction, baFencing))
               );
   end;
 
@@ -4399,6 +4400,8 @@ var
   begin
     // Turns basher around an transitions to walker
     Dec(L.LemX, L.LemDx);
+    if NeedUndoMoveUp then
+      Inc(L.LemY);
     Transition(L, baWalking, True); // turn around as well
     if SteelSound then CueSoundEffect(SFX_HITS_STEEL, L.Position);
   end;
@@ -4445,7 +4448,7 @@ var
     end;
   end;
 
-  // Simulate the behavior of the basher in the next two frames
+  // Simulate the behavior of the fencer in the next two frames
   function DoTurnAtSteel(L: TLemming): Boolean;
   var
     CopyL: TLemming;
@@ -4489,7 +4492,7 @@ var
         Result := True;
         Break;
       end
-      // Check if we are still a basher
+      // Check if we are still a fencer
       else if CopyL.LemRemoved or not (CopyL.LemAction = baFencing) then
         Break; // and return false
     end;
@@ -4527,10 +4530,10 @@ begin
          ) then ContinueWork := True;
     end;
 
-    // check whether we turn around within the next two basher strokes (only if we don't simulate)
+    // check whether we turn around within the next two fencer strokes (only if we don't simulate)
     if (not ContinueWork) and (not fSimulation) then
     begin
-      Assert(not fSimulation, 'Lemming simulation does basher steel turn checks and creates an infinite recursion');
+      Assert(not fSimulation, 'Lemming simulation does fencer steel turn checks and creates an infinite recursion');
       ContinueWork := DoTurnAtSteel(L);
     end;
 
@@ -4544,11 +4547,21 @@ begin
   end;
 
   // Fencer movement
-  if AdjustedFrame in [11, 12, 13, 14, 15] then
+  if AdjustedFrame in [11, 12, 13, 14] then
   begin
     Inc(L.LemX, L.LemDx);
 
     LemDy := FindGroundPixel(L.LemX, L.LemY);
+
+    if (LemDy = -1) and (AdjustedFrame in [11, 13]) then
+    begin
+      Dec(L.LemY, 1);
+      LemDy := 0;
+      NeedUndoMoveUp := true;
+      // This is to ignore the effect of the fencer's own slope on determining how far it can step up or down.
+      // I'm starting to think I should've based the Fencer code off Miner rather than Basher...
+    end else
+      NeedUndoMoveUp := false;
 
     If LemDy = 4 then
     begin
@@ -4562,13 +4575,13 @@ begin
       Transition(L, baWalking);
     end
 
-    else if LemDy in [0, 1, 2] then
+    else if LemDy = 0 then
     begin
       // Move no, one or two pixels down, if there no steel
       if FencerIndestructibleCheck(L.LemX, L.LemY + LemDy, L.LemDx) then
         FencerTurn(L, HasSteelAt(L.LemX, L.LemY + LemDy - 4))
       else
-        Inc(L.LemY, LemDy)
+        Inc(L.LemY, LemDy);
     end
 
     else if (LemDy = -1) or (LemDy = -2) then
@@ -4581,9 +4594,11 @@ begin
         if FencerIndestructibleCheck(L.LemX + L.LemDx, L.LemY + 2, L.LemDx) then
           FencerTurn(L,    HasSteelAt(L.LemX + L.LemDx, L.LemY + LemDy)
                         or HasSteelAt(L.LemX + L.LemDx, L.LemY + LemDy + 1))
-        else
+        else begin
           //stall fencer
           Dec(L.LemX, L.LemDx);
+          if NeedUndoMoveUp then Inc(L.LemY);
+        end;
       end
       else
         Inc(L.LemY, LemDy); // Lem may move up
@@ -4600,9 +4615,6 @@ begin
       else
         Dec(L.LemX, L.LemDx);
     end;
-
-    if L.LemY <= 2 then
-      Transition(L, baWalking);
   end;
 end;
 
@@ -4631,15 +4643,16 @@ function TLemmingGame.HasIndestructibleAt(x, y, Direction: Integer;
 begin
   // check for indestructible terrain at position (x, y), depending on skill.
   Result := (    ( PhysicsMap.PixelS[X, Y] and PM_STEEL <> 0)
-              or ((PhysicsMap.PixelS[X, Y] and PM_ONEWAYDOWN <> 0) and (Skill = baBashing))
-              or ((PhysicsMap.PixelS[X, Y] and PM_ONEWAYLEFT <> 0) and (Direction = 1) and (Skill in [baBashing, baMining]))
-              or ((PhysicsMap.PixelS[X, Y] and PM_ONEWAYRIGHT <> 0) and (Direction = -1) and (Skill in [baBashing, baMining]))
+              or ((PhysicsMap.PixelS[X, Y] and PM_ONEWAYDOWN <> 0) and (Skill in [baBashing, baFencing]))
+              or ((PhysicsMap.PixelS[X, Y] and PM_ONEWAYLEFT <> 0) and (Direction = 1) and (Skill in [baBashing, baFencing, baMining]))
+              or ((PhysicsMap.PixelS[X, Y] and PM_ONEWAYRIGHT <> 0) and (Direction = -1) and (Skill in [baBashing, baFencing, baMining]))
+              or ((Y < -1) and (Skill = baFencing))
             );
 end;
 
 function TLemmingGame.HasSteelAt(X, Y: Integer): Boolean;
 begin
-  Result := PhysicsMap.PixelS[X, Y] and PM_STEEL <> 0;
+  Result := (PhysicsMap.PixelS[X, Y] and PM_STEEL <> 0);
 end;
 
 
