@@ -229,7 +229,7 @@ procedure TBaseDosAnimationSet.DoReadMetaData(XmasPal : Boolean = false);
               Anim.KeyFrame := 0;
               Anim.FootX := 8 - dx;
               Anim.FootY := 10;
-              Anim.Description := LeftStr(DIR_NAMES[dx], 1) + ANIM_NAMES[i];
+              Anim.Description := 'kludge';
             end
           else
           // end kludge
@@ -360,22 +360,14 @@ begin
           MLA := fMetaLemmingAnimations[iAnimation];
           Fn := fLemmingPrefix + '_' + RightStr(MLA.Description, Length(MLA.Description)-1);
 
-          try
-            TPngInterface.LoadPngFile(Fn + '.png', TempBitmap);
-            TPngInterface.MaskImageFromFile(TempBitmap, Fn + '_mask.png', Pal[7]);
-          except
-            // little kludge to hide the need for a fencer animation
-            on E: Exception do
-            begin
-              if Lowercase(RightStr(Fn, 6)) = 'fencer' then
-              begin
-                Fn := 'default_' + RightStr(MLA.Description, Length(MLA.Description)-1);
-                TPngInterface.LoadPngFile(Fn + '.png', TempBitmap);
-                TPngInterface.MaskImageFromFile(TempBitmap, Fn + '_mask.png', Pal[7]);
-              end else
-                raise E;
-            end
+          if MLA.Description = 'kludge' then
+          begin
+            // fencer secrecy kludge
+            Fn := 'default_fencer';
           end;
+
+          TPngInterface.LoadPngFile(Fn + '.png', TempBitmap);
+          TPngInterface.MaskImageFromFile(TempBitmap, Fn + '_mask.png', Pal[7]);
 
           MLA.Width := TempBitmap.Width div 2;
           MLA.Height := TempBitmap.height div MLA.FrameCount;
