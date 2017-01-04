@@ -803,30 +803,8 @@ begin
     end;
 
     // Skill icons
-<<<<<<< HEAD
-    GetGraphic('skill_icons.png', TempBmp);
-    SrcRect := Rect(0, 0, 16, 23);
     for i := 0 to 16 do
-    begin
-      fSkillIcons[i].SetSize(16, 23);
-      fSkillIcons[i].Clear;
-      TempBmp.DrawTo(fSkillIcons[i], 0, 0, SrcRect);
-      SrcRect.Right := SrcRect.Right + 16;
-      SrcRect.Left := SrcRect.Left + 16;
-
-      if SrcRect.Left >= TempBmp.Width then
-        SrcRect := Rect(0, 0, 16, 23);
-    end;
-
-    for i := 0 to 16 do
-    begin
-      GetGraphic('icon_' + SKILL_NAMES[i] + '.png', TempBmp);
-      TempBmp.DrawTo(fSkillIcons[i]);
-    end;
-=======
-    for i := 0 to 15 do
       MakePanel(fSkillIcons[i], 'icon_' + SKILL_NAMES[i] + '.png', true);
->>>>>>> parent of e41a39b... Ingame is now working! Bugs: (1) No music; (2) No backgrounds
 
     // Skill counts
     GetGraphic('skill_count_digits.png', TempBmp);
