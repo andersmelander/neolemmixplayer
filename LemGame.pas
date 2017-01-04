@@ -1142,7 +1142,7 @@ begin
 
       TotalSkillUsed := 0;
       GetTalisman := True;
-      for j := 0 to 15 do // currently Fencer-related stuff in talismans is not supported
+      for j := 0 to 16 do // currently Fencer-related stuff in talismans is not supported
       begin
         if (UsedSkillCount[ActionListArray[j]] > SkillLimit[j]) and (SkillLimit[j] <> -1) then GetTalisman := False;
         TotalSkillUsed := TotalSkillUsed + UsedSkillCount[ActionListArray[j]];
@@ -2580,7 +2580,7 @@ var
       Perm    : Result :=     (L.LemIsClimber or L.LemIsSwimmer or L.LemIsFloater
                                     or L.LemIsGlider or L.LemIsMechanic);
       NonPerm : Result :=     (L.LemAction in [baBashing, baFencing, baMining, baDigging, baBuilding,
-                                               baPlatforming, baStacking, baBlocking]);
+                                               baPlatforming, baStacking, baBlocking, baShrugging]);
       Walk    : Result :=     (L.LemAction in [baWalking, baJumping]);
       NonWalk : Result := not (L.LemAction in [baWalking, baJumping]);
     end;
