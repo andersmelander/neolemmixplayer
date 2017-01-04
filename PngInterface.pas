@@ -31,8 +31,8 @@ type
     public
       class procedure MaskImageFromFile(Bmp: TBitmap32; fn: String; C: TColor32);
       class procedure MaskImageFromImage(Bmp: TBitmap32; Mask: TBitmap32; C: TColor32);
-      class function LoadPngFile(fn: String): TBitmap32; overload;
-      class procedure LoadPngFile(fn: String; Bmp: TBitmap32); overload;
+      class function LoadPngFile(fn: String; ForceInternal: Boolean = false): TBitmap32; overload;
+      class procedure LoadPngFile(fn: String; Bmp: TBitmap32; ForceInternal: Boolean = false); overload;
       class function LoadPngStream(aStream: TStream): TBitmap32; overload;
       class procedure LoadPngStream(aStream: TStream; Bmp: TBitmap32); overload;
       class procedure SavePngFile(fn: String; Bmp: TBitmap32; NoAlpha: Boolean = false);
@@ -91,10 +91,10 @@ begin
   MaskBMP.Free;
 end;
 
-class function TPngInterface.LoadPngFile(fn: String): TBitmap32;
+class function TPngInterface.LoadPngFile(fn: String; ForceInternal: Boolean = false): TBitmap32;
 begin
   Result := TBitmap32.Create;
-  LoadPngFile(fn, Result);
+  LoadPngFile(fn, Result, ForceInternal);
 end;
 
 class function TPngInterface.LoadPngStream(aStream: TStream): TBitmap32;
@@ -103,11 +103,14 @@ begin
   LoadPngStream(aStream, Result);
 end;
 
-class procedure TPngInterface.LoadPngFile(fn: String; Bmp: TBitmap32);
+class procedure TPngInterface.LoadPngFile(fn: String; Bmp: TBitmap32; ForceInternal: Boolean = false);
 var
   TempStream: TMemoryStream;
 begin
-  TempStream := CreateDataStream(fn, ldtLemmings);
+  if ForceInternal then
+    TempStream := CreateDataStream(fn, ldtInternal)
+  else
+    TempStream := CreateDataStream(fn, ldtLemmings);
   try
     LoadPngStream(TempStream, Bmp);
   finally

@@ -63,7 +63,8 @@ type
     ldtMusic,     // NXP, music packs, resource... there are a few places this looks
     ldtParticles, // is in a resource
     ldtText,      // NXP
-    ldtStyle      // NXP, resource, 'styles' directory
+    ldtStyle,     // NXP, resource, 'styles' directory
+    ldtInternal   // checks internal data only, not NXP
   );
 
 type
@@ -354,6 +355,13 @@ begin
                         Arc.OpenResource(HINSTANCE, 'lemparticles', 'archive');
                         Arc.ExtractFile(aFilename, Result);
                       end;
+        ldtInternal: begin
+                       Arc.OpenResource(HINSTANCE, 'lemdata', 'archive');
+                       if FileInArchive then
+                         Arc.ExtractFile(aFilename, Result)
+                       else
+                         FreeAndNil(Result);
+                     end;
         // Now the more complicated stuff.
         ldtLemmings: begin
                        // ldtLemmings is the general method for Lemmings data. It should look

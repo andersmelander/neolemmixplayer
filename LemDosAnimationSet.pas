@@ -404,8 +404,8 @@ begin
       fFencerMasksRTLBitmap := fMaskAnimations[8];
 
         // Stoner, Bomber and Highlight are a single frame each so easy enough
-        TPngInterface.LoadPngFile(AppPath + SFGraphicsMasks + 'bomber.png', fExplosionMaskBitmap);
-        TPngInterface.LoadPngFile(AppPath + SFGraphicsMasks + 'stoner.png', fLemmingAnimations[STONED]);
+        TPngInterface.LoadPngFile(AppPath + SFGraphicsMasks + 'bomber.png', fExplosionMaskBitmap, true);
+        TPngInterface.LoadPngFile(AppPath + SFGraphicsMasks + 'stoner.png', fLemmingAnimations[STONED], true);
         with fMetaLemmingAnimations[STONED] do
         begin
           Width := fLemmingAnimations[STONED].Width;
@@ -416,19 +416,19 @@ begin
         fLemmingAnimations[STONED].DrawMode := dmBlend;
 
         // Basher, fencer and miner are a tad more complicated
-        TPngInterface.LoadPngFile(AppPath + SFGraphicsMasks + 'basher.png', TempBitmap);
+        TPngInterface.LoadPngFile(AppPath + SFGraphicsMasks + 'basher.png', TempBitmap, true);
         fBashMasksRTLBitmap.SetSize(16, 40);
         fBashMasksBitmap.SetSize(16, 40);
         TempBitmap.DrawTo(fBashMasksRTLBitmap, 0, 0, Rect(0, 0, 16, 40));
         TempBitmap.DrawTo(fBashMasksBitmap, 0, 0, Rect(16, 0, 32, 40));
 
-        TPngInterface.LoadPngFile(AppPath + SFGraphicsMasks + 'fencer.png', TempBitmap);
+        TPngInterface.LoadPngFile(AppPath + SFGraphicsMasks + 'fencer.png', TempBitmap, true);
         fFencerMasksRTLBitmap.SetSize(16, 40);
         fFencerMasksBitmap.SetSize(16, 40);
         TempBitmap.DrawTo(fFencerMasksRTLBitmap, 0, 0, Rect(0, 0, 16, 40));
         TempBitmap.DrawTo(fFencerMasksBitmap, 0, 0, Rect(16, 0, 32, 40));
 
-        TPngInterface.LoadPngFile(AppPath + SFGraphicsMasks + 'miner.png', TempBitmap);
+        TPngInterface.LoadPngFile(AppPath + SFGraphicsMasks + 'miner.png', TempBitmap, true);
         fMineMasksRTLBitmap.SetSize(16, 26);
         fMineMasksBitmap.SetSize(16, 26);
         TempBitmap.DrawTo(fMineMasksRTLBitmap, 0, 0, Rect(0, 0, 16, 26));
