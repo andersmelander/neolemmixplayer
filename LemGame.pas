@@ -3206,6 +3206,7 @@ begin
       13 : UpdateSkillCount(baPlatforming, true);
       14 : UpdateSkillCount(baStacking, true);
       15 : UpdateSkillCount(baCloning, true);
+      16 : UpdateSkillCount(baFencing, true);
     end;
   end;
 end;
