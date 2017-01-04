@@ -58,6 +58,7 @@ type
     cbZoom: TComboBox;
     Label1: TLabel;
     cbDisableShadows: TCheckBox;
+    cbShowMinimap: TCheckBox;
     procedure btnApplyClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure btnHotkeysClick(Sender: TObject);
@@ -137,6 +138,7 @@ begin
   cbNoBackgrounds.Checked := GameParams.NoBackgrounds;
   cbDisableShadows.Checked := GameParams.NoShadows;
   cbPauseAfterBackwards.Checked := GameParams.PauseAfterBackwardsSkip;
+  cbShowMinimap.Checked := GameParams.ShowMinimap;
 
   // Zoom Dropdown
   cbZoom.Items.Clear;
@@ -225,6 +227,7 @@ begin
   GameParams.NoBackgrounds := cbNoBackgrounds.Checked;
   GameParams.NoShadows := cbDisableShadows.Checked;
   GameParams.PauseAfterBackwardsSkip := cbPauseAfterBackwards.Checked;
+  GameParams.ShowMinimap := cbShowMinimap.Checked;
 
   // Zoom Dropdown
   if GameParams.ZoomLevel <> cbZoom.ItemIndex then

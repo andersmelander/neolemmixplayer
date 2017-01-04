@@ -96,7 +96,8 @@ type
     moNoAutoReplayMode,
     moPauseAfterBackwards,
     moNoBackgrounds,
-    moNoShadows
+    moNoShadows,
+    moShowMinimap
   );
 
   TMiscOptions = set of TMiscOption;
@@ -226,6 +227,7 @@ type
     property PauseAfterBackwardsSkip: boolean Index moPauseAfterBackwards read GetOptionFlag write SetOptionFlag;
     property NoBackgrounds: boolean Index moNoBackgrounds read GetOptionFlag write SetOptionFlag;
     property NoShadows: boolean Index moNoShadows read GetOptionFlag write SetOptionFlag;
+    property ShowMinimap: boolean Index moShowMinimap read GetOptionFlag write SetOptionFlag;
 
     property PostLevelVictorySound: Boolean Index plsVictory read GetPostLevelSoundOptionFlag write SetPostLevelSoundOptionFlag;
     property PostLevelFailureSound: Boolean Index plsFailure read GetPostLevelSoundOptionFlag write SetPostLevelSoundOptionFlag;
@@ -313,6 +315,7 @@ begin
   SaveBoolean('BlackOutZero', BlackOutZero);
   SaveBoolean('NoBackgrounds', NoBackgrounds);
   SaveBoolean('NoShadows', NoShadows);
+  SaveBoolean('ShowMinimap', ShowMinimap);
   SL.Add('ZoomLevel=' + IntToStr(ZoomLevel));
 
   SL.Add('');
@@ -381,6 +384,7 @@ begin
   OnlineEnabled := LoadBoolean('EnableOnline');
   NoBackgrounds := LoadBoolean('NoBackgrounds');
   NoShadows := LoadBoolean('NoShadows');
+  ShowMinimap := LoadBoolean('ShowMinimap');
   CheckUpdates := LoadBoolean('UpdateCheck');
   UpdateStyles := LoadBoolean('UpdateStyles');
 

@@ -55,9 +55,7 @@ type
     procedure CheckResetCursor;
     function CheckScroll: Boolean;
     procedure AddSaveState;
-    procedure GotoSaveState(aTargetIteration: Integer; IsRestart: Boolean = false);
     procedure CheckAdjustReleaseRate;
-    procedure LoadReplay;
     procedure SetAdjustedGameCursorPoint(BitmapPoint: TPoint);
     procedure StartReplay2(const aFileName: string);
     procedure InitializeCursor;
@@ -66,12 +64,13 @@ type
     procedure DoDraw;
     procedure OnException(E: Exception; aCaller: String = 'Unknown');
     procedure ExecuteReplayEdit;
+    procedure SetClearPhysics(aValue: Boolean);
   protected
     fGame                : TLemmingGame;      // reference to globalgame gamemechanics
     Img                  : TImage32;          // the image in which the level is drawn (reference to inherited ScreenImg!)
     SkillPanel           : TSkillPanelToolbar;// our good old dos skill panel
     fActivateCount       : Integer;           // used when activating the form
-    ForceUpdateOneFrame  : Boolean;           // used when paused
+    //ForceUpdateOneFrame  : Boolean;           // used when paused -- MOVED TO PUBLIC FOR SKILL PANEL'S USE
     GameScroll           : TGameScroll;       // scrollmode
     GameVScroll          : TGameScroll;
     IdealFrameTimeMS     : Cardinal;          // normal frame speed in milliseconds
@@ -101,11 +100,17 @@ type
   { internal properties }
     property Game: TLemmingGame read fGame;
   public
+    ForceUpdateOneFrame  : Boolean;           // used when paused
+    SkillPanelSelectDx: Integer; //for skill panel dir select buttons
+    
     constructor Create(aOwner: TComponent); override;
     destructor Destroy; override;
     procedure ApplyMouseTrap;
+    procedure GotoSaveState(aTargetIteration: Integer; IsRestart: Boolean = false);
+    procedure LoadReplay;    
     property HScroll: TGameScroll read GameScroll write GameScroll;
     property VScroll: TGameScroll read GameVScroll write GameVScroll;
+    property ClearPhysics: Boolean read fClearPhysics write SetClearPhysics;
   end;
 
 implementation
@@ -113,6 +118,14 @@ implementation
 uses FBaseDosForm, FEditReplay;
 
 { TGameWindow }
+
+procedure TGameWindow.SetClearPhysics(aValue: Boolean);
+begin
+  fClearPhysics := aValue;
+  if Game.Paused then
+    fNeedRedraw := true;
+  SkillPanel.DrawButtonSelector(spbClearPhysics, fClearPhysics);
+end;
 
 procedure TGameWindow.ExecuteReplayEdit;
 var
@@ -437,7 +450,24 @@ begin
   SDir := 0;
   if GameParams.Hotkeys.CheckForKey(lka_DirLeft) then SDir := SDir - 1;
   if GameParams.Hotkeys.CheckForKey(lka_DirRight) then SDir := SDir + 1; // These two cancel each other out if both are pressed. Genius. :D
-  Game.fSelectDx := SDir;  
+  if SDir = 0 then
+  begin
+    SDir := SkillPanelSelectDx;
+    if (SDir = 0) and (Game.fSelectDx <> 0) then
+    begin
+      SkillPanel.DrawButtonSelector(spbDirLeft, false);
+      SkillPanel.DrawButtonSelector(spbDirRight, false);
+    end;
+  end else begin
+    SkillPanelSelectDx := 0;
+    if (Game.fSelectDx <> SDir) then
+    begin
+      SkillPanel.DrawButtonSelector(spbDirLeft, (SDir = -1));
+      SkillPanel.DrawButtonSelector(spbDirRight, (SDir = 1));
+    end;
+  end;
+
+  Game.fSelectDx := SDir;
 end;
 
 procedure TGameWindow.GotoSaveState(aTargetIteration: Integer; IsRestart: Boolean = false);
@@ -730,7 +760,11 @@ begin
                             end;
           lka_ReleaseRateDown: SetSelectedSkill(spbSlower, True);
           lka_ReleaseRateUp: SetSelectedSkill(spbFaster, True);
-          lka_Pause: SetSelectedSkill(spbPause);
+          lka_Pause: begin
+                       SetSelectedSkill(spbPause);
+                       SkillPanel.DrawButtonSelector(spbPause, Paused);
+                       if Paused then SkillPanel.DrawButtonSelector(spbFastForward, false);
+                     end;
           lka_Nuke: begin
                       // double keypress needed to prevent accidently nuking
                       CurrTime := TimeGetTime;
@@ -748,7 +782,10 @@ begin
                             if GameParams.NoAutoReplayMode then Game.CancelReplayAfterSkip := true;
                           end;
           lka_Cheat: Game.Cheat;
-          lka_FastForward: if not Paused then FastForward := not FastForward;
+          lka_FastForward: begin
+                             if not Paused then FastForward := not FastForward;
+                             SkillPanel.DrawButtonSelector(spbFastForward, Game.FastForward);
+                           end;
           lka_SaveImage: SaveShot;
           lka_LoadReplay: LoadReplay;
           lka_Music: if MusicVolume <> 0 then
@@ -806,9 +843,9 @@ begin
                       end else
                         if Paused then ForceUpdateOneFrame := true;
           lka_ClearPhysics: if func.Modifier = 0 then
-                              fClearPhysics := not fClearPhysics
+                              ClearPhysics := not ClearPhysics
                             else
-                              fClearPhysics := true;
+                              ClearPhysics := true;
           lka_EditReplay: ExecuteReplayEdit;
           lka_ReplayInsert: Game.ReplayInsert := not Game.ReplayInsert;
         end;
@@ -842,7 +879,7 @@ begin
       lka_ReleaseRateDown    : SetSelectedSkill(spbSlower, False);
       lka_ReleaseRateUp      : SetSelectedSkill(spbFaster, False);
       lka_ClearPhysics       : if func.Modifier <> 0 then
-                                 fClearPhysics := false;
+                                 ClearPhysics := false;
     end;
   end;
 
