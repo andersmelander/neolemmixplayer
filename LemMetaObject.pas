@@ -388,6 +388,46 @@ var
   i: Integer;
   n: Integer;
   lw: LongWord;
+
+  procedure AddFencerPickup;
+  var
+    FencerImg: TBitmap32;
+    DrawColors: array[0..4] of Integer;
+    x, y: Integer;
+  const
+    FENCER_IMAGE: array[0..99] of Integer =
+            ( 5, 5, 5, 5, 0, 2, 5, 5, 5, 5,
+              5, 5, 0, 0, 2, 2, 1, 0, 5, 5,
+              5, 0, 0, 0, 2, 1, 1, 1, 0, 5,
+              5, 0, 0, 0, 1, 1, 3, 0, 0, 5,
+              0, 0, 0, 1, 3, 3, 4, 0, 0, 0,
+              0, 0, 0, 1, 1, 1, 4, 4, 4, 4,
+              5, 0, 0, 3, 3, 3, 4, 0, 0, 5,
+              5, 0, 3, 3, 0, 3, 0, 0, 0, 5,
+              5, 5, 1, 0, 0, 1, 1, 0, 5, 5,
+              5, 5, 5, 5, 0, 0, 5, 5, 5, 5
+            ); // furthest outside rows / colums not included as no change needed on them
+  begin
+    // It is assumed that the standard pickup graphic is used.
+    // Any that don't use this graphic will need to be done manually. But it's been recommended against using these anyway.
+    DrawColors[0] := O.Images[1].PixelS[5, 1]; // background
+    DrawColors[1] := O.Images[1].PixelS[5, 2]; // lemming skin
+    DrawColors[2] := O.Images[1].PixelS[3, 3]; // lemming hair
+    DrawColors[3] := O.Images[1].PixelS[7, 5]; // lemming body
+    DrawColors[4] := O.Images[0].PixelS[5, 1]; // gray
+
+    FencerImg := TBitmap32.Create;
+    FencerImg.Assign(O.Images[1]);
+    O.Images.Add(FencerImg);
+    Inc(fFrameCount);
+
+    for y := 0 to 9 do
+      for x := 0 to 9 do
+        if FENCER_IMAGE[x + (y * 10)] = 5 then
+          Continue
+        else
+          FencerImg.PixelS[x+1, y+1] := DrawColors[FENCER_IMAGE[x + (y * 10)]];
+  end;
 begin
   TempBmp := TBitmap32.Create;
   O := GetInterface(false, false, false);
@@ -445,6 +485,9 @@ begin
       O.SoundEffect := -1;
     end;
     O.InternalSoundEffect := -1;
+
+    if (O.TriggerEffect = 14) and (O.Images.Count < 18) then
+      AddFencerPickup;
 
   finally
     TempBmp.Free;
