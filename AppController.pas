@@ -381,8 +381,6 @@ begin
 
   GameParams.WhichLevel := wlLastUnlocked;
 
-  TBaseDosLevelSystem(GameParams.Style.LevelSystem).InitSave;
-
   if not fLoadSuccess then
     GameParams.NextScreen := gstExit;
 

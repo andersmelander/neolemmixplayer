@@ -2,50 +2,31 @@
 
 unit LemRendering;
 
-{-------------------------------------------------------------------------------
-  Some notes on the rendering here...
-
-  Levels consist of terrains and objects.
-  1) Objects kan animate and terrain can be changed.
-  2) Lemmings only have collisions with terrain
-
-  The alpha channel of the pixels is used to put information about the pixels
-  in the bitmap:
-  Bit0 = there is terrain in this pixel
-  Bit1 = there is interactive object in this pixel (maybe this makes no sense)
-
-  This is done to optimize the drawing of (funny enough) static and triggered
-  objects. mmm how are we going to do that????
-                         
-  (Other ideas: pixel builder-brick, pixel erased by basher/miner/digger, triggerarea)
--------------------------------------------------------------------------------}
-
 interface
 
 uses
-  Dialogs,
-  Classes, {Contnrs,} Math, Windows,
-  GR32, GR32_LowLevel, GR32_Blend,
-  UMisc,
-  SysUtils,
+  Classes, Math, Windows,
+  GR32, GR32_Blend,
+  UMisc, SysUtils, StrUtils,
   PngInterface,
   LemRecolorSprites,
   LemRenderHelpers, LemNeoPieceManager, LemNeoTheme,
-  LemDosBmp, LemDosStructures,
+  //LemDosBmp,
+  LemDosStructures,
   LemTypes,
   LemTerrain, LemMetaTerrain,
   LemObjects, LemInteractiveObject, LemMetaObject,
   LemSteel,
   LemLemming,
   LemDosAnimationSet, LemMetaAnimation, LemCore,
-  LemLevel, StrUtils, LemStrings;
+  LemLevel, LemStrings;
 
 type
   TParticleRec = packed record
     DX, DY: ShortInt
   end;
   TParticleArray = packed array[0..79] of TParticleRec;
-  TParticleTable = packed array[0..51] of TParticleArray;
+  TParticleTable = packed array[0..50] of TParticleArray;
 
   // temp solution
   TRenderInfoRec = record
@@ -67,23 +48,15 @@ type
     TempBitmap         : TBitmap32;
     Inf                : TRenderInfoRec;
     fXmasPal : Boolean;
-
     fTheme: TNeoTheme;
-
     fHelperImages: THelperImages;
-
-    {fWorld: TBitmap32;}
-
     fAni: TBaseDosAnimationSet;
-
     fBgColor : TColor32;
-
     fParticles                 : TParticleTable; // all particle offsets
-
     fObjectInfoList: TInteractiveObjectInfoList; // For rendering from Preview screen
 
     // Add stuff
-    procedure AddTerrainPixel(X, Y: Integer);
+    procedure AddTerrainPixel(X, Y: Integer; Color: TColor32);
     procedure AddStoner(X, Y: Integer);
     // Remove stuff
     procedure ApplyRemovedTerrain(X, Y, W, H: Integer);
@@ -134,7 +107,7 @@ type
     // Lemming rendering
     procedure DrawLemmings(UsefulOnly: Boolean = false);
     procedure DrawThisLemming(aLemming: TLemming; Selected: Boolean = false; UsefulOnly: Boolean = false);
-    procedure DrawLemmingHelper(aLemming: TLemming);
+    procedure DrawLemmingCountdown(aLemming: TLemming);
     procedure DrawLemmingParticles(L: TLemming);
 
     procedure DrawShadows(L: TLemming; SkillButton: TSkillPanelButton);
@@ -180,8 +153,8 @@ uses
 procedure TRenderer.SetInterface(aInterface: TRenderInterface);
 begin
   fRenderInterface := aInterface;
-  fRenderInterface.SetDrawRoutine(di_ConstructivePixel, AddTerrainPixel);
-  fRenderInterface.SetDrawRoutine(di_Stoner, AddStoner);
+  fRenderInterface.SetDrawRoutineBrick(AddTerrainPixel);
+  fRenderInterface.SetDrawRoutineStoner(AddStoner);
   fRenderInterface.SetRemoveRoutine(ApplyRemovedTerrain);
 end;
 
@@ -253,7 +226,7 @@ begin
       DrawLemmingParticles(LemmingList[i]);
       fLayers.fIsEmpty[rlParticles] := False;
     end;
-    DrawLemmingHelper(LemmingList[i]);
+    DrawLemmingCountdown(LemmingList[i]);
   end;
 end;
 
@@ -315,7 +288,7 @@ begin
   end;
 end;
 
-procedure TRenderer.DrawLemmingHelper(aLemming: TLemming);
+procedure TRenderer.DrawLemmingCountdown(aLemming: TLemming);
 var
   ShowCountdown, ShowHighlight: Boolean;
   SrcRect: TRect;
@@ -417,7 +390,6 @@ end;
 
 procedure TRenderer.DrawShadows(L: TLemming; SkillButton: TSkillPanelButton);
 var
-  i: Integer;
   CopyL: TLemming;
 begin
   // Copy L to simulate the path
@@ -851,7 +823,7 @@ begin
     fLayers[rlHighShadows].Pixel[X, Y] := SHADOW_COLOR;
 end;
 
-procedure TRenderer.AddTerrainPixel(X, Y: Integer);
+procedure TRenderer.AddTerrainPixel(X, Y: Integer; Color: TColor32);
 var
   P: PColor32;
   C: TColor32;
@@ -859,7 +831,7 @@ begin
   P := fLayers[rlTerrain].PixelPtr[X, Y];
   if P^ and $FF000000 <> $FF000000 then
   begin
-    C := Theme.Colors[MASK_COLOR];
+    C := Color; //Theme.Colors[MASK_COLOR];
     BlendMem(P^, C);
     P^ := C;
   end;
@@ -1839,6 +1811,7 @@ begin
 
   PieceManager.ApplyTheme(Info.Level.Info.GraphicSetName);
 
+  (*
   LowPal := DosPaletteToArrayOfColor32(DosInLevelPalette);
   if fXmasPal then
   begin
@@ -1850,9 +1823,12 @@ begin
   SetLength(Pal, 16);
   for i := 0 to 6 do
     Pal[i] := LowPal[i];
-  Pal[7] := fTheme.Colors[MASK_COLOR];
   for i := 8 to 15 do
     Pal[i] := PARTICLE_COLORS[i mod 8];
+  *)
+
+  SetLength(Pal, 16);
+  Pal[7] := fTheme.Colors[MASK_COLOR];
 
   fAni.ClearData;
   if (GameParams.SysDat.Options3 and 128) <> 0 then

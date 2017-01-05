@@ -78,7 +78,6 @@ type
   { overridden from base loader }
     procedure InternalLoadLevel(aInfo: TLevelInfo; aLevel: TLevel; OddLoad: Byte = 0); override;
     procedure InternalLoadSingleLevel(aSection, aLevelIndex: Integer; aLevel: TLevel; OddLoad: Byte = 0); override;
-    procedure InternalPrepare; override;
     function EasyGetSectionName(aSection: Integer): string;
   public
     fDefaultSectionCount: Integer; // initialized at creation
@@ -96,22 +95,19 @@ type
     function GetSectionCount: Integer; virtual;
     function GetLevelName(aSection, aLevel: Integer): String;
     procedure DumpAllLevels;
-    procedure InitSave;
 
     //For the time being it is not needed to virtualize this into a higher class.
     function FindFirstLevel(var Rec: TDosGamePlayInfoRec): Boolean; override;
     function FindNextLevel(var Rec : TDosGamePlayInfoRec): Boolean; override;
     function FindLevel(var Rec : TDosGamePlayInfoRec): Boolean; override;
     function FindFinalLevel(var Rec : TDosGamePlayInfoRec): Boolean; override;
-    function FindLastUnlockedLevel(var Rec : TDosGamePlayInfoRec): Boolean; override;
-    function FindNextUnlockedLevel(var Rec : TDosGamePlayInfoRec; CheatMode: Boolean = false): Boolean; override;
-    function FindPreviousUnlockedLevel(var Rec : TDosGamePlayInfoRec; CheatMode: Boolean = false): Boolean; override;
+    function FindFirstUnsolvedLevel(var Rec : TDosGamePlayInfoRec): Boolean; override;
+    function FindNextUnsolvedLevel(var Rec : TDosGamePlayInfoRec): Boolean; override;
+    function FindPreviousUnsolvedLevel(var Rec : TDosGamePlayInfoRec; CheatMode: Boolean = false): Boolean; override;
     procedure ResetOddtableHistory;
 
     procedure QuickLoadLevelNames;
 
-
-    function GetLevelCode(const Rec : TDosGamePlayInfoRec): string; override;
     function FindLevelCode(const aCode: string; var Rec : TDosGamePlayInfoRec): Boolean; override;
     function FindCheatCode(const aCode: string; var Rec : TDosGamePlayInfoRec; CheatsEnabled: Boolean = true): Boolean; override;
 
@@ -120,7 +116,6 @@ type
 
   TDosFlexiLevelSystem = class(TBaseDosLevelSystem)
   private
-    //SysLoaded : Boolean;
   public
     procedure LoadSystemInfo();
     procedure GetSections(aSectionNames: TStrings); override;
@@ -129,7 +124,6 @@ type
 
   TDosFlexiMusicSystem = class(TBaseMusicSystem)
   private
-    //SysLoaded : Boolean;
   protected
   public
     MusicCount : Byte;
@@ -188,12 +182,8 @@ const
   end;
 
 var
-  //L: TStringList;
-  //Sec, Lev,
   i: Integer;
-  //r: Integer;
   c : Char;
-  //s: string;
   DoMedeKlinker: Boolean;
   TempStream: TMemoryStream;
   SL: TStringList;
@@ -218,14 +208,11 @@ begin
   // never change this
   LemRandseed := (aLevel div 99) * 1000000 + aRandseed * 10000 + (aSection + 1) * 100 + ((aLevel mod 99) + 1);
 
-//  randseed := -1207816797; // so we do not need consts
   Result := StringOfChar(' ', 10);
 
   DoMedeKlinker := Boolean(LemRandom(2)); // init on random
   for i := 1 to 10 do
   begin
-    //r := LemRandom(26);
-    //c := Chr(r + ord('A'));
     C := RndChar(DoMedeKlinker);
     DoMedeKlinker := not DoMedeKlinker;
     Result[i] := c;
@@ -300,10 +287,6 @@ begin
   inherited;
 end;
 
-procedure TBaseDosLevelSystem.InitSave;
-begin
-  // doesn't seem to need to do anything anymore
-end;
 
 procedure TBaseDosLevelSystem.DumpAllLevels;
 var
@@ -317,8 +300,6 @@ var
   BasePath: String;
   FilePath: String;
   FileStream: TFileStream;
-  //i: integer;
-  //fHasSteel : Boolean;
 
   n: Integer;
   Suffix: String;
@@ -379,7 +360,6 @@ end;
 function TBaseDosLevelSystem.FindCheatCode(const aCode: string;
   var Rec: TDosGamePlayInfoRec; CheatsEnabled: Boolean = true): Boolean;
 var
-  //Sec, Lev: Integer;
   P, i, L: Integer;
   Comp, Comp2: string;
   List: TStringList;
@@ -438,8 +418,6 @@ begin
     begin
       dValid         := True;
       dPack          := 0;
-      //if dSection >= 0
-      //dSection       := 0;
       dLevel         := 0;
       dSectionName   := L[dSection]; //#EL watch out for the record-string-mem-leak
     end;
@@ -448,8 +426,7 @@ begin
   end;
 end;
 
-function TBaseDosLevelSystem.FindLastUnlockedLevel(var Rec: TDosGamePlayInfoRec): Boolean;
-// Somewhat misleading name. It finds the first level that is unlocked but not completed.
+function TBaseDosLevelSystem.FindFirstUnsolvedLevel(var Rec: TDosGamePlayInfoRec): Boolean;
 var
   L: TStringList;
   i: Integer;
@@ -464,8 +441,6 @@ begin
     begin
       dValid         := True;
       dPack          := 0;
-      //if dSection >= 0
-      //dSection       := 0;
       dLevel         := 0;
       for i := 0 to GetLevelCount(dSection) - 1 do
       begin
@@ -485,7 +460,7 @@ begin
   if not FoundLevel then Rec.dLevel := 0; // go to first level if all available levels are completed
 end;
 
-function TBaseDosLevelSystem.FindNextUnlockedLevel(var Rec: TDosGamePlayInfoRec; CheatMode: Boolean = false): Boolean;
+function TBaseDosLevelSystem.FindNextUnsolvedLevel(var Rec: TDosGamePlayInfoRec): Boolean;
 var
   L: TStringList;
   i, odLevel: Integer;
@@ -514,7 +489,7 @@ begin
   end;
 end;
 
-function TBaseDosLevelSystem.FindPreviousUnlockedLevel(var Rec: TDosGamePlayInfoRec; CheatMode: Boolean = false): Boolean;
+function TBaseDosLevelSystem.FindPreviousUnsolvedLevel(var Rec: TDosGamePlayInfoRec; CheatMode: Boolean = false): Boolean;
 var
   L: TStringList;
   i, odLevel: Integer;
@@ -559,9 +534,7 @@ end;
 function TBaseDosLevelSystem.FindLevelCode(const aCode: string; var Rec: TDosGamePlayInfoRec): Boolean;
 var
   Sec, Lev: Integer;
-  //P, i, L: Integer;
   Code: string;
-  //List: TStringList;
 begin
   Result := False;
 
@@ -572,8 +545,6 @@ begin
     for Lev := 0 to GetLevelCount(Sec) do
     begin
       Code := GenCode(SysDat.CodeSeed, Sec, Lev);
-
-
 
       if CompareText(Code, aCode) = 0 then
       begin
@@ -600,10 +571,8 @@ begin
     begin
       dValid         := True;
       dPack          := 0;
-      //if dSection >= 0
       dSection       := fDefaultSectionCount - 1;
       dLevel         := GetLevelCount(dSection) - 1;
-      //dSectionName   := L[dSection]; //#EL watch out for the record-string-mem-leak
     end;
   finally
     L.Free;
@@ -618,8 +587,6 @@ begin
   Result := (Rec.dLevel < GetLevelCount(Rec.dSection)) or (Rec.dSection < fDefaultSectionCount - 1);
 
   Rec.dValid := False;
-  //if not Result then
-  //  Exit;
 
   L := TStringList.Create;
   try
@@ -672,16 +639,9 @@ begin
   afileIndex := aLevel;
 end;
 
-function TBaseDosLevelSystem.GetLevelCode(const Rec: TDosGamePlayInfoRec): string;
-begin
-  Result := GenCode(SysDat.CodeSeed, Rec.dSection, Rec.dLevel);
-end;
-
 function TBaseDosLevelSystem.GetLevelCount(aSection: Integer): Integer;
 var
-  Dcmp : TDosDatDecompressor;
   FSt : TMemoryStream;
-  FSl : TDosDatSectionList;
 
   Parser: TNeoLemmixParser;
   Line: LemNeoParserOld.TParserLine;
@@ -717,7 +677,6 @@ function TBaseDosLevelSystem.GetSectionCount: Integer;
 var
   Dummy: TStringList;
 begin
-//  Result := 0;
   Dummy := TStringList.Create;
   try
     GetSections(Dummy);
@@ -738,12 +697,7 @@ procedure TBaseDosLevelSystem.InternalLoadLevel(aInfo: TLevelInfo; aLevel: TLeve
   NB: a little moving/messing around here with mem
 -------------------------------------------------------------------------------}
 var
-  //LVL: TLVLRec;
-  //Ox: Integer;
   DataStream: TMemoryStream;
-  Sections: TDosDatSectionList;
-  Decompressor: TDosDatDecompressor;
-  TheSection: TDosDatSection;
 begin
   Assert(Owner is TBaseDosLemmingStyle);
 
@@ -763,8 +717,6 @@ procedure TBaseDosLevelSystem.InternalLoadSingleLevel(aSection, aLevelIndex: Int
 var
   LocalSectionNames: TStringList;
   Fn: string;
-  //IsOdd: Boolean;
-  //OddIndex: Integer;
   FileIndex: Integer;
   Sty: TBaseDosLemmingStyle;
   LocalLevelInfo: TLevelInfo;
@@ -900,12 +852,6 @@ begin
     raise Exception.Create('TBaseDosLevelSystem.GetLevelName called for a non-existant level');
 end;
 
-procedure TBaseDosLevelSystem.InternalPrepare;
-begin
-
-  raise Exception.Create('Internal Prepare not implemented');
-
-end;
 
 
 

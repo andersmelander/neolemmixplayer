@@ -13,7 +13,7 @@ uses
   LemTypes,
   LemDosStructures,
   LemDosCmp,
-  LemDosBmp,
+  //LemDosBmp,
   LemDosMainDat,
   LemMetaAnimation,
   LemAnimationSet,

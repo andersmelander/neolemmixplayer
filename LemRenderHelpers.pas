@@ -7,9 +7,8 @@ interface
 
 uses
   LemTypes, LemObjects, LemLemming, LemCore,
-  UMisc,
-  GR32, GR32_Blend, GR32_LowLevel, GR32_Resamplers,
-  Contnrs, Classes, SysUtils;
+  GR32, GR32_Blend,
+  Contnrs, Classes;
 
 const
   PARTICLE_FRAMECOUNT = 52;
@@ -35,7 +34,8 @@ type
 
   TDrawableItem = (di_ConstructivePixel, di_Stoner);
   TDrawRoutine = procedure(X, Y: Integer) of object;
-  TDrawRoutines = array[Low(TDrawableItem)..High(TDrawableItem)] of TDrawRoutine;
+  TDrawRoutineWithColor = procedure(X, Y: Integer; Color: TColor32) of object;
+  //TDrawRoutines = array[Low(TDrawableItem)..High(TDrawableItem)] of TDrawRoutine;
   TRemoveRoutine = procedure(X, Y, Width, Height: Integer) of object;
   TSimulateTransitionRoutine = procedure(L: TLemming; NewAction: TBasicLemmingAction) of object;
   TSimulateLemRoutine = function(L: TLemming; DoCheckObjects: Boolean = True): TArrayArrayInt of object;
@@ -66,7 +66,6 @@ type
     procedure CombinePhysicsMapOnlyOnTerrain(F: TColor32; var B: TColor32; M: TColor32);
     procedure CombinePhysicsMapOneWays(F: TColor32; var B: TColor32; M: TColor32);
     procedure CombinePhysicsMapOnlyDestructible(F: TColor32; var B: TColor32; M: TColor32);
-    procedure CombineTriggerLayer(F: TColor32; var B: TColor32; M: TColor32);
 
     procedure DrawClearPhysicsTerrain(aDst: TBitmap32; aRegion: TRect);
   protected
@@ -78,7 +77,6 @@ type
     procedure CombineTo(aDst: TBitmap32; aRegion: TRect; aClearPhysics: Boolean = false); overload;
     procedure CombineTo(aDst: TBitmap32; aClearPhysics: Boolean = false); overload;
     property Items[Index: TRenderLayer]: TBitmap32 read GetItem; default;
-    property List;
     property Width: Integer read fWidth;
     property Height: Integer read fHeight;
     property PhysicsMap: TBitmap32 write fPhysicsMap;
@@ -106,36 +104,6 @@ type
   published
   end;
 
-  TAnimation = class(TDrawItem)
-  private
-    procedure Check;
-    procedure CheckFrame(Bmp: TBitmap32);
-  protected
-    fFrameHeight: Integer;
-    fFrameCount: Integer;
-    fFrameWidth: Integer;
-  public
-    constructor Create(aOriginal: TBitmap32; aFrameCount, aFrameWidth, aFrameHeight: Integer);
-    function CalcFrameRect(aFrameIndex: Integer): TRect;
-    function CalcTop(aFrameIndex: Integer): Integer;
-    procedure InsertFrame(Bmp: TBitmap32; aFrameIndex: Integer);
-    procedure GetFrame(Bmp: TBitmap32; aFrameIndex: Integer);
-    property FrameCount: Integer read fFrameCount default 1;
-    property FrameWidth: Integer read fFrameWidth;
-    property FrameHeight: Integer read fFrameHeight;
-  end;
-
-  TObjectAnimation = class(TAnimation)
-  private
-  protected
-    fInverted: TBitmap32; // copy of original
-    procedure Flip;
-  public
-    constructor Create(aOriginal: TBitmap32; aFrameCount, aFrameWidth, aFrameHeight: Integer);
-    destructor Destroy; override;
-    property Inverted: TBitmap32 read fInverted;
-  end;
-
   THelperIcon = (hpi_None,
                  hpi_A, hpi_B, hpi_C, hpi_D, hpi_E, hpi_F, hpi_G, hpi_H, hpi_I, hpi_J, hpi_K, hpi_L, hpi_M,
                  hpi_N, hpi_O, hpi_P, hpi_Q, hpi_R, hpi_S, hpi_T, hpi_U, hpi_V, hpi_W, hpi_X, hpi_Y, hpi_Z,
@@ -158,7 +126,9 @@ type
       fTerrainMap: TBitmap32;
       fScreenPos: TPoint;
       fMousePos: TPoint;
-      fDrawRoutines: TDrawRoutines;
+      fDrawRoutineBrick: TDrawRoutineWithColor;
+      fDrawRoutineStoner: TDrawRoutine;
+      //fDrawRoutines: TDrawRoutines;
       fRemoveRoutine: TRemoveRoutine;
       fSimulateTransitionRoutine: TSimulateTransitionRoutine;
       fSimulateLemRoutine: TSimulateLemRoutine;
@@ -174,11 +144,13 @@ type
     public
       constructor Create;
       procedure SetSelectedSkillPointer(var aButton: TSkillPanelButton);
-      procedure SetDrawRoutine(aItem: TDrawableItem; aRoutine: TDrawRoutine);
+      procedure SetDrawRoutineStoner(aRoutine: TDrawRoutine);
+      procedure SetDrawRoutineBrick(aRoutine: TDrawRoutineWithColor);
       procedure SetRemoveRoutine(aRoutine: TRemoveRoutine);
       procedure SetSimulateLemRoutine(aLemRoutine: TSimulateLemRoutine; aTransRoutine: TSimulateTransitionRoutine);
       procedure SetGetHighlitRoutine(aRoutine: TGetLemmingRoutine);
-      procedure AddTerrain(aAddType: TDrawableItem; X, Y: Integer);
+      procedure AddTerrainBrick(X, Y: Integer; Color: TColor32);
+      procedure AddTerrainStoner(X, Y: Integer);
       procedure RemoveTerrain(X, Y, Width, Height: Integer);
       procedure Null;
       procedure SimulateTransitionLem(L: TLemming; NewAction: TBasicLemmingAction);
@@ -249,24 +221,26 @@ const
 
 implementation
 
-uses
-  UTools;
-
 { TRenderInterface }
 
 constructor TRenderInterface.Create;
 var
   i: TDrawableItem;
 begin
-  for i := Low(TDrawableItem) to High(TDrawableItem) do
-    fDrawRoutines[i] := nil;
+  fDrawRoutineBrick := nil;
+  fDrawRoutineStoner := nil;
   fUserHelperIcon := hpi_None;
   fSelectedLemmingID := -1;
 end;
 
-procedure TRenderInterface.SetDrawRoutine(aItem: TDrawableItem; aRoutine: TDrawRoutine);
+procedure TRenderInterface.SetDrawRoutineStoner(aRoutine: TDrawRoutine);
 begin
-  fDrawRoutines[aItem] := aRoutine;
+  fDrawRoutineStoner := aRoutine;
+end;
+
+procedure TRenderInterface.SetDrawRoutineBrick(aRoutine: TDrawRoutineWithColor);
+begin
+  fDrawRoutineBrick := aRoutine;
 end;
 
 procedure TRenderInterface.SetRemoveRoutine(aRoutine: TRemoveRoutine);
@@ -285,12 +259,18 @@ begin
   fGetHighlitLemRoutine := aRoutine;
 end;
 
-procedure TRenderInterface.AddTerrain(aAddType: TDrawableItem; X, Y: Integer);
+procedure TRenderInterface.AddTerrainBrick(X, Y: Integer; Color: TColor32);
 begin
   // TLemmingGame is expected to handle modifications to the physics map.
   // This is to pass to TRenderer for on-screen drawing.
-  if Assigned(fDrawRoutines[aAddType]) then
-    fDrawRoutines[aAddType](X, Y);
+  if Assigned(fDrawRoutineBrick) then fDrawRoutineBrick(X, Y, Color);
+end;
+
+procedure TRenderInterface.AddTerrainStoner(X, Y: Integer);
+begin
+  // TLemmingGame is expected to handle modifications to the physics map.
+  // This is to pass to TRenderer for on-screen drawing.
+  if Assigned(fDrawRoutineStoner) then fDrawRoutineStoner(X, Y);
 end;
 
 procedure TRenderInterface.RemoveTerrain(X, Y, Width, Height: Integer);
@@ -398,144 +378,6 @@ begin
   inherited Insert(Index, Item);
 end;
 
-{ TAnimation }
-
-function TAnimation.CalcFrameRect(aFrameIndex: Integer): TRect;
-begin
-  with Result do
-  begin
-    Left := 0;
-    Top := aFrameIndex * fFrameHeight;
-    Right := Left + fFrameWidth;
-    Bottom := Top + fFrameHeight;
-  end;
-end;
-
-function TAnimation.CalcTop(aFrameIndex: Integer): Integer;
-begin
-  Result := aFrameIndex * fFrameHeight;
-end;
-
-procedure TAnimation.Check;
-begin
-  Assert(fFrameCount <> 0);
-  Assert(Original.Width = fFrameWidth);
-  Assert(fFrameHeight * fFrameCount = Original.Height);
-end;
-
-procedure TAnimation.CheckFrame(Bmp: TBitmap32);
-begin
-  Assert(Bmp.Width = Original.Width);
-  Assert(Bmp.Height * fFrameCount = Original.Height);
-end;
-
-constructor TAnimation.Create(aOriginal: TBitmap32; aFrameCount, aFrameWidth, aFrameHeight: Integer);
-begin
-  inherited Create(aOriginal);
-  fFrameCount := aFrameCount;
-  fFrameWidth := aFrameWidth;
-  fFrameHeight := aFrameHeight;
-  Check;
-end;
-
-procedure TAnimation.GetFrame(Bmp: TBitmap32; aFrameIndex: Integer);
-// unsafe
-var
-  Y, W: Integer;
-  SrcP, DstP: PColor32;
-begin
-  Check;
-  Bmp.SetSize(fFrameWidth, fFrameHeight);
-  DstP := Bmp.PixelPtr[0, 0];
-  SrcP := Original.PixelPtr[0, CalcTop(aFrameIndex)];
-  W := fFrameWidth;
-  for Y := 0 to fFrameHeight - 1 do
-    begin
-      MoveLongWord(SrcP^, DstP^, W);
-      Inc(SrcP, W);
-      Inc(DstP, W);
-    end;
-end;
-
-procedure TAnimation.InsertFrame(Bmp: TBitmap32; aFrameIndex: Integer);
-// unsafe
-var
-  Y, W: Integer;
-  SrcP, DstP: PColor32;
-begin
-  Check;
-  CheckFrame(Bmp);
-
-  SrcP := Bmp.PixelPtr[0, 0];
-  DstP := Original.PixelPtr[0, CalcTop(aFrameIndex)];
-  W := fFrameWidth;
-
-  for Y := 0 to fFrameHeight - 1 do
-    begin
-      MoveLongWord(SrcP^, DstP^, W);
-      Inc(SrcP, W);
-      Inc(DstP, W);
-    end;
-end;
-
-{ TObjectAnimation }
-
-constructor TObjectAnimation.Create(aOriginal: TBitmap32; aFrameCount,
-  aFrameWidth, aFrameHeight: Integer);
-begin
-  inherited;
-  fInverted := TBitmap32.Create;
-  fInverted.Assign(aOriginal);
-  Flip;
-end;
-
-destructor TObjectAnimation.Destroy;
-begin
-  fInverted.Free;
-  inherited;
-end;
-
-procedure TObjectAnimation.Flip;
-//unsafe, can be optimized by making a algorithm
-var
-  Temp: TBitmap32;
-  i: Integer;
-
-      procedure Ins(aFrameIndex: Integer);
-      var
-        Y, W: Integer;
-        SrcP, DstP: PColor32;
-      begin
-//        Check;
-        //CheckFrame(TEBmp);
-
-        SrcP := Temp.PixelPtr[0, 0];
-        DstP := Inverted.PixelPtr[0, CalcTop(aFrameIndex)];
-        W := fFrameWidth;
-
-        for Y := 0 to fFrameHeight - 1 do
-          begin
-            MoveLongWord(SrcP^, DstP^, W);
-            Inc(SrcP, W);
-            Inc(DstP, W);
-          end;
-      end;
-
-begin
-  if fFrameCount = 0 then
-    Exit;
-  Temp := TBitmap32.Create;
-  try
-    for i := 0 to fFrameCount - 1 do
-    begin
-      GetFrame(Temp, i);
-      Temp.FlipVert;
-      Ins(i);
-    end;
-  finally
-    Temp.Free;
-  end;
-end;
 
 { TRenderBitmaps }
 
@@ -552,15 +394,10 @@ begin
     begin
       BMP.DrawMode := dmCustom;
       BMP.OnPixelCombine := CombinePixelsShadow;
-    (*end else if i = rlTriggers then
-    begin
-      BMP.DrawMode := dmCustom;
-      BMP.OnPixelCombine := CombineTriggerLayer;*)
     end else begin
       BMP.DrawMode := dmBlend;
       BMP.CombineMode := cmBlend;
     end;
-    //TLinearResampler.Create(BMP);
     Add(BMP);
 
     fIsEmpty[i] := True;
@@ -597,7 +434,6 @@ begin
   ModColor(Blue);
   C := ($C0000000) or (Red shl 16) or (Green shl 8) or (Blue);
   BlendMem(C, B);
-  //BlendReg(C, B);
 end;
 
 procedure TRenderBitmaps.CombinePhysicsMapOnlyOnTerrain(F: TColor32; var B: TColor32; M: TColor32);
@@ -610,14 +446,6 @@ begin
   if (F and $00000004) = 0 then B := 0;
 end;
 
-procedure TRenderBitmaps.CombineTriggerLayer(F: TColor32; var B: TColor32; M: TColor32);
-begin
-  if F = 0 then Exit;
-  if B = 0 then
-    B := F
-  else
-    B := B and $FFFF00FF;
-end;
 
 procedure TRenderBitmaps.CombinePhysicsMapOnlyDestructible(F: TColor32; var B: TColor32; M: TColor32);
 begin
@@ -628,6 +456,7 @@ function TRenderBitmaps.GetItem(Index: TRenderLayer): TBitmap32;
 begin
   Result := inherited Get(Integer(Index));
 end;
+
 
 procedure TRenderBitmaps.Prepare(aWidth, aHeight: Integer);
 var
@@ -653,7 +482,6 @@ var
 begin
   aDst.BeginUpdate;
   aDst.Clear($FF000000);
-  //aDst.SetSize(Width, Height); //not sure if we really want to do this
 
   // Tidy up the Only On Terrain and One Way Walls layers
   if fPhysicsMap <> nil then

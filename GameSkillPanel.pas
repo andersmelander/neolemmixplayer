@@ -12,7 +12,7 @@ uses
   LemDosMainDat,
   LemStrings,
   LemTypes,
-  LemDosBmp,
+  //LemDosBmp,
   LemDosCmp,
   LemDosStructures,
   LemCore,
@@ -752,6 +752,7 @@ begin
     Exit;
 
   // try and concat palettes
+  (*
   LemmixPal := DosPaletteToArrayOfColor32(DosInLevelPalette);
   if Game.fXmasPal then
   begin
@@ -768,6 +769,8 @@ begin
   SetLength(LemmixPal, 16);
   for i := 8 to 15 do
     LemmixPal[i] := HiPal[i - 8];
+  *)
+  SetLength(LemmixPal, 16);
   LemmixPal[7] := GameParams.Renderer.Theme.Colors[MASK_COLOR];
 
   SetButtonRects;

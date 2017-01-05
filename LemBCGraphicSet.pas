@@ -9,7 +9,7 @@ unit LemBCGraphicSet;
 interface
 
 uses
-  Dialogs, LemNeoOnline, LemDosBmp,
+  Dialogs, LemNeoOnline, //LemDosBmp,
   LemDosCmp, GR32, LemTypes, Classes, SysUtils;
 
 const
@@ -210,17 +210,18 @@ begin
 end;
 
 procedure TBcGraphicSet.LoadSpecialBitmap(aStream: TStream);
-var
-  Vgaspec: TVgaspecBitmap;
+//var
+//  Vgaspec: TVgaspecBitmap;
 begin
-  Vgaspec := TVgaspecBitmap.Create;
+  raise Exception.Create('TBcGraphicSet.LoadSpecialBitmap called; VGASPECs are no longer supported.');
+  (*Vgaspec := TVgaspecBitmap.Create;
   try
     fSpecialBitmap := TBitmap32.Create;
     aStream.Position := 0;
     Vgaspec.LoadFromStream(aStream, fSpecialBitmap);
   finally
     Vgaspec.Free;
-  end;
+  end;*)
 end;
 
 procedure TBcGraphicSet.LoadGraphicSet(aName: String);

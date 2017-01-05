@@ -15,9 +15,8 @@ uses
   LemGraphicSet,
   LemDosGraphicSet, // backwards-compatibility
   LemDosStructures,
-  LemDosBmp,
+  //LemDosBmp,
   LemDosCmp,
-  LemDosMisc,
   LemNeoOnline,
   LemNeoEncryption, Dialogs, Contnrs;
 
@@ -78,7 +77,7 @@ type
     Reserved: Array[0..9] of Byte;
   end;
 
-  TBaseNeoGraphicSet = class (TBaseDosGraphicSet)
+  TBaseNeoGraphicSet = class(TBaseGraphicSet)
     protected
       fFile: string;
 
