@@ -114,12 +114,30 @@ var
         aLevel.Info.WindowOrder[i] := aLevel.Info.WindowOrder[i] - 1;
   end;
 
-begin
-  // Needs to convert preplaced lemmings appropriately
+  function FixStyleName(aName: String): String;
+  begin
+    // Fixes a few style names that have been changed
+    Result := aName;
+    aName := Lowercase(Trim(aName)); // just in case
+    if aName = 'gigalem_l3egypt' then
+      Result := 'l3_egypt';
+    if aName = 'gigalem_l3shadow' then
+      Result := 'l3_shadow';
+    if aName = 'medival' then
+      Result := 'medieval';
+  end;
 
+begin
+  // The level's primary graphic set should be fixed
+  aLevel.Info.GraphicSetName := FixStyleName(aLevel.Info.GraphicSetName);
+
+  // Needs to convert preplaced lemmings appropriately and correct style names on objects
   for i := aLevel.InteractiveObjects.Count-1 downto 0 do
   begin
     O := aLevel.InteractiveObjects[i];
+
+    O.GS := FixStyleName(O.GS);
+
     MO_PM := PieceManager.Objects[O.GS + ':' + O.Piece].GetInterface(false, false, false);
     if MO_PM.TriggerEffect = 13 then
     begin
@@ -143,9 +161,13 @@ begin
     end;
   end;
 
+  // Terrains just need graphic set name fix
+  for i := 0 to aLevel.Terrains.Count-1 do
+    aLevel.Terrains[i].GS := FixStyleName(aLevel.Terrains[i].GS);
+
   // And backgrounds
   if aLevel.Info.Background <> '' then
-    aLevel.Info.Background := aLevel.Info.GraphicSetName + ':BG' + aLevel.Info.Background;
+    aLevel.Info.Background := aLevel.Info.GraphicSetName + ':BG' + aLevel.Info.Background; // Info.GraphicSetName is already fixed
 
 end;
 
