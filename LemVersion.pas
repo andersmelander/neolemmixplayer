@@ -12,7 +12,7 @@ const
   CORE_VERSION = 12;
   FEATURES_VERSION = 12;
   HOTFIX_VERSION = 0;
-  COMMIT_ID = '3654989';  // empty string is handled, and is uppercased when needed so don't need to do manually anymore :D
+  COMMIT_ID = '625639d';  // empty string is handled, and is uppercased when needed so don't need to do manually anymore :D
 
 function MakeVersionString(aFormat, aCore, aFeature, aHotfix: Integer): String;
 function MakeVersionID(aFormat, aCore, aFeature, aHotfix: Integer): Int64;
@@ -45,8 +45,8 @@ function MakeVersionString(aFormat, aCore, aFeature, aHotfix: Integer): String;
   end;
 begin
   Result := IntToStr(aFormat);
-  Result := Result + '.' + LeadZeroStr(aCore, 3);
-  Result := Result + '.' + LeadZeroStr(aFeature, 3);
+  Result := Result + '.' + LeadZeroStr(aCore, 2);     // not having it as at least two digits would honestly feel TOO weird
+  Result := Result + '.' + LeadZeroStr(aFeature, 2);
   if aHotfix > 0 then
     Result := Result + '-' + NumberToLetters(aHotfix);
 end;
