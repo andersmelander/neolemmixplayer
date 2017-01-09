@@ -143,13 +143,6 @@ object FormNXConfig: TFormNXConfig
     object TabSheet5: TTabSheet
       Caption = 'Interface'
       ImageIndex = 4
-      object Label1: TLabel
-        Left = 11
-        Top = 208
-        Width = 30
-        Height = 13
-        Caption = 'Zoom:'
-      end
       object GroupBox2: TGroupBox
         Left = 8
         Top = 8
@@ -237,20 +230,6 @@ object FormNXConfig: TFormNXConfig
           TabOrder = 5
           OnClick = OptionChanged
         end
-      end
-      object cbZoom: TComboBox
-        Left = 56
-        Top = 204
-        Width = 177
-        Height = 21
-        Style = csDropDownList
-        ItemHeight = 13
-        ItemIndex = 0
-        TabOrder = 2
-        Text = 'Fullscreen'
-        OnChange = OptionChanged
-        Items.Strings = (
-          'Fullscreen')
       end
     end
     object TabSheet4: TTabSheet

@@ -55,8 +55,6 @@ type
     GroupBox1: TGroupBox;
     cbEnableOnline: TCheckBox;
     cbUpdateCheck: TCheckBox;
-    cbZoom: TComboBox;
-    Label1: TLabel;
     cbDisableShadows: TCheckBox;
     cbShowMinimap: TCheckBox;
     procedure btnApplyClick(Sender: TObject);
@@ -140,17 +138,6 @@ begin
   cbPauseAfterBackwards.Checked := GameParams.PauseAfterBackwardsSkip;
   cbShowMinimap.Checked := GameParams.ShowMinimap;
 
-  // Zoom Dropdown
-  cbZoom.Items.Clear;
-  cbZoom.Items.Add('Fullscreen');
-  i := 1;
-  while (i * 320 <= Screen.Width) and (i * 200 < Screen.Height) do
-  begin
-    cbZoom.Items.Add('Windowed, ' + IntToStr(i) + 'x Zoom');
-    Inc(i);
-  end;
-  cbZoom.ItemIndex := GameParams.ZoomLevel;
-
   //// Page 3 (Audio Options) ////
   tbSoundVol.Position := SoundVolume;
   tbMusicVol.Position := MusicVolume;
@@ -228,11 +215,6 @@ begin
   GameParams.NoShadows := cbDisableShadows.Checked;
   GameParams.PauseAfterBackwardsSkip := cbPauseAfterBackwards.Checked;
   GameParams.ShowMinimap := cbShowMinimap.Checked;
-
-  // Zoom Dropdown
-  if GameParams.ZoomLevel <> cbZoom.ItemIndex then
-    ShowMessage('New zoom setting will be applied upon leaving the main menu.');
-  GameParams.ZoomLevel := cbZoom.ItemIndex;
 
   //// Page 3 (Audio Options) ////
   if (tbSoundVol.Position = 0) and (SoundVolume <> 0) then

@@ -16,7 +16,6 @@ uses
   function NumericalVersionToStringVersion(Main, Sub, Minor: Integer): String;
 
 const
-
   SPFirstText = '';
 
   SCheatCode = '';

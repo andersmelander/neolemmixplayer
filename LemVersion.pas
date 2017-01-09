@@ -49,6 +49,8 @@ begin
   Result := Result + '.' + LeadZeroStr(aFeature, 2);
   if aHotfix > 0 then
     Result := Result + '-' + NumberToLetters(aHotfix);
+  if (aFormat = FORMAT_VERSION) and (aCore = CORE_VERSION) and (aFeature = FEATURES_VERSION) and (aHotfix = HOTFIX_VERSION) then
+    Result := Result + '-alt';
 end;
 
 function MakeVersionID(aFormat, aCore, aFeature, aHotfix: Integer): Int64;
