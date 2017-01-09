@@ -5115,7 +5115,6 @@ procedure TLemmingGame.SetSelectedSkill(Value: TSkillPanelButton; MakeActive: Bo
       if fActiveSkills[i] = Value then Result := true;
   end;
 begin
-  if fIsSelectWalkerHotkey then RightClick := true;  // THIS DOES NOT MAKE ANY SENSE!!!
 
   case Value of
     spbFaster:
