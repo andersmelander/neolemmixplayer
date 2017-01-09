@@ -266,6 +266,14 @@ begin
   fMainDatExtractor := TMainDatExtractor.Create;
   fMainDatExtractor.FileName := LemmingsPath + 'main.dat';
   GameParams.SysDat := fMainDatExtractor.GetSysData;
+
+  if GameParams.SysDat.Options3 and 128 <> 0 then          // backwards compatibility. lack of this could lead to crashes.
+    GameParams.SysDat.StyleNames[0] := 'default         '
+  else if GameParams.SysDat.Options3 and 64 <> 0 then
+    GameParams.SysDat.StyleNames[0] := 'xmas            '
+  else if GameParams.SysDat.Options4 and 1 = 0 then
+    GameParams.SysDat.StyleNames[0] := '                ';
+
   Application.Title := Trim(GameParams.SysDat.PackName);
   fMainDatExtractor.free;
 
