@@ -1258,12 +1258,10 @@ begin
   Ani := Renderer.LemmingAnimations; //Style.AnimationSet as TBaseDosAnimationSet;
   Ani.AnimationPalette := Copy(Pal);
   Ani.ClearData;
-  if (GameParams.SysDat.Options3 and 128) <> 0 then
-    Ani.LemmingPrefix := 'default'
-  else if (GameParams.SysDat.Options3 and 64) <> 0 then
-    Ani.LemmingPrefix := 'xmas'
+  if Trim(GameParams.SysDat.StyleNames[0]) = '' then
+    Ani.LemmingPrefix := Renderer.Theme.Lemmings
   else
-    Ani.LemmingPrefix := Renderer.Theme.Lemmings;
+    Ani.LemmingPrefix := Trim(GameParams.SysDat.StyleNames[0]);
   Ani.ReadData;
 
   // prepare masks for drawing

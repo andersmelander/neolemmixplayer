@@ -1831,18 +1831,16 @@ begin
   Pal[7] := fTheme.Colors[MASK_COLOR];
 
   fAni.ClearData;
-  if (GameParams.SysDat.Options3 and 128) <> 0 then
-    LemSprites := 'default'
-  else if (GameParams.SysDat.Options3 and 64) <> 0 then
-    LemSprites := 'xmas'
+  if Trim(GameParams.SysDat.StyleNames[0]) = '' then
+    LemSprites := fTheme.Lemmings
   else
-    LemSprites := fTheme.Lemmings;
+    LemSprites := Trim(GameParams.SysDat.StyleNames[0]);
   fAni.LemmingPrefix := LemSprites;
   fAni.AnimationPalette := Pal;
   fAni.MainDataFile := 'main.dat';
   fAni.ReadData;
 
-  fRecolorer.LoadSwaps(fTheme.Lemmings);
+  fRecolorer.LoadSwaps(LemSprites);
 end;
 
 end.
