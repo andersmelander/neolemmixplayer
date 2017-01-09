@@ -1,0 +1,3 @@
+These two levels were included in
+early versions of MazuLems, but were
+removed at a later time.
