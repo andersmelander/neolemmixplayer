@@ -340,7 +340,7 @@ begin
     ObtainGraphicSet(BgLabel.GS);
 
   for i := 0 to fObjects.Count-1 do
-    if (fObjects[i].GS = BgLabel.GS) and (fObjects[i].Piece = BgLabel.Piece) then
+    if (fObjects[i].GS = BgLabel.GS) and (fObjects[i].BgPiece = BgLabel.Piece) then
     begin
       Result := fObjects[i].Images[false, false, false][0];
       Exit;

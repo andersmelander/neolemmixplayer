@@ -72,6 +72,7 @@ type
     fSoundStream: TMemoryStream;
     fGS    : String;
     fPiece  : String;
+    fBgPiece: String;
     fVariableInfo: array[0..ALIGNMENT_COUNT-1] of TObjectVariableProperties;
     fGeneratedVariableInfo: array[0..ALIGNMENT_COUNT-1] of Boolean;
     fGeneratedVariableImage: array[0..ALIGNMENT_COUNT-1] of Boolean;
@@ -115,6 +116,7 @@ type
     property Identifier : String read GetIdentifier;
     property GS     : String read fGS write fGS;
     property Piece  : String read fPiece write fPiece;
+    property BgPiece: String read fBgPiece write fBgPiece;
 
     property Images[Flip, Invert, Rotate: Boolean]: TBitmaps read GetImages;
 
@@ -450,18 +452,19 @@ begin
 
     fGS := aSet.Name;
 
-    if OI.TriggerEff <> 32 then
-      fPiece := IntToStr(aIndex)
-    else begin
+    fPiece := IntToStr(aIndex);
+    if OI.TriggerEff = 32 then
+    begin
       n := 0;
       for i := 0 to aSet.ObjectCount-1 do
         if i = aIndex then
         begin
-          fPiece := 'BG' + IntToStr(n);
+          fBgPiece := 'BG' + IntToStr(n);
           Break;
         end else if aSet.ObjectData[i].TriggerEff = 32 then
           Inc(n);
-    end;
+    end else
+      fBgPiece := '';
 
     fFrameCount := OI.FrameCount;
     O.TriggerLeft := OI.PTriggerX;
