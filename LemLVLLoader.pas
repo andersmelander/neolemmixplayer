@@ -105,7 +105,7 @@ var
 
   Vgaspec: String;
 
-  procedure PreplacedLemmingPatch(Removed: Integer);
+  procedure RemovedObjectPatch(Removed: Integer);
   var
     i: Integer;
   begin
@@ -156,7 +156,14 @@ begin
       L.IsBlocker := (O.TarLev and 32) <> 0;
       L.IsZombie := (O.TarLev and 64) <> 0;
       aLevel.InteractiveObjects.Delete(i);
-      PreplacedLemmingPatch(i);
+      RemovedObjectPatch(i);
+      Continue;
+    end;
+
+    if MO_PM.TriggerEffect = 32 then
+    begin
+      aLevel.InteractiveObjects.Delete(i);
+      RemovedObjectPatch(i);
       Continue;
     end;
   end;
