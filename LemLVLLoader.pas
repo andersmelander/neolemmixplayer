@@ -160,6 +160,29 @@ begin
       Continue;
     end;
 
+    if MO_PM.TriggerEffect = 14 then
+    begin
+      case O.Skill + (O.TarLev * 16) of
+        0: O.Skill := Integer(spbClimber);
+        1: O.Skill := Integer(spbFloater);
+        2: O.Skill := Integer(spbBomber);
+        3: O.Skill := Integer(spbBlocker);
+        4: O.Skill := Integer(spbBuilder);
+        5: O.Skill := Integer(spbBasher);
+        6: O.Skill := Integer(spbMiner);
+        7: O.Skill := Integer(spbDigger);
+        8: O.Skill := Integer(spbWalker);
+        9: O.Skill := Integer(spbSwimmer);
+        10: O.Skill := Integer(spbGlider);
+        11: O.Skill := Integer(spbDisarmer);
+        12: O.Skill := Integer(spbStoner);
+        13: O.Skill := Integer(spbPlatformer);
+        14: O.Skill := Integer(spbStacker);
+        15: O.Skill := Integer(spbCloner);
+        16: O.Skill := Integer(spbFencer);
+      end;
+    end;
+
     if MO_PM.TriggerEffect = 32 then
     begin
       aLevel.InteractiveObjects.Delete(i);

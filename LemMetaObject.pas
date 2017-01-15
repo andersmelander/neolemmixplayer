@@ -430,6 +430,27 @@ var
         else
           FencerImg.PixelS[x+1, y+1] := DrawColors[FENCER_IMAGE[x + (y * 10)]];
   end;
+
+  procedure PickupReorder;
+  begin
+    O.Images.Move(9, 1);   // Walker to frame 1
+                           // Climber already at frame 2
+    O.Images.Move(10, 3);  // Swimmer to frame 3
+                           // Floater already at frame 4
+    O.Images.Move(11, 5);  // Glider to frame 5
+    O.Images.Move(12, 6);  // Disarmer to frame 6
+                           // Bomber already at frame 7
+    O.Images.Move(13, 8);  // Stoner to frame 8
+                           // Blocker already at frame 9
+    O.Images.Move(14, 10); // Platformer to frame 10
+                           // Builder already at frame 11
+    O.Images.Move(15, 12); // Stacker to frame 12
+                           // Basher already at frame 13
+    O.Images.Move(17, 14); // Fencer to frame 14
+                           // Miner already at frame 15
+                           // Digger already at frame 16
+                           // Cloner already at frame 17
+  end;
 begin
   TempBmp := TBitmap32.Create;
   O := GetInterface(false, false, false);
@@ -489,8 +510,12 @@ begin
     end;
     O.InternalSoundEffect := -1;
 
-    if (O.TriggerEffect = 14) and (O.Images.Count < 18) then
-      AddFencerPickup;
+    if (O.TriggerEffect = 14) then
+    begin
+      if (O.Images.Count < 18) then
+        AddFencerPickup;
+      PickupReorder;
+    end;
 
   finally
     TempBmp.Free;
