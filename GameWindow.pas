@@ -8,9 +8,8 @@ uses
   LemmixHotkeys, SharedGlobals,
   Windows, Classes, Controls, Graphics, MMSystem, Forms, SysUtils, Dialogs, Math, ExtCtrls,
   GR32, GR32_Image, GR32_Layers,
-  UMisc, UTools,
   LemCore, LemLevel, LemDosStyle, LemRendering, LemRenderHelpers,
-  LemGame, GameSound,
+  LemGame, GameSound, LemGameMessageQueue,
   GameControl, GameSkillPanel, GameBaseScreen;
 
 type
@@ -35,7 +34,7 @@ type
     fLastReplayingIteration: Integer;
     fReplayKilled: Boolean;
   { game eventhandler}
-    procedure Game_Finished(Sender: TObject);
+    procedure Game_Finished;
   { self eventhandlers }
     procedure Form_Activate(Sender: TObject);
     procedure Form_KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -65,6 +64,7 @@ type
     procedure OnException(E: Exception; aCaller: String = 'Unknown');
     procedure ExecuteReplayEdit;
     procedure SetClearPhysics(aValue: Boolean);
+    procedure ProcessGameMessages;
   protected
     fGame                : TLemmingGame;      // reference to globalgame gamemechanics
     Img                  : TImage32;          // the image in which the level is drawn (reference to inherited ScreenImg!)
@@ -286,6 +286,26 @@ begin
   if TimeForFrame or fNeedRedraw then
   begin
     DoDraw;
+  end;
+
+  if TimeForFrame then
+    ProcessGameMessages;
+end;
+
+procedure TGameWindow.ProcessGameMessages;
+var
+  Msg: TGameMessage;
+begin
+  while Game.MessageQueue.HasMessages do
+  begin
+    Msg := Game.MessageQueue.NextMessage;
+
+    case Msg.MessageType of
+      GAMEMSG_FINISH: Game_Finished;
+      GAMEMSG_TIMEUP: Game_Finished; // currently no distinction as it relies on reading LemGame's data
+
+      // still need to implement sound / music here
+    end;
   end;
 end;
 
@@ -595,7 +615,6 @@ begin
 
   // create game
   fGame := GlobalGame; // set ref to GlobalGame
-  fGame.OnFinish := Game_Finished;
   fScrollSpeed := 1;
 
   fSaveStateFrame := -1;
@@ -1149,8 +1168,6 @@ begin
     SetCursorPos(CenterPoint.X, CenterPoint.Y);
   ApplyMouseTrap;
 
-  if ((GameParams.SysDat.Options2 and $4) <> 0) then SkillPanel.ActivateCenterDigits;
-
   fRenderer := GameParams.Renderer;
   fRenderInterface := Game.RenderInterface;
   fRenderer.SetInterface(fRenderInterface);
@@ -1316,13 +1333,13 @@ begin
   if dlg.Execute then
   begin
     SaveName := dlg.FileName;
-    Game.SaveGameplayImage(SaveName); 
+    Game.SaveGameplayImage(SaveName);
   end;
   Dlg.Free;
 end;
 
 
-procedure TGameWindow.Game_Finished(Sender: TObject);
+procedure TGameWindow.Game_Finished;
 var
   s: String;
 begin

@@ -146,7 +146,7 @@ type
 implementation
 
 uses
-  GameControl, UTools;
+  GameControl{, UTools};
 
 { TRenderer }
 
@@ -1198,9 +1198,8 @@ var
     begin
       // (re)size rectangles correctly
       TempBitmapRect := TempBitmap.BoundsRect;
-      DstRect := TempBitmap.BoundsRect;
       // Move to leftmost X-coordinate and correct Y-coordinate
-      DstRect := ZeroTopLeftRect(DstRect);
+      DstRect := Rect(0, 0, RectWidth(TempBitmapRect), RectHeight(TempBitmapRect));
       OffsetRect(DstRect, Inf.Left, Inf.Top + (MO.Height * iY));
       // shrink sizes of rectange to draw on bottom row
       if (iY = CountY) and (Inf.Height mod MO.Height <> 0) then
