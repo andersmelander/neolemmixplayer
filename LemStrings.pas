@@ -41,6 +41,8 @@ const
   SFSounds = 'sound\';
   SFMusic = 'music\';
 
+  SFData = 'data\';
+
 resourcestring
   SProgramName = 'NeoLemmix Player';
   SDummyString = '';

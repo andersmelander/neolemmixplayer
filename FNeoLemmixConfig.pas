@@ -3,7 +3,7 @@ unit FNeoLemmixConfig;
 interface
 
 uses
-  GameControl, GameSound, FEditHotkeys, LemDosStyle, LemNeoOnline, LemTypes,
+  GameControl, GameSound, GameSoundOld, FEditHotkeys, LemDosStyle, LemNeoOnline, LemTypes,
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ComCtrls, StdCtrls;
 
@@ -153,7 +153,10 @@ begin
 
   //// Page 3 (Audio Options) ////
   tbSoundVol.Position := SoundVolume;
-  tbMusicVol.Position := MusicVolume;
+  if SoundManager.MuteMusic then
+    tbMusicVol.Position := 0
+  else
+    tbMusicVol.Position := SoundManager.MusicVolume;
   cbSuccessJingle.Checked := GameParams.PostLevelVictorySound;
   cbFailureJingle.Checked := GameParams.PostLevelFailureSound;
 
@@ -237,10 +240,10 @@ begin
   //// Page 3 (Audio Options) ////
   if (tbSoundVol.Position = 0) and (SoundVolume <> 0) then
     SavedSoundVol := SoundVolume;
-  if (tbMusicVol.Position = 0) and (MusicVolume <> 0) then
-    SavedMusicVol := MusicVolume;
   SoundVolume := tbSoundVol.Position;
-  MusicVolume := tbMusicVol.Position;
+  SoundManager.MuteMusic := tbMusicVol.Position = 0;
+  if tbMusicVol.Position <> 0 then
+    SoundManager.MusicVolume := tbMusicVol.Position;
   GameParams.PostLevelVictorySound := cbSuccessJingle.Checked;
   GameParams.PostLevelFailureSound := cbFailureJingle.Checked;
 

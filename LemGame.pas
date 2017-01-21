@@ -22,11 +22,11 @@ uses
   LemCore, LemTypes, LemDosStructures, LemStrings, LemMetaAnimation,
   LemMetaObject, LemLevel, LemStyle,
   LemRenderHelpers, LemRendering, LemDosAnimationSet,
-  LemMusicSystem, LemNeoTheme,
+  LemNeoTheme,
   LemObjects, LemLemming, LemRecolorSprites,
   LemReplay,
   LemGameMessageQueue,
-  GameInterfaces, GameControl, GameSound;
+  GameInterfaces, GameControl, GameSoundOld;
 
 const
   ParticleColorIndices: array[0..15] of Byte =
@@ -126,8 +126,6 @@ type
     fTargetBitmap              : TBitmap32; // reference to the drawing bitmap on the gamewindow
     fSelectedSkill             : TSkillPanelButton; // TUserSelectedSkill; // currently selected skill restricted by F3-F9
 
-    fMusicLoaded               : Boolean;
-
   { internal objects }
     LemmingList                : TLemmingList; // the list of lemmings
     PhysicsMap                 : TBitmap32;
@@ -219,7 +217,6 @@ type
     fHyperSpeed                : Boolean; // we are at hyperspeed no targetbitmap output
     fLeavingHyperSpeed         : Boolean; // in between state (see UpdateLemmings)
     fPauseOnHyperSpeedExit     : Boolean; // to maintain pause state before invoking a savestate
-    fStartupMusicAfterEntry    : Boolean;
     fHitTestAutoFail           : Boolean;
     fHighlightLemmingID        : Integer;
     fCancelReplayAfterSkip     : Boolean;
@@ -322,7 +319,6 @@ type
     procedure DrawAnimatedObjects;
     procedure CheckForNewShadow;
     function GetTrapSoundIndex(aDosSoundEffect: Integer): Integer;
-    function GetMusicFileName: String;
     function HasPixelAt(X, Y: Integer): Boolean;
     procedure IncrementIteration;
     procedure InitializeBrickColors(aBrickPixelColor: TColor32);
@@ -449,7 +445,6 @@ type
     destructor Destroy; override;
   { iteration }
     procedure PrepareParams;
-    procedure PrepareMusic;
     procedure PlayMusic;
     procedure Start(aReplay: Boolean = False);
     procedure UpdateLemmings;
@@ -1127,88 +1122,9 @@ begin
   inherited Destroy;
 end;
 
-function TLemmingGame.GetMusicFileName: String;
-var
-  TempStream: TMemoryStream;
-  SL: TStringList;
-  MusicNumber: Integer;
-begin
-  if (Level.Info.MusicFile <> '')
-  and (LeftStr(Level.Info.MusicFile, 1) <> '?')
-  and (LeftStr(Level.Info.MusicFile, 1) <> '*') then
-  begin
-    Result := Level.Info.MusicFile;
-    Exit;
-  end;
-
-  SL := TStringList.Create;
-  TempStream := CreateDataStream('music.txt', ldtLemmings); // It's a text file, but should be loaded more similarly to data files.
-  (*if TempStream = nil then
-  begin
-    TempStream := TMemoryStream.Create;
-    TempStream.LoadFromFile(AppPath + 'data\music.nxmi');
-  end;*)
-  if TempStream <> nil then
-    SL.LoadFromStream(TempStream);
-  TempStream.Free;
-
-  MusicNumber := -1;
-  if LeftStr(Level.Info.MusicFile, 1) = '?' then
-    MusicNumber := StrToIntDef(MidStr(Level.Info.MusicFile, 2, Length(Level.Info.MusicFile)-1), -1) - 1;
-
-  if SL.Count = 0 then
-    Result := ''
-  else begin
-    if MusicNumber < 0 then
-      if GameParams.fTestMode or (LowerCase(Level.Info.MusicFile) = '*random') then
-      begin
-        Randomize;
-        MusicNumber := Random(SL.Count);
-      end else
-        MusicNumber := GameParams.Info.dLevel mod SL.Count;
-    Result := SL[MusicNumber];
-  end;
-
-  SL.Free;
-end;
-
 procedure TLemmingGame.PlayMusic;
 begin
-  if MusicVolume = 0 then Exit;
-  PrepareMusic;
-  if not fStartupMusicAfterEntry then
-    SoundMgr.PlayMusic(0);
-end;
-
-procedure TLemmingGame.PrepareMusic;
-var
-  MS: TMemoryStream;
-  MusicSys: TBaseMusicSystem;
-  MusicFileName: String;
-begin
-  if fMusicLoaded then Exit;
-  MS := nil;
-  try
-    MusicSys := GameParams.Style.MusicSystem;
-    if MusicSys = nil then Exit;
-
-    MusicFileName := GetMusicFileName;
-    MS := CreateDataStream(MusicFileName, ldtMusic);
-    if MS = nil then
-    begin
-      Level.Info.MusicFile := '';
-      MusicFileName := GetMusicFileName;
-      MS := CreateDataStream(MusicFileName, ldtMusic);
-    end;
-
-    if MS <> nil then
-      SoundMgr.AddMusicFromStream(MS);
-
-  finally
-    MS.Free;
-  end;
-
-  fMusicLoaded := true;
+  MessageQueue.Add(GAMEMSG_MUSIC);
 end;
 
 procedure TLemmingGame.PrepareParams;
@@ -1219,12 +1135,8 @@ var
 begin
   fXmasPal := GameParams.SysDat.Options2 and 2 <> 0;
 
-  fStartupMusicAfterEntry := True;
-  fMusicLoaded := false;
-
   fSoundOpts := [];
   if SoundVolume > 0 then fSoundOpts := fSoundOpts + [gsoSound];
-  if MusicVolume > 0 then fSoundOpts := fSoundOpts + [gsoMusic];
 
   fRenderer := GameParams.Renderer; // set ref
   fTargetBitmap := GameParams.TargetBitmap;
@@ -1311,8 +1223,6 @@ begin
 
   PhysicsMap := Renderer.PhysicsMap;
   RenderInterface.PhysicsMap := PhysicsMap;
-
-  if MusicVolume > 0 then PrepareMusic;
 
   fTalismans.Clear;
 
@@ -1513,6 +1423,8 @@ begin
   fTalismanReceived := false;
 
   SoundMgr.ClearQueue;
+
+  MessageQueue.Clear;
 
   Playing := True;
 end;
@@ -4897,21 +4809,12 @@ begin
           AY := AY div EntryOpenCount;
           CueSoundEffect(SFX_ENTRANCE, Point(AX, AY));
         end;
-        if fStartupMusicAfterEntry and not EntriesOpened then
-        begin
-          fStartupMusicAfterEntry := False;
+        if not EntriesOpened then
           PlayMusic;
-        end;
         EntriesOpened := True;
       end;
     55:
-      begin
-        if fStartupMusicAfterEntry then
-        begin
-          fStartupMusicAfterEntry := False;
-          PlayMusic;
-        end;
-      end;
+      PlayMusic;
   end;
 
 end;

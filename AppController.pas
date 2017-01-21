@@ -7,8 +7,9 @@ uses
   SharedGlobals,
   LemTypes, LemRendering, LemLevel, LemDosStyle, LemBCGraphicSet,
   TalisData, LemDosMainDAT, LemStrings, LemNeoParserOld,
-  GameControl, GameSound, LemVersion,
-  LemNeoPieceManager, // to initially create it
+  GameControl, GameSoundOld, LemVersion,
+  GameSound,          // initial creation
+  LemNeoPieceManager, // initial creation
   FBaseDosForm,
   Classes, SysUtils, StrUtils, UMisc, Windows, Forms, Dialogs;
 
@@ -169,6 +170,8 @@ var
 begin
   inherited;
 
+  Randomize; // used for random music selection
+
   if ParamStr(1) = 'testmode' then
   begin
     ShowMessage('ERROR: You have attempted to launch playtest mode from an older editor version.' + #13 +
@@ -251,6 +254,9 @@ begin
 
   GameParams := TDosGameParams.Create;
   PieceManager := TNeoPieceManager.Create;
+
+  SoundManager := TSoundManager.Create;
+  SoundManager.LoadDefaultSounds;
 
   GameParams.Directory := LemmingsPath;
   GameParams.MainDatFile := LemmingsPath + 'main.dat';
@@ -396,6 +402,9 @@ begin
   // It isn't too critical to free absolutely everything here, since the
   // game will be terminating after this procedure anyway.
   // More important is making sure all relevant data is saved.
+
+  PieceManager.Free;
+  SoundManager.Free;
 
   GameParams.Save;
 
