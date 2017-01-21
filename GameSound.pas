@@ -115,6 +115,7 @@ type
       procedure FreeMusic;
 
       function FindExtension(const aName: String; aIsMusic: Boolean): String;
+      function DoesSoundExist(const aName: String): Boolean;
 
       property SoundVolume: Integer read fSoundVolume write fSoundVolume;
       property MusicVolume: Integer read fMusicVolume write SetMusicVolume;
@@ -132,6 +133,7 @@ implementation
 constructor TSoundManager.Create;
 begin
   inherited;
+  BASS_Init(-1, 44100, BASS_DEVICE_NOSPEAKER, 0, nil);
   fSoundEffects := TSoundEffects.Create;
   fMusicStream := TMemoryStream.Create;
   fMusicChannel := $FFFFFFFF;
@@ -142,6 +144,7 @@ begin
   FreeMusic;
   fMusicStream.Free;
   fSoundEffects.Free;
+  BASS_Free;
   inherited;
 end;
 
@@ -227,13 +230,13 @@ end;
 
 procedure TSoundManager.LoadSoundFromFile(aName: String; aDefault: Boolean = false);
 var
-  F: TFileStream;
+  S: TMemoryStream;
 begin
-  F := TFileStream.Create(AppPath + SFSounds + aName + FindExtension(aName, false), fmOpenRead);
+  S := CreateDataStream(aName, ldtSound);
   try
-    LoadSoundFromStream(F, aName, aDefault);
+    LoadSoundFromStream(S, aName, aDefault);
   finally
-    F.Free;
+    S.Free;
   end;
 end;
 
@@ -256,7 +259,6 @@ begin
   // Commented-out lines are sound files that existed since Lemmix, but don't appear to be referenced anywhere in the code.
   // Just in case, I haven't deleted these files, but put them in an "unused" subfolder of the sound folder.
 
-  (*
   //Get('bang');
   //Get('bell');
   Get('chain');
@@ -290,7 +292,6 @@ begin
   Get('wrench');
   Get('yippee');
   Get('zombie');
-  *)
 end;
 
 function TSoundManager.FindSoundIndex(aName: String): Integer;
@@ -300,6 +301,11 @@ begin
     if fSoundEffects[Result].Name = aName then
       Exit;
   Result := -1;
+end;
+
+function TSoundManager.DoesSoundExist(const aName: String): Boolean;
+begin
+  Result := FindSoundIndex(aName) <> -1;
 end;
 
 procedure TSoundManager.PurgeNonDefaultSounds;
@@ -369,11 +375,13 @@ var
   SoundIndex: Integer;
   SampleChannel: LongWord;
 begin
+  if fMuteSound then Exit;
   SoundIndex := FindSoundIndex(aName);
   if SoundIndex <> -1 then
   begin
     SampleChannel := BASS_SampleGetChannel(fSoundEffects[SoundIndex].BassSample, true);
     BASS_ChannelSetAttribute(SampleChannel, BASS_ATTRIB_PAN, (aBalance / 100));
+    BASS_ChannelSetAttribute(SampleChannel, BASS_ATTRIB_VOL, (fSoundVolume / 100));
     BASS_ChannelPlay(SampleChannel, true);
   end;
 end;

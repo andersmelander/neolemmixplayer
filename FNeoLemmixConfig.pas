@@ -3,7 +3,7 @@ unit FNeoLemmixConfig;
 interface
 
 uses
-  GameControl, GameSound, GameSoundOld, FEditHotkeys, LemDosStyle, LemNeoOnline, LemTypes,
+  GameControl, GameSound, FEditHotkeys, LemDosStyle, LemNeoOnline, LemTypes,
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ComCtrls, StdCtrls;
 
@@ -152,7 +152,10 @@ begin
   cbZoom.ItemIndex := GameParams.ZoomLevel;
 
   //// Page 3 (Audio Options) ////
-  tbSoundVol.Position := SoundVolume;
+  if SoundManager.MuteSound then
+    tbSoundVol.Position := 0
+  else
+    tbSoundVol.Position := SoundManager.SoundVolume;
   if SoundManager.MuteMusic then
     tbMusicVol.Position := 0
   else
@@ -238,9 +241,9 @@ begin
   GameParams.ZoomLevel := cbZoom.ItemIndex;
 
   //// Page 3 (Audio Options) ////
-  if (tbSoundVol.Position = 0) and (SoundVolume <> 0) then
-    SavedSoundVol := SoundVolume;
-  SoundVolume := tbSoundVol.Position;
+  SoundManager.MuteSound := tbSoundVol.Position = 0;
+  if tbSoundVol.Position <> 0 then
+    SoundManager.SoundVolume := tbSoundVol.Position;
   SoundManager.MuteMusic := tbMusicVol.Position = 0;
   if tbMusicVol.Position <> 0 then
     SoundManager.MusicVolume := tbMusicVol.Position;

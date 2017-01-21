@@ -6,35 +6,13 @@ interface
 uses
   Classes, Controls, SysUtils, Math,
   GR32, GR32_Image, GR32_Layers,
-//<<<<<<< HEAD
-  { TODO : get rid of UMisc }
-  (*UMisc, Math,
-  LemmixHotkeys,
-  LemDosMainDat,
-  LemStrings,
-  LemTypes,
-  //LemDosBmp,
-  LemDosCmp,
-  LemDosStructures,
-  LemCore,
-  LemLevel,
-  LemDosStyle,
-  LemNeoTheme,
-  GameInterfaces,
-  GameControl,
-  LemRenderHelpers, //for PARTICLE_COLORS consts, not that i'm sure if it acutally needs them anymore
-  LemGame,
-  PngInterface,
-  UZip; // For checking whether files actually exist*)
-//=======
   UMisc,
   LemmixHotkeys, LemStrings, LemTypes,
-  {LemDosBmp,} LemDosStructures, LemDosStyle,
+  LemDosStructures, LemDosStyle,
   LemCore, LemLevel, LemNeoTheme,
   GameInterfaces, GameControl,
   LemGame, LemRenderHelpers, //for PARTICLE_COLORS consts, not that i'm sure if it acutally needs them anymore
   PngInterface;
-//>>>>>>> master
 
   {-------------------------------------------------------------------------------
     maybe this must be handled by lemgame (just bitmap writing)

@@ -26,7 +26,7 @@ uses
   LemObjects, LemLemming, LemRecolorSprites,
   LemReplay,
   LemGameMessageQueue,
-  GameInterfaces, GameControl, GameSoundOld;
+  GameInterfaces, GameControl;
 
 const
   ParticleColorIndices: array[0..15] of Byte =
@@ -36,6 +36,24 @@ const
         DOM_WATER, DOM_FIRE, DOM_ONEWAYLEFT, DOM_ONEWAYRIGHT, DOM_RADIATION,
         DOM_ONEWAYDOWN, DOM_UPDRAFT, DOM_SLOWFREEZE, DOM_HINT, DOM_NOSPLAT,
         DOM_SPLAT, DOM_BACKGROUND];
+
+  SFX_BUILDER_WARNING = 'ting';
+  SFX_ASSIGN_SKILL = 'mousepre';
+  SFX_YIPPEE = 'yippee';
+  SFX_SPLAT = 'splat';
+  SFX_LETSGO = 'letsgo';
+  SFX_ENTRANCE = 'door';
+  SFX_VAPORIZING = 'fire';
+  SFX_DROWNING = 'glug';
+  SFX_EXPLOSION = 'explode';
+  SFX_HITS_STEEL = 'chink';
+  SFX_OHNO = 'ohno';
+  SFX_SKILLBUTTON = 'changeop';
+  SFX_PICKUP = 'oing2';
+  SFX_SWIMMING = 'splash';
+  SFX_FALLOUT = 'die';
+  SFX_FIXING = 'wrench';
+  SFX_ZOMBIE = 'zombie';
 
 const
   // never change, do NOT trust the bits are the same as the enumerated type.
@@ -220,37 +238,6 @@ type
     fHitTestAutoFail           : Boolean;
     fHighlightLemmingID        : Integer;
     fCancelReplayAfterSkip     : Boolean;
-  { sound vars }
-    fSoundOpts                 : TGameSoundOptions;
-  { sound indices in list of soundmgr}
-    SFX_BUILDER_WARNING        : Integer;
-    SFX_ASSIGN_SKILL           : Integer;
-    SFX_YIPPEE                 : Integer;
-    SFX_SPLAT                  : Integer;
-    SFX_LETSGO                 : Integer;
-    SFX_ENTRANCE               : Integer;
-    SFX_VAPORIZING             : Integer;
-    SFX_DROWNING               : Integer;
-    SFX_EXPLOSION              : Integer;
-    SFX_HITS_STEEL             : Integer;
-    SFX_OHNO                   : Integer;
-    SFX_SKILLBUTTON            : Integer;
-    SFX_ROPETRAP               : Integer;
-    SFX_TENTON                 : Integer;
-    SFX_BEARTRAP               : Integer;
-    SFX_ELECTROTRAP            : Integer;
-    SFX_SPINNINGTRAP           : Integer;
-    SFX_SQUISHINGTRAP          : Integer;
-    SFX_PICKUP                 : Integer;
-    SFX_MECHANIC               : Integer;
-    SFX_VACCUUM                : Integer;
-    SFX_WEED                   : Integer;
-    SFX_SLURP                  : Integer;
-    SFX_SWIMMING               : Integer;
-    SFX_FALLOUT                : Integer;
-    SFX_FIXING                 : Integer;
-    SFX_ZOMBIE                 : Integer;
-    SFX_CUSTOM                 : Array[0..255] of Integer;
   { events }
     //fOnFinish                  : TNotifyEvent;
     fParticleFinishTimer       : Integer; // extra frames to enable viewing of explosions
@@ -305,20 +292,17 @@ type
       function HandleWaterSwim(L: TLemming): Boolean;
 
     function CheckForOverlappingField(L: TLemming): Boolean;
-    procedure CheckForPlaySoundEffect;
     procedure CheckForQueuedAction;
     procedure CheckForReplayAction(PausedRRCheck: Boolean = false);
     procedure CheckLemmings;
     function CheckLemTeleporting(L: TLemming): Boolean;
     procedure CheckReleaseLemming;
     procedure CheckUpdateNuking;
-    procedure CueSoundEffect(aSoundId: Integer); overload;
-    procedure CueSoundEffect(aSoundId: Integer; aOrigin: TPoint); overload;
-    procedure CueObjectSoundEffect(aObject: TInteractiveObjectInfo);
+    procedure CueSoundEffect(aSound: String); overload;
+    procedure CueSoundEffect(aSound: String; aOrigin: TPoint); overload;
     function DigOneRow(PosX, PosY: Integer): Boolean;
     procedure DrawAnimatedObjects;
     procedure CheckForNewShadow;
-    function GetTrapSoundIndex(aDosSoundEffect: Integer): Integer;
     function HasPixelAt(X, Y: Integer): Boolean;
     procedure IncrementIteration;
     procedure InitializeBrickColors(aBrickPixelColor: TColor32);
@@ -424,8 +408,6 @@ type
     function MayAssignMiner(L: TLemming): Boolean;
     function MayAssignDigger(L: TLemming): Boolean;
     function MayAssignCloner(L: TLemming): Boolean;
-
-    procedure SetSoundOpts(const Value: TGameSoundOptions);
   public
     MiniMap                    : TBitmap32; // minimap of world
     GameResult                 : Boolean;
@@ -435,11 +417,6 @@ type
     fActiveSkills              : array[0..7] of TSkillPanelButton;
     ReleaseRateModifier        : Integer; //negative = decrease each update, positive = increase each update, 0 = no change
     ReplayInsert               : Boolean;
-
-    // Postview screen needs access to these two sounds and the sound manager now
-    SoundMgr                   : TSoundMgr;
-    SFX_FAILURE                : Integer;
-    SFX_SUCCESS                : Integer;
 
     constructor Create(aOwner: TComponent); override;
     destructor Destroy; override;
@@ -494,7 +471,6 @@ type
     property IsSelectUnassignedHotkey: Boolean read fIsSelectUnassignedHotkey write fIsSelectUnassignedHotkey;
     property IsShowAthleteInfo: Boolean read fIsShowAthleteInfo write fIsShowAthleteInfo;
     property IsHighlightHotkey: Boolean read fIsHighlightHotkey write fIsHighlightHotkey;
-    property SoundOpts: TGameSoundOptions read fSoundOpts write SetSoundOpts;
     property TargetIteration: Integer read fTargetIteration write fTargetIteration;
     property CancelReplayAfterSkip: Boolean read fCancelReplayAfterSkip write fCancelReplayAfterSkip;
     property HitTestAutoFail: Boolean read fHitTestAutoFail write fHitTestAutoFail;
@@ -977,7 +953,6 @@ begin
   ZombieMap      := TByteMap.Create;
   MiniMap        := TBitmap32.Create;
   fReplayManager := TReplay.Create;
-  SoundMgr       := TSoundMgr.Create;
   fTalismans     := TTalismans.Create;
 
   fRenderInterface.LemmingList := LemmingList;
@@ -1049,41 +1024,6 @@ begin
   P := AppPath;
   fLastReplayDir := '';
 
-  with SoundMgr do
-  begin
-    SFX_FAILURE         := AddSoundFromFileName('failure.ogg', true);
-    SFX_SUCCESS         := AddSoundFromFileName('success.ogg', true);
-    SFX_BUILDER_WARNING := AddSoundFromFileName('ting.ogg');
-    SFX_ASSIGN_SKILL    := AddSoundFromFileName('mousepre.ogg');
-    SFX_YIPPEE          := AddSoundFromFileName('yippee.ogg');
-    SFX_SPLAT           := AddSoundFromFileName('splat.ogg');
-    SFX_LETSGO          := AddSoundFromFileName('letsgo.ogg');
-    SFX_ENTRANCE        := AddSoundFromFileName('door.ogg');
-    SFX_VAPORIZING      := AddSoundFromFileName('fire.ogg');
-    SFX_DROWNING        := AddSoundFromFileName('glug.ogg');
-    SFX_EXPLOSION       := AddSoundFromFileName('explode.ogg');
-    SFX_HITS_STEEL      := AddSoundFromFileName('chink.ogg');
-    SFX_OHNO            := AddSoundFromFileName('ohno.ogg');
-    SFX_SKILLBUTTON     := AddSoundFromFileName('changeop.ogg');
-    SFX_ROPETRAP        := AddSoundFromFileName('chain.ogg');
-    SFX_TENTON          := AddSoundFromFileName('tenton.ogg');
-    SFX_BEARTRAP        := AddSoundFromFileName('thunk.ogg');
-    SFX_ELECTROTRAP     := AddSoundFromFileName('electric.ogg');
-    SFX_SPINNINGTRAP    := AddSoundFromFileName('chain.ogg');
-    SFX_SQUISHINGTRAP   := AddSoundFromFileName('thud.ogg');
-    SFX_PICKUP          := AddSoundFromFileName('oing2.ogg');
-    SFX_MECHANIC        := AddSoundFromFileName('ting.ogg');
-    SFX_VACCUUM         := AddSoundFromFileName('vacuusux.ogg');
-    SFX_SLURP           := AddSoundFromFileName('slurp.ogg');
-    SFX_WEED            := AddSoundFromFileName('weedgulp.ogg');
-    SFX_SWIMMING        := AddSoundFromFileName('splash.ogg');
-    SFX_FALLOUT         := AddSoundFromFileName('die.ogg');
-    SFX_FIXING          := AddSoundFromFileName('wrench.ogg');
-    SFX_ZOMBIE          := AddSoundFromFileName('zombie.ogg');
-
-    SoundMgr.BrickSound := SFX_BUILDER_WARNING;
-  end;
-
   ButtonsRemain := 0;
   fHitTestAutoFail := false;
 
@@ -1115,7 +1055,6 @@ begin
   ZombieMap.Free;
   MiniMap.Free;
   fReplayManager.Free;
-  SoundMgr.Free;
   ExplodeMaskBmp.Free;
   fTalismans.Free;
   fRenderInterface.Free;
@@ -1134,9 +1073,6 @@ var
   LowPal, HiPal, Pal: TArrayOfColor32;
 begin
   fXmasPal := GameParams.SysDat.Options2 and 2 <> 0;
-
-  fSoundOpts := [];
-  if SoundVolume > 0 then fSoundOpts := fSoundOpts + [gsoSound];
 
   fRenderer := GameParams.Renderer; // set ref
   fTargetBitmap := GameParams.TargetBitmap;
@@ -1305,7 +1241,6 @@ begin
   fCurrentCursor := 0;
   fParticleFinishTimer := 0;
   LemmingList.Clear;
-  SoundMgr.ClearQueue;
   if Level.Info.LevelID <> fReplayManager.LevelID then //not aReplay then
   begin
     fReplayManager.Clear(true);
@@ -1364,13 +1299,6 @@ begin
     // Update number of buttons
     if Inf.TriggerEffect = DOM_BUTTON then
       Inc(ButtonsRemain);
-
-    if Inf.MetaObj.SoundEffect = -1 then
-      if Inf.MetaObj.InternalSoundEffect = -1 then
-      begin
-        Inf.MetaObj.SoundStream.Position := 0;
-        Inf.MetaObj.InternalSoundEffect := SoundMgr.AddSoundFromStream(Inf.MetaObj.SoundStream);
-      end;
   end;
 
   InitializeBrickColors(Renderer.Theme.Colors[MASK_COLOR]);
@@ -1421,8 +1349,6 @@ begin
   UpdateAllSkillCounts;
 
   fTalismanReceived := false;
-
-  SoundMgr.ClearQueue;
 
   MessageQueue.Clear;
 
@@ -2393,30 +2319,6 @@ begin
   fRenderer.RenderMinimap(Minimap);
 end;
 
-function TLemmingGame.GetTrapSoundIndex(aDosSoundEffect: Integer): Integer;
-begin
-  if SFX_CUSTOM[aDosSoundEffect] <> 0 then
-  begin
-    Result := SFX_CUSTOM[aDosSoundEffect];
-    Exit;
-  end;
-  case aDosSoundEffect of
-    ose_RopeTrap             : Result := SFX_ROPETRAP;
-    ose_SquishingTrap        : Result := SFX_SQUISHINGTRAP;
-    ose_TenTonTrap           : Result := SFX_TENTON;
-    ose_BearTrap             : Result := SFX_BEARTRAP;
-    ose_ElectroTrap          : Result := SFX_ELECTROTRAP;
-    ose_SpinningTrap         : Result := SFX_SPINNINGTRAP;
-    ose_FireTrap             : Result := SFX_VAPORIZING;
-    ose_Vaccuum              : Result := SFX_VACCUUM;
-    ose_Slurp                : Result := SFX_SLURP;
-    ose_Weed                 : Result := SFX_WEED;
-  else
-    Result := -1;
-  end;
-end;
-
-
 function TLemmingGame.GetObjectCheckPositions(L: TLemming): TArrayArrayInt;
 // The intermediate checks are made according to:
 // http://www.lemmingsforums.net/index.php?topic=2604.7
@@ -2710,7 +2612,7 @@ begin
     L.LemHasBlockerField := False;
     SetBlockerMap;
     RemoveLemming(L, RM_KILL);
-    CueObjectSoundEffect(Inf);
+    CueSoundEffect(Inf.SoundEffect, L.Position);
     DelayEndFrames := MaxIntValue([DelayEndFrames, Inf.AnimationFrameCount]);
     // Check for one-shot trap and possibly disable it
     if Inf.TriggerEffect = DOM_TRAPONCE then Inf.IsDisabled := True;
@@ -2730,7 +2632,7 @@ begin
 
   Inf := ObjectInfos[ObjectID];
   Inf.Triggered := True;
-  CueObjectSoundEffect(Inf);
+  CueSoundEffect(Inf.SoundEffect, L.Position);
 end;
 
 
@@ -2760,7 +2662,7 @@ begin
 
   Inf.Triggered := True;
   Inf.ZombieMode := L.LemIsZombie;
-  CueObjectSoundEffect(Inf);
+  CueSoundEffect(Inf.SoundEffect, L.Position);
   L.LemTeleporting := True;
   Inf.TeleLem := L.LemIndex;
   // Make sure to remove the blocker field!
@@ -2806,7 +2708,7 @@ begin
   if not L.LemIsZombie then
   begin
     Inf := ObjectInfos[ObjectID];
-    CueObjectSoundEffect(Inf);
+    CueSoundEffect(Inf.SoundEffect, L.Position);
     Inf.Triggered := True;
     Dec(ButtonsRemain);
 
@@ -2817,7 +2719,10 @@ begin
         begin
           Inf := ObjectInfos[n];
           Inf.Triggered := True;
-          CueObjectSoundEffect(Inf);
+          if Inf.SoundEffect = '' then
+            CueSoundEffect(SFX_ENTRANCE, Inf.Center)
+          else
+            CueSoundEffect(Inf.SoundEffect, Inf.Center);
         end;
     end;
   end;
@@ -4725,7 +4630,6 @@ begin
     UpdateTimeLimit;
   end;
 
-  CheckForPlaySoundEffect;
   InitializeMinimap;
 end;
 
@@ -5199,55 +5103,18 @@ begin
   Result := Result div 2 + 4
 end;
 
-procedure TLemmingGame.CueSoundEffect(aSoundId: Integer);
+procedure TLemmingGame.CueSoundEffect(aSound: String);
 begin
   if fSimulation then Exit; // Not play sound in simulation mode
 
-  SoundMgr.QueueSound(aSoundId);
-
-  if Paused then
-    CheckForPlaySoundEffect;
+  MessageQueue.Add(GAMEMSG_SOUND, aSound);
 end;
 
-procedure TLemmingGame.CueSoundEffect(aSoundId: Integer; aOrigin: TPoint);
-{-------------------------------------------------------------------------------
-  Save last sound.
--------------------------------------------------------------------------------}
-var
-  Bal: Single;
-  MidX: Integer; // we don't need MidY because we can't adjust the "height" of a sound anyway
-  SrcX: Integer;
+procedure TLemmingGame.CueSoundEffect(aSound: String; aOrigin: TPoint);
 begin
   if fSimulation then Exit; // Not play sound in simulation mode
 
-  MidX := fRenderInterface.ScreenPos.X + 160;
-  SrcX := aOrigin.X;
-
-  Bal := (SrcX - MidX) / 320;
-  if Bal < -1 then Bal := -1;
-  if Bal > 1 then Bal := 1;
-
-  SoundMgr.QueueSound(aSoundId, Bal);
-
-  if Paused then
-    CheckForPlaySoundEffect;
-end;
-
-procedure TLemmingGame.CueObjectSoundEffect(aObject: TInteractiveObjectInfo);
-var
-  SrcPoint: TPoint;
-begin
-  SrcPoint.X := aObject.Left + aObject.TriggerRect.Left;
-  SrcPoint.Y := aObject.Top + aObject.TriggerRect.Top;
-
-  if aObject.MetaObj.InternalSoundEffect = -1 then
-  begin
-    if (aObject.MetaObj.TriggerEffect = DOM_LOCKEXIT) and (aObject.MetaObj.SoundEffect = 0) then
-      CueSoundEffect(SFX_ENTRANCE, SrcPoint)
-    else
-      CueSoundEffect(GetTrapSoundIndex(aObject.MetaObj.SoundEffect), SrcPoint);
-  end else
-    CueSoundEffect(aObject.MetaObj.InternalSoundEffect, SrcPoint);
+  MessageQueue.Add(GAMEMSG_SOUND_BAL, aSound, aOrigin.X);
 end;
 
 function TLemmingGame.GetHighlitLemming: TLemming;
@@ -5657,17 +5524,6 @@ begin
   end;
 end;
 
-procedure TLemmingGame.CheckForPlaySoundEffect;
-begin
-  if HyperSpeed then
-  begin
-    SoundMgr.ClearQueue;
-    Exit;
-  end;
-
-  SoundMgr.FlushQueue;
-end;
-
 procedure TLemmingGame.RegainControl(Force: Boolean = false);
 {-------------------------------------------------------------------------------
   This is a very important routine. It jumps from replay into usercontrol.
@@ -5769,27 +5625,9 @@ begin
     RecordReleaseRate(NewRR);
 end;
 
-procedure TLemmingGame.SetSoundOpts(const Value: TGameSoundOptions);
-begin
-  if fSoundOpts = Value then
-    Exit;
-
-  if (gsoMusic in Value) <> (gsoMusic in fSoundOpts) then
-  begin
-    if not (gsoMusic in Value) then
-      SoundMgr.StopMusic(0)
-    else
-      PlayMusic;
-  end;
-
-  fSoundOpts := Value;
-end;
-
 procedure TLemmingGame.Finish;
 begin
   fGameFinished := True;
-  SoundMgr.StopMusic(0);
-  SoundMgr.Musics.Clear;
   MessageQueue.Add(GAMEMSG_FINISH);
 end;
 

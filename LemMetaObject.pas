@@ -8,6 +8,7 @@ uses
   GR32, LemTypes, LemBCGraphicSet, LemNeoParser,
   PngInterface, LemStrings, LemNeoTheme,
   Classes, SysUtils, StrUtils,
+  GameSound,
   Contnrs;
 
 const
@@ -16,31 +17,6 @@ const
   oat_Triggered                = 1;    // the object is triggered by a lemming
   oat_Continuous               = 2;    // the object is always moving
   oat_Once                     = 3;    // the object is animated once at the beginning (entrance only)
-
-  // Object Sound Effects
-  ose_None                     = 0;     // no sound effect
-  ose_SkillSelect              = 1;     // the sound you get when you click on one of the skill icons at the bottom of the screen
-  ose_Entrance                 = 2;     // entrance opening (sounds like "boing")
-  ose_LevelIntro               = 3;     // level intro (the "let's go" sound)
-  ose_SkillAssign              = 4;     // the sound you get when you assign a skill to lemming
-  ose_OhNo                     = 5;     // the "oh no" sound when a lemming is about to explode
-  ose_ElectroTrap              = 6;     // sound effect of the electrode trap and zap trap,
-  ose_SquishingTrap            = 7;     // sound effect of the rock squishing trap, pillar squishing trap, and spikes trap
-  ose_Splattering              = 8;     // the "aargh" sound when the lemming fall down too far and splatters
-  ose_RopeTrap                 = 9;     // sound effect of the rope trap and slicer trap
-  ose_HitsSteel                = 10;    // sound effect when a basher/miner/digger hits steel
-  ose_Unknown                  = 11;    // ? (not sure where used in game)
-  ose_Explosion                = 12;    // sound effect of a lemming explosion
-  ose_SpinningTrap             = 13;    // sound effect of the spinning-trap-of-death, coal pits, and fire shooters (when a lemming touches the object and dies)
-  ose_TenTonTrap               = 14;    // sound effect of the 10-ton trap
-  ose_BearTrap                 = 15;    // sound effect of the bear trap
-  ose_Exit                     = 16;    // sound effect of a lemming exiting
-  ose_Drowning                 = 17;    // sound effect of a lemming dropping into water and drowning
-  ose_BuilderWarning           = 18;    // sound effect for the last 3 bricks a builder is laying down
-  ose_FireTrap                 = 19;
-  ose_Slurp                    = 20;
-  ose_Vaccuum                  = 21;
-  ose_Weed                     = 22;
 
   ALIGNMENT_COUNT = 8; // 4 possible combinations of Flip + Invert + Rotate
 
@@ -64,7 +40,7 @@ type
 
   TMetaObjectProperty = (ov_Frames, ov_Width, ov_Height, ov_TriggerLeft, ov_TriggerTop,
                          ov_TriggerWidth, ov_TriggerHeight, ov_TriggerEffect,
-                         ov_KeyFrame, ov_PreviewFrame, ov_SoundEffect, ov_InternalSoundEffect);
+                         ov_KeyFrame, ov_PreviewFrame);
                          // Integer properties only.
 
   TMetaObject = class
@@ -81,8 +57,7 @@ type
     fTriggerEffect                : Integer; // ote_xxxx see dos doc
     fKeyFrame                     : Integer;
     fPreviewFrameIndex            : Integer; // index of preview (previewscreen)
-    fSoundEffect                  : Integer; // ose_xxxx what sound to play
-    fInternalSoundEffect          : Integer; // given by LemGame
+    fSoundEffect                  : String;  // filename of sound to play
     fRandomStartFrame             : Boolean;
     fResizability                 : TMetaObjectSizeSetting;
     fCyclesSinceLastUse: Integer; // to improve TNeoPieceManager.Tidy
@@ -153,7 +128,8 @@ type
       procedure SetResizability(aValue: TMetaObjectSizeSetting);
       function GetCanResize(aDir: TMetaObjectSizeSetting): Boolean;
       function GetImages: TBitmaps;
-      function GetSoundStream: TMemoryStream;
+      function GetSoundEffect: String;
+      procedure SetSoundEffect(aValue: String);
     public
       constructor Create(aMetaObject: TMetaObject; Flip, Invert, Rotate: Boolean);
 
@@ -170,14 +146,11 @@ type
       property KeyFrame: Integer index ov_KeyFrame read GetIntegerProperty write SetIntegerProperty;
       property PreviewFrame: Integer index ov_PreviewFrame read GetIntegerProperty write SetIntegerProperty;
       property RandomStartFrame: Boolean read GetRandomStartFrame write SetRandomStartFrame;
-      property SoundEffect: Integer index ov_SoundEffect read GetIntegerProperty write SetIntegerProperty; // though sound effect shouldn't really be an integer, but we'll leave it as one until this new system works overall
-      property InternalSoundEffect: Integer index ov_InternalSoundEffect read GetIntegerProperty write SetIntegerProperty;
+      property SoundEffect: String read GetSoundEffect write SetSoundEffect;
 
       property Resizability             : TMetaObjectSizeSetting read GetResizability write SetResizability;
       property CanResizeHorizontal      : Boolean index mos_Horizontal read GetCanResize;
       property CanResizeVertical        : Boolean index mos_Vertical read GetCanResize;
-
-      property SoundStream: TMemoryStream read GetSoundStream;
   end;
 
   TMetaObjects = class(TObjectList)
@@ -340,7 +313,7 @@ begin
     O.TriggerWidth := Sec.LineNumeric['trigger_width'];
     O.TriggerHeight := Sec.LineNumeric['trigger_height'];
 
-    fSoundEffect := Sec.LineNumeric['sound'];
+    fSoundEffect := Sec.LineTrimString['sound'];
 
     if Sec.Line['random_start_frame'] <> nil then
     begin
@@ -383,6 +356,7 @@ procedure TMetaObject.Load(aSet: TBcGraphicSet; aIndex: Integer);
 var
   OI: TNeoLemmixObjectData;
   DS: TMemoryStream;
+  TempStream: TMemoryStream;
   O: TMetaObjectInterface;
 
   TempBmp: TBitmap32;
@@ -496,19 +470,39 @@ begin
     O.KeyFrame := OI.KeyFrame;
     O.PreviewFrame := OI.PreviewFrame;
     O.RandomStartFrame := (OI.ObjectFlags and 2 <> 0);
-    O.SoundEffect := OI.TriggerSound;
 
-    if aSet.SoundPosition[O.SoundEffect] <> -1 then
-    begin
-      aSet.DataStream.Position := aSet.SoundPosition[O.SoundEffect];
-      fSoundStream.Clear;
-
-      aSet.DataStream.Read(lw, 4);
-      fSoundStream.CopyFrom(aSet.DataStream, lw);
-
-      O.SoundEffect := -1;
+    case OI.TriggerSound of
+      6:  O.SoundEffect := 'electric';
+      7:  O.SoundEffect := 'thud';
+      9:  O.SoundEffect := 'chain';
+      13: O.SoundEffect := 'chain';
+      14: O.SoundEffect := 'tenton';
+      15: O.SoundEffect := 'thunk';
+      19: O.SoundEffect := 'fire';
+      20: O.SoundEffect := 'slurp';
+      21: O.SoundEffect := 'vacuusux';
+      22: O.SoundEffect := 'weedgulp';
+      23..32: if aSet.SoundPosition[OI.TriggerSound] <> -1 then
+              begin
+                O.SoundEffect := fGS + '_' + IntToStr(OI.TriggerSound);
+                if not SoundManager.DoesSoundExist(fGS + '_' + IntToStr(OI.TriggerSound)) then
+                begin
+                  TempStream := TMemoryStream.Create;
+                  try
+                    DS.Position := aSet.SoundPosition[OI.TriggerSound];
+                    DS.Read(lw, 4);
+                    TempStream.Clear;
+                    TempStream.CopyFrom(DS, lw);
+                    TempStream.Position := 0;
+                    SoundManager.LoadSoundFromStream(TempStream, fGS + '_' + IntToStr(OI.TriggerSound));
+                  finally
+                    TempStream.Free;
+                  end;
+                end;
+              end else
+                O.SoundEffect := '';
+      else O.SoundEffect := '';
     end;
-    O.InternalSoundEffect := -1;
 
     if (O.TriggerEffect = 14) then
     begin
@@ -806,9 +800,7 @@ begin
     ov_TriggerEffect: Result := fMetaObject.fTriggerEffect;
     ov_KeyFrame: Result := fMetaObject.fKeyFrame;
     ov_PreviewFrame: Result := fMetaObject.fPreviewFrameIndex;
-    ov_SoundEffect: Result := fMetaObject.fSoundEffect;
-    ov_InternalSoundEffect: Result := fMetaObject.fInternalSoundEffect;
-    else raise Exception.Create('TMetaObjectInterface.GetIntegerProperty called with invalid index: ' + IntToStr(Integer(aProp)));
+    else raise Exception.Create('TMetaObjectInterface.GetIntegerProperty called with invalid index!');
   end;
 end;
 
@@ -822,10 +814,18 @@ begin
     ov_TriggerEffect: fMetaObject.fTriggerEffect := aValue;
     ov_KeyFrame: fMetaObject.fKeyFrame := aValue;
     ov_PreviewFrame: fMetaObject.fPreviewFrameIndex := aValue;
-    ov_SoundEffect: fMetaObject.fSoundEffect := aValue;
-    ov_InternalSoundEffect: fMetaObject.fInternalSoundEffect := aValue;
-    else raise Exception.Create('TMetaObjectInterface.SetIntegerProperty called with invalid index: ' + IntToStr(Integer(aProp)));
+    else raise Exception.Create('TMetaObjectInterface.GetIntegerProperty called with invalid index!');
   end;
+end;
+
+function TMetaObjectInterface.GetSoundEffect: String;
+begin
+  Result := fMetaObject.fSoundEffect;
+end;
+
+procedure TMetaObjectInterface.SetSoundEffect(aValue: String);
+begin
+  fMetaObject.fSoundEffect := aValue;
 end;
 
 function TMetaObjectInterface.GetRandomStartFrame: Boolean;
@@ -860,11 +860,6 @@ end;
 function TMetaObjectInterface.GetImages: TBitmaps;
 begin
   Result := fMetaObject.Images[fFlip, fInvert, fRotate];
-end;
-
-function TMetaObjectInterface.GetSoundStream: TMemoryStream;
-begin
-  Result := fMetaObject.fSoundStream;
 end;
 
 { TMetaObjects }
