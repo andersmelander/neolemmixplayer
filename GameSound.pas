@@ -3,19 +3,12 @@ unit GameSound;
 // Entire rewrite, as this is more efficient (or at least less tedious) than tidying up
 // the existing unit.
 
-// NOTE: NOT YET TESTED. But it should work. Will test during integration into NL's code.
 
-// USAGE:   (note to Nepster: unless you just want something to do, just leave it to me to integrate this)
-//
-// Need to add these lines to AppController or somewhere similar:
-//   SoundManager := TSoundManager.Create;
-//   SoundManager.LoadDefaultSounds;
-//
 // To load a sound:
 //   SoundManager.LoadSoundFromFile(<path relative to "sound\" folder>);
 //   (is also possible to load from streams, but this is mostly for backwards-compatible's use)
 //
-// To play a sound (must be loaded first):
+// To play a sound (if not already loaded, will attempt to load it):
 //   SoundManager.PlaySound(<path relative to "sound\" folder>, <balance>);  -- -100 is fully left, 0 is center, +100 is fully right
 //
 // To unload all sounds except the default ones:
@@ -34,10 +27,6 @@ unit GameSound;
 // This new sound manager will handle not loading music if music is muted. With that being said, it currently still loads the file
 // into memory, but doesn't load it into BASS. This is to simplify integration into backwards-compatible; and it can be changed to
 // not load the file at all once backwards-compatible is no longer a thing.
-
-
-// TODO: Instead of playing nothing when a non-loaded sound is attempted to be played, try to load the sound. This will be very
-//       hard to integrate into backwards-compatible so maybe this should be left until backwards-compatible is no more.
 
 interface
 
@@ -102,8 +91,8 @@ type
       destructor Destroy; override;
 
       procedure LoadDefaultSounds;
-      procedure LoadSoundFromFile(aName: String; aDefault: Boolean = false);
-      procedure LoadSoundFromStream(aStream: TStream; aName: String; aDefault: Boolean = false);
+      function LoadSoundFromFile(aName: String; aDefault: Boolean = false): Integer;
+      function LoadSoundFromStream(aStream: TStream; aName: String; aDefault: Boolean = false): Integer;
       procedure PurgeNonDefaultSounds;
 
       procedure LoadMusicFromFile(aName: String);
@@ -228,21 +217,33 @@ begin
       Exit;
 end;
 
-procedure TSoundManager.LoadSoundFromFile(aName: String; aDefault: Boolean = false);
+function TSoundManager.LoadSoundFromFile(aName: String; aDefault: Boolean = false): Integer;
 var
   S: TMemoryStream;
 begin
+  Result := FindSoundIndex(aName);
+
+  if Result <> -1 then
+    Exit;
+
   S := CreateDataStream(aName, ldtSound);
+  if S = nil then Exit;
   try
-    LoadSoundFromStream(S, aName, aDefault);
+    Result := LoadSoundFromStream(S, aName, aDefault);
   finally
     S.Free;
   end;
 end;
 
-
-procedure TSoundManager.LoadSoundFromStream(aStream: TStream; aName: String; aDefault: Boolean = false);
+function TSoundManager.LoadSoundFromStream(aStream: TStream; aName: String; aDefault: Boolean = false): Integer;
 begin
+  Result := FindSoundIndex(aName);
+
+  if Result <> -1 then
+    Exit;
+
+  Result := fSoundEffects.Count;
+
   with fSoundEffects.Add do
   begin
     LoadFromStream(aStream, aName);
@@ -319,22 +320,23 @@ end;
 
 procedure TSoundManager.LoadMusicFromFile(aName: String);
 var
-  F: TMemoryStream;
+  S: TMemoryStream;
 begin
   aName := Lowercase(aName);
   aName := ChangeFileExt(aName, '');
   if fMusicName = aName then Exit; // saves some time
 
-  F := CreateDataStream(aName, ldtMusic);
+  S := CreateDataStream(aName, ldtMusic);
+  if S = nil then
+  begin
+    FreeMusic;
+    Exit;
+  end;
+
   try
-    if F = nil then
-    begin
-      FreeMusic;
-      Exit;
-    end;
-    LoadMusicFromStream(F, aName);
+    LoadMusicFromStream(S, aName);
   finally
-    F.Free;
+    S.Free;
   end;
 end;
 
@@ -377,6 +379,10 @@ var
 begin
   if fMuteSound then Exit;
   SoundIndex := FindSoundIndex(aName);
+
+  if SoundIndex = -1 then
+    SoundIndex := LoadSoundFromFile(aName);
+
   if SoundIndex <> -1 then
   begin
     SampleChannel := BASS_SampleGetChannel(fSoundEffects[SoundIndex].BassSample, true);
