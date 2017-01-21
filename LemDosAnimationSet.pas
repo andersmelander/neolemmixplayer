@@ -220,19 +220,7 @@ procedure TBaseDosAnimationSet.DoReadMetaData(XmasPal : Boolean = false);
       begin
         try
           ThisAnimSec := AnimSec.Section[ANIM_NAMES[i]];
-          // fencer secrecy kludge
-          if (ThisAnimSec = nil) and (Lowercase(ANIM_NAMES[i]) = 'fencer') then
-            for dx := 0 to 1 do
-            begin
-              Anim := fMetaLemmingAnimations[(i * 2) + dx];
-              Anim.FrameCount := 16;
-              Anim.KeyFrame := 0;
-              Anim.FootX := 8 - dx;
-              Anim.FootY := 10;
-              Anim.Description := 'kludge';
-            end
-          else
-          // end kludge
+
           for dx := 0 to 1 do
           begin
             DirSec := ThisAnimSec.Section[DIR_NAMES[dx]];
@@ -359,12 +347,6 @@ begin
         begin
           MLA := fMetaLemmingAnimations[iAnimation];
           Fn := fLemmingPrefix + '_' + RightStr(MLA.Description, Length(MLA.Description)-1);
-
-          if MLA.Description = 'kludge' then
-          begin
-            // fencer secrecy kludge
-            Fn := 'default_fencer';
-          end;
 
           TPngInterface.LoadPngFile(Fn + '.png', TempBitmap);
           TPngInterface.MaskImageFromFile(TempBitmap, Fn + '_mask.png', Pal[7]);
