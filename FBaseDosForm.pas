@@ -7,16 +7,11 @@ uses
   Dialogs, Gr32,
   GameControl;
 
-const
-  WM_AFTERSHOW = WM_USER + $1;
-
 type
   {-------------------------------------------------------------------------------
     abstract black, fullscreen, ancestor form
   -------------------------------------------------------------------------------}
   TBaseDosForm = class(TForm)
-  private
-    procedure HideMainForm(var msg : TMessage); message WM_AFTERSHOW;
   protected
     procedure CreateParams(var Params: TCreateParams); override;
     procedure BuildScreen; virtual;
@@ -28,6 +23,9 @@ type
   end;
 
 implementation
+
+uses
+  FMain;
 
 {$R *.dfm}
 
@@ -47,7 +45,7 @@ begin
   Color := clBlack;
   BorderStyle := {bsSizeable} bsNone;
   BorderIcons := [{biSystemMenu, biMinimize, biMaximize}];
-  WindowState := {wsNormal} wsMaximized;
+  WindowState := wsNormal {wsMaximized};
   Cursor := crNone;
 end;
 
@@ -61,21 +59,34 @@ begin
 end;
 
 procedure TBaseDosForm.PrepareGameParams;
+var
+  Scale: Integer;
 begin
   if GameParams.fTestMode then
     Caption := 'NeoLemmix - Single Level'
   else
     Caption := Trim(GameParams.SysDat.PackName);
 
-  if GameParams.ZoomLevel <> 0 then
-  begin
-    BorderStyle := bsToolWindow;
-    WindowState := wsNormal;
-    ClientWidth := 320 * GameParams.ZoomLevel;
-    ClientHeight := 200 * GameParams.ZoomLevel;
-    Left := GameParams.MainForm.Left;
-    Top := GameParams.MainForm.Top;
-  end;
+  //if GameParams.ZoomLevel <> 0 then
+  //begin
+    //BorderStyle := bsToolWindow;
+    //WindowState := wsNormal;
+    Parent := GameParams.MainForm;
+    if GameParams.ZoomLevel = 0 then
+    begin
+      Scale := Screen.Width div 320;
+      if Scale > Screen.Height div 200 then Scale := Screen.Height div 200;
+      ClientWidth := 320 * Scale;
+      ClientHeight := 200 * Scale;
+      Left := (Screen.Width - ClientWidth) div 2;
+      Top := (Screen.Height - ClientHeight) div 2;
+    end else begin
+      ClientWidth := 320 * GameParams.ZoomLevel;
+      ClientHeight := 200 * GameParams.ZoomLevel;
+      Left := 0; //GameParams.MainForm.Left;
+      Top := 0; //GameParams.MainForm.Top;
+    end;
+  //end;
 
 end;
 
@@ -83,17 +94,8 @@ function TBaseDosForm.ShowScreen: Integer;
 begin
   PrepareGameParams;
   BuildScreen;
-  Result := ShowModal;
-end;
-
-procedure TBaseDosForm.HideMainForm(var msg : TMessage);
-begin
-  // Tried a hundred different ways to prevent the between-screen flickering in windowed mode.
-  // Nothing seems to work, but this way seems to have the least-noticable flickering.
-  if (GameParams <> nil) and (GameParams.ZoomLevel <> 0) and (GameParams.MainForm <> self) then
-  begin
-    GameParams.MainForm.Visible := false;
-  end;
+  TMainForm(GameParams.MainForm).ChildForm := self;
+  Show;
 end;
 
 end.

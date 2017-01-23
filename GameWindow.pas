@@ -24,6 +24,7 @@ type
 
   TGameWindow = class(TGameBaseScreen)
   private
+    fCloseToScreen: TGameScreenType;
     fSuspendCursor: Boolean;
     fClearPhysics: Boolean;
     fRenderInterface: TRenderInterface;
@@ -228,11 +229,21 @@ var
   CurrTime: Cardinal;
   Fast, ForceOne, TimeForFrame, TimeForFastForwardFrame, TimeForScroll, Hyper, Pause: Boolean;
 begin
-  if not CanPlay or not Game.Playing or Game.GameFinished then
+  if fCloseToScreen <> gstUnknown then
+  begin
+    CloseScreen(fCloseToScreen);
     Exit;
+    // This allows any mid-processing code to finish, and averts access violations, compared to directly calling CloseScreen.
+  end;
 
   // this makes sure this method is called very often :)
   Done := False;
+
+  if not CanPlay or not Game.Playing or Game.GameFinished then
+  begin
+    ProcessGameMessages; // may still be some lingering, especially the GAMEMSG_FINISH message
+    Exit;
+  end;
 
   Pause := Game.Paused;
   Fast := Game.FastForward;
@@ -487,7 +498,7 @@ begin
     ShowMessage('Unfortunately, your replay could not be saved.');
   end;
 
-  CloseScreen(gstMenu);
+  fCloseToScreen := gstMenu;
 end;
 
 procedure TGameWindow.CheckUserHelpers;
@@ -787,7 +798,7 @@ begin
   if func.Action = lka_Exit then
   begin
     Game.Finish;
-    Game_Finished;
+    Exit;
   end;
 
   if not Game.Playing then
@@ -862,10 +873,7 @@ begin
                             GotoSaveState(fSaveStateFrame);
                             if GameParams.NoAutoReplayMode then Game.CancelReplayAfterSkip := true;
                           end;
-          lka_Cheat: begin
-                       Game.Cheat;
-                       Game_Finished;
-                     end;
+          lka_Cheat: Game.Cheat;
           lka_FastForward: begin
                              if not Paused then FastForward := not FastForward;
                              SkillPanel.DrawButtonSelector(spbFastForward, Game.FastForward);
@@ -1147,6 +1155,8 @@ procedure TGameWindow.PrepareGameParams;
 var
   Sca: Integer;
   CenterPoint: TPoint;
+
+  ClientTopLeft, ClientBottomRight: TPoint;
 begin
   inherited;
 
@@ -1171,25 +1181,27 @@ begin
   Img.Scale := Sca;
   Img.OffsetHorz := -GameParams.Level.Info.ScreenPosition * Sca;
   Img.OffsetVert := -GameParams.Level.Info.ScreenYPosition * Sca;
-  if GameParams.ZoomLevel = 0 then
+  {if GameParams.ZoomLevel = 0 then
   begin
     Img.Left := (Screen.Width - Img.Width) div 2;
     Img.Top := (Screen.Height - 200 * Sca) div 2;
-  end else begin
+  end else begin}
     Img.Left := 0;
     Img.Top := 0;
-  end;
+  //end;
 
   SkillPanel.Top := Img.Top + Img.Height;
   SkillPanel.left := Img.Left;
   SkillPanel.Width := Img.Width;
   SkillPanel.Height := 40 * Sca;
 
-  if GameParams.ZoomLevel = 0 then
-    MouseClipRect := Rect(Img.Left, Img.Top, Img.Left + Img.Width,
-                          SkillPanel.Top + SkillPanel.Height)
-  else
-    MouseClipRect := Rect(ClientToScreen(Point(0, 0)), ClientToScreen(Point(Img.Width, Img.Height + SkillPanel.Height)));
+  //if GameParams.ZoomLevel = 0 then
+  ClientTopLeft := ClientToScreen(Point(Img.Left, Img.Top));
+  ClientBottomRight := ClientToScreen(Point(Img.Left + Img.Width, SkillPanel.Top + SkillPanel.Height));
+    MouseClipRect := Rect(ClientTopLeft, ClientBottomRight);
+
+  {else
+    MouseClipRect := Rect(ClientToScreen(Point(0, 0)), ClientToScreen(Point(Img.Width, Img.Height + SkillPanel.Height)));}
 
   SkillPanel.SetStyleAndGraph(Gameparams.Style, Sca);
 
@@ -1400,7 +1412,7 @@ begin
     else
       s := s + 'FAILED';
     GameParams.ReplayResultList[GameParams.ReplayCheckIndex] := s;
-    CloseScreen(gstPreview);
+    fCloseToScreen := gstPreview;
   end;
 
   SoundManager.StopMusic;
@@ -1408,14 +1420,14 @@ begin
   if (GameParams.fTestMode and (GameParams.QuickTestMode in [2, 3])) then
   begin
     if GameParams.QuickTestMode = 3 then Game.Save(true);
-    CloseScreen(gstExit)
+    fCloseToScreen := gstExit;
   end else
   begin
     GameParams.NextScreen2 := gstPostview;
     if Game.CheckPass then
-      CloseScreen(gstText)
-      else
-      CloseScreen(gstPostview);
+      fCloseToScreen := gstText
+    else
+      fCloseToScreen := gstPostview;
   end;
 end;
 

@@ -5,13 +5,14 @@ interface
 
 uses
   SharedGlobals,
+  LemSystemMessages,
   LemTypes, LemRendering, LemLevel, LemDosStyle, LemBCGraphicSet,
   TalisData, LemDosMainDAT, LemStrings, LemNeoParserOld,
   GameControl, LemVersion,
   GameSound,          // initial creation
   LemNeoPieceManager, // initial creation
-  FBaseDosForm,
-  Classes, SysUtils, StrUtils, UMisc, Windows, Forms, Dialogs;
+  FBaseDosForm, GameBaseScreen,
+  Classes, SysUtils, StrUtils, UMisc, Windows, Forms, Dialogs, Messages;
 
 type
   {-------------------------------------------------------------------------------
@@ -30,6 +31,7 @@ type
   TAppController = class(TComponent)
   private
     fLoadSuccess: Boolean;
+    fActiveForm: TGameBaseScreen;
     DoneBringToFront: Boolean; // We don't want to steal focus all the time. This is just to fix the
                                // bug where it doesn't initially come to front.
     function CheckCompatible(var Target: String): TNxCompatibility;
@@ -46,7 +48,8 @@ type
     procedure ShowLevelCodeScreen;
     procedure ShowTextScreen;
     procedure ShowTalismanScreen;
-    procedure Execute;
+    function Execute: Boolean;
+    procedure FreeScreen;
 
     property LoadSuccess: Boolean read fLoadSuccess; // currently unused!
   end;
@@ -54,6 +57,7 @@ type
 implementation
 
 uses
+  FMain,
   GameMenuScreen,
   GameLevelSelectScreen,
   GameLevelCodeScreen,
@@ -337,12 +341,17 @@ begin
       GameParams.ZoomLevel := Screen.Width div 320;
     if GameParams.ZoomLevel > Screen.Height div 200 then
       GameParams.ZoomLevel := Screen.Height div 200;
-    GameParams.MainForm.BorderStyle := bsToolWindow;
+    GameParams.MainForm.BorderStyle := bsSingle;
     GameParams.MainForm.WindowState := wsNormal;
     GameParams.MainForm.ClientWidth := 320 * GameParams.ZoomLevel;
     GameParams.MainForm.ClientHeight := 200 * GameParams.ZoomLevel;
     GameParams.MainForm.Left := (Screen.Width - GameParams.MainForm.Width) div 2;
     GameParams.MainForm.Top := (Screen.Height - GameParams.MainForm.Height) div 2;
+  end else begin
+    GameParams.MainForm.BorderStyle := bsNone;
+    GameParams.MainForm.WindowState := wsMaximized;
+    GameParams.MainForm.ClientWidth := Screen.Width;
+    GameParams.MainForm.ClientHeight := Screen.Height;
   end;
 
   if GameParams.fTestMode then
@@ -415,7 +424,14 @@ begin
   inherited;
 end;
 
-procedure TAppController.Execute;
+procedure TAppController.FreeScreen;
+begin
+  TMainForm(GameParams.MainForm).ChildForm := nil;
+  fActiveForm.Free;
+  fActiveForm := nil;
+end;
+
+function TAppController.Execute: Boolean;
 {-------------------------------------------------------------------------------
   Main screen-loop. Every screen returns its nextscreen (if he knows) in the
   GameParams
@@ -423,8 +439,10 @@ procedure TAppController.Execute;
 var
   NewScreen: TGameScreenType;
 begin
-  while GameParams.NextScreen <> gstExit do
-  begin
+  Result := true;
+
+  //while GameParams.NextScreen <> gstExit do
+  //begin
     // Save the data between screens. This way it's more up to date in case
     // game crashes at any point.
     GameParams.Save;
@@ -445,100 +463,63 @@ begin
       gstLevelCode: ShowLevelCodeScreen;
       gstText      : ShowTextScreen;
       gstTalisman  : ShowTalismanScreen;
-      else Break;
+      else Result := false;
     end;
-  end;
+
+  //end;
 end;
 
 procedure TAppController.ShowLevelSelectScreen;
-var
-  F: TGameLevelSelectScreen;
 begin
-  F := TGameLevelSelectScreen.Create(nil);
-  try
-    F.ShowScreen;
-  finally
-    F.Free;
-  end;
+  fActiveForm := TGameLevelSelectScreen.Create(nil);
+  fActiveForm.ShowScreen;
 end;
 
 procedure TAppController.ShowLevelCodeScreen;
-var
-  F: TGameLevelCodeScreen;
 begin
-  F := TGameLevelCodeScreen.Create(nil);
-  try
-    F.ShowScreen;
-  finally
-    F.Free;
-  end;
+  fActiveForm := TGameLevelCodeScreen.Create(nil);
+  fActiveForm.ShowScreen;
 end;
 
 procedure TAppController.ShowMenuScreen;
-var
-  F: TGameMenuScreen;
 begin
-  F := TGameMenuScreen.Create(nil);
-  try
-    if not DoneBringToFront then BringToFront;
-    F.ShowScreen;
-  finally
-    F.Free;
-  end;
+  fActiveForm := TGameMenuScreen.Create(nil);
+  if not DoneBringToFront then BringToFront;
+  fActiveForm.ShowScreen;
 end;
 
 procedure TAppController.ShowPlayScreen;
-var
-  F: TGameWindow;
 begin
-  F := TGameWindow.Create(nil);
-  try
-    F.ShowScreen;
-  finally
-    F.Free;
-  end;
+  fActiveForm := TGameWindow.Create(nil);
+  fActiveForm.ShowScreen;
 end;
 
 procedure TAppController.ShowTextScreen;
 var
-  F: TGameTextScreen;
   HasTextToShow: Boolean;
 begin
   // This function is always called between gstPreview/gstGame, and
   // between gstGame/gstPostview (if successful). However, if there's
   // no text to show, it does nothing, and proceeds directly to the
   // next screen.
-  F := TGameTextScreen.Create(nil);
-  HasTextToShow := F.HasScreenText;
-  try
-    if HasTextToShow then F.ShowScreen;
-  finally
-    F.Free;
-  end;
+  fActiveForm := TGameTextScreen.Create(nil);
+  HasTextToShow := TGameTextScreen(fActiveForm).HasScreenText;
+  if HasTextToShow then
+    fActiveForm.ShowScreen
+  else
+    SendMessage(MainFormHandle, LM_NEXT, 0, 0);
 end;
 
 procedure TAppController.ShowPostviewScreen;
-var
-  F: TGamePostviewScreen;
 begin
-  F := TGamePostviewScreen.Create(nil);
-  try
-    F.ShowScreen;
-  finally
-    F.Free;
-  end;
+  fActiveForm := TGamePostviewScreen.Create(nil);
+  fActiveForm.ShowScreen;
 end;
 
 procedure TAppController.ShowTalismanScreen;
-var
-  F: TGameTalismanScreen;
 begin
-  F := TGameTalismanScreen.Create(nil);
-  try
-    F.ShowScreen;
-  finally
-    F.Free;
-  end;
+  fActiveForm := TGameTalismanScreen.Create(nil);
+  fActiveForm.ShowScreen;
 end;
 
 procedure TAppController.ShowPreviewScreen;
@@ -789,8 +770,9 @@ begin
   // TGamePreviewScreen and run it invisibly. Because this code relates to rendering the level,
   // it also needs to be invoked when dumping images; this is both why the image dumping is slow,
   // and why some of its code is here. This seriously needs to be improved.
-  F := TGamePreviewScreen.Create(nil);
-  try
+  fActiveForm := TGamePreviewScreen.Create(nil);
+  F := TGamePreviewScreen(fActiveForm); // too much to rewrite in this one until it's confirmed working. maybe even then.
+
     if (GameParams.fTestMode and (GameParams.QuickTestMode <> 0)) then
     begin
       // Test play, with preview screen disabled. Do the screen prep routines without actually showing
@@ -879,9 +861,6 @@ begin
       if not DoneBringToFront then BringToFront;
       F.ShowScreen;
     end;
-  finally
-    F.Free;
-  end;
 end;
 
 end.
