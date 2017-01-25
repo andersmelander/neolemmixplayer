@@ -628,6 +628,8 @@ end;
 
 procedure TGameWindow.CheckResetCursor;
 begin
+  if not CanPlay then Exit;
+
   if FindControl(GetForegroundWindow()) = nil then
   begin
     fNeedReset := true;
@@ -1428,6 +1430,8 @@ begin
   ClipCursor(nil);
   Cursor := crNone;
   Screen.Cursor := crNone;
+  Img.Cursor := crNone;
+  SkillPanel.Img.Cursor := crNone;
 
   Game.SetGameResult;
   GameParams.GameResult := Game.GameResultRec;
