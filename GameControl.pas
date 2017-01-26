@@ -95,7 +95,10 @@ type
     moNoBackgrounds,
     moNoShadows,
     moShowMinimap,
-    moDisableWineWarnings
+    moDisableWineWarnings,
+    moUseEntireScreen,
+    moLinearResampleMenu,
+    moLinearResampleGame
   );
 
   TMiscOptions = set of TMiscOption;
@@ -110,7 +113,8 @@ const
     moAlwaysTimestamp,
     moAutoReplaySave,
     moBlackOutZero,
-    moPauseAfterBackwards
+    moPauseAfterBackwards,
+    moLinearResampleMenu
   ];
 
 type
@@ -219,6 +223,9 @@ type
     property NoShadows: boolean Index moNoShadows read GetOptionFlag write SetOptionFlag;
     property ShowMinimap: boolean Index moShowMinimap read GetOptionFlag write SetOptionFlag;
     property DisableWineWarnings: boolean Index moDisableWineWarnings read GetOptionFlag write SetOptionFlag;
+    property UseEntireScreen: boolean Index moUseEntireScreen read GetOptionFlag write SetOptionFlag;
+    property LinearResampleMenu: boolean Index moLinearResampleMenu read GetOptionFlag write SetOptionFlag;
+    property LinearResampleGame: boolean Index moLinearResampleGame read GetOptionFlag write SetOptionFlag;
 
     property PostLevelVictorySound: Boolean Index plsVictory read GetPostLevelSoundOptionFlag write SetPostLevelSoundOptionFlag;
     property PostLevelFailureSound: Boolean Index plsFailure read GetPostLevelSoundOptionFlag write SetPostLevelSoundOptionFlag;
@@ -315,6 +322,10 @@ begin
   else
     SL.Add('ZoomLevel=' + IntToStr(ZoomForNextLoad));
 
+  SaveBoolean('UseEntireScreen', UseEntireScreen);
+  SaveBoolean('LinearResampleMenu', LinearResampleMenu);
+  SaveBoolean('LinearResampleGame', LinearResampleGame);
+
   SL.Add('');
   SL.Add('# Sound Options');
   SaveBoolean('MusicEnabled', not SoundManager.MuteMusic);
@@ -389,6 +400,10 @@ begin
   DisableWineWarnings := LoadBoolean('DisableWineWarnings');
 
   ZoomLevel := StrToIntDef(SL.Values['ZoomLevel'], 0);
+  UseEntireScreen := LoadBoolean('UseEntireScreen');
+  LinearResampleMenu := LoadBoolean('LinearResampleMenu');
+  LinearResampleGame := LoadBoolean('LinearResampleGame');
+
 
   PostLevelVictorySound := LoadBoolean('VictoryJingle');
   PostLevelFailureSound := LoadBoolean('FailureJingle');
@@ -411,6 +426,9 @@ begin
     PostLevelVictorySound := true;
     PostLevelFailureSound := true;
   end;
+
+  if LastVer < 10012014000 then
+    LinearResampleMenu := true;
 
   SL.Free;
 end;
