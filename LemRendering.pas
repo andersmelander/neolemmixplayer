@@ -1314,7 +1314,7 @@ begin
     for i := 0 to ObjectInfos.Count - 1 do
     begin
       Inf := ObjectInfos[i];
-      if not (Inf.TriggerEffect = 30) then Continue;
+      if not (Inf.TriggerEffect = DOM_BACKGROUND) then Continue;
 
       ProcessDrawFrame(rlBackgroundObjects);
       fLayers.fIsEmpty[rlBackgroundObjects] := False;
@@ -1326,7 +1326,7 @@ begin
   for i := ObjectInfos.Count - 1 downto 0 do
   begin
     Inf := ObjectInfos[i];
-    if Inf.TriggerEffect in [7, 8, 19, 30] then Continue;
+    if Inf.TriggerEffect in [DOM_ONEWAYLEFT, DOM_ONEWAYRIGHT, DOM_ONEWAYDOWN, DOM_ONEWAYUP, DOM_BACKGROUND] then Continue;
     if Inf.IsOnlyOnTerrain then Continue;
     if not Inf.IsNoOverwrite then Continue;
     if not IsUseful(Inf) then Continue;
@@ -1342,7 +1342,7 @@ begin
   for i := 0 to ObjectInfos.Count-1 do
   begin
     Inf := ObjectInfos[i];
-    if Inf.TriggerEffect in [7, 8, 19, 30] then Continue;
+    if Inf.TriggerEffect in [DOM_ONEWAYLEFT, DOM_ONEWAYRIGHT, DOM_ONEWAYDOWN, DOM_ONEWAYUP, DOM_BACKGROUND] then Continue;
     if not Inf.IsOnlyOnTerrain then Continue;
     if not IsUseful(Inf) then Continue;
 
@@ -1357,7 +1357,7 @@ begin
   for i := 0 to ObjectInfos.Count-1 do
   begin
     Inf := ObjectInfos[i];
-    if not (Inf.TriggerEffect in [7, 8, 19]) then Continue;
+    if not (Inf.TriggerEffect in [DOM_ONEWAYLEFT, DOM_ONEWAYRIGHT, DOM_ONEWAYDOWN, DOM_ONEWAYUP]) then Continue;
     if not IsUseful(Inf) then Continue;
 
     ProcessDrawFrame(rlOneWayArrows);
@@ -1369,7 +1369,7 @@ begin
   for i := 0 to ObjectInfos.Count-1 do
   begin
     Inf := ObjectInfos[i];
-    if Inf.TriggerEffect in [7, 8, 19, 30] then Continue;
+    if Inf.TriggerEffect in [DOM_ONEWAYLEFT, DOM_ONEWAYRIGHT, DOM_ONEWAYDOWN, DOM_ONEWAYUP, DOM_BACKGROUND] then Continue;
     if Inf.IsOnlyOnTerrain then Continue;
     if Inf.IsNoOverwrite then Continue;
     if not IsUseful(Inf) then Continue;
@@ -1403,7 +1403,7 @@ begin
       fLayers.fIsEmpty[rlObjectHelpers] := false;
 
       // if it's a teleporter or receiver, draw all paired helpers too
-      if (Inf.TriggerEffect in [11, 12]) and (Inf.PairingId <> -1) then
+      if (Inf.TriggerEffect in [DOM_TELEPORT, DOM_RECEIVER]) and (Inf.PairingId <> -1) then
         for i2 := 0 to ObjectInfos.Count-1 do
         begin
           if i = i2 then Continue;
@@ -1469,8 +1469,7 @@ var
   i: Integer;
   T: TTerrain;
   MT: TMetaTerrain;
-  O: TInteractiveObject;
-  MO: TMetaObjectInterface;
+  O: TInteractiveObjectInfo;
   S: TSteel;
   Bmp: TBitmap32;
 
@@ -1479,10 +1478,10 @@ var
     X, Y: Integer;
     P: PColor32;
   begin
-    for y := aRegion.Top to aRegion.Bottom do
+    for y := aRegion.Top to aRegion.Bottom-1 do
     begin
       if (y < 0) or (y >= Dst.Height) then Continue;
-      for x := aRegion.Left to aRegion.Right do
+      for x := aRegion.Left to aRegion.Right-1 do
       begin
         if (x < 0) or (x >= Dst.Width) then Continue;
         P := Dst.PixelPtr[x, y];
@@ -1491,7 +1490,7 @@ var
     end;
   end;
 
-  procedure ApplyOWW(O: TInteractiveObject; MO: TMetaObjectInterface);
+  procedure ApplyOWW(Inf: TInteractiveObjectInfo);
   var
     C: TColor32;
 
@@ -1530,14 +1529,15 @@ var
       end;
     end;
   begin
-    case MO.TriggerEffect of
-      7: C := PM_ONEWAYLEFT;
-      8: C := PM_ONEWAYRIGHT;
-      19: C := PM_ONEWAYDOWN;
-      else Exit; // should never happen, but just in case
+    case Inf.TriggerEffect of
+      DOM_ONEWAYLEFT: C := PM_ONEWAYLEFT;
+      DOM_ONEWAYRIGHT: C := PM_ONEWAYRIGHT;
+      DOM_ONEWAYDOWN: C := PM_ONEWAYDOWN;
+      DOM_ONEWAYUP: C := PM_ONEWAYUP;
+      else Exit;
     end;
 
-    TW := MO.TriggerWidth;
+    (*TW := MO.TriggerWidth;
     TH := MO.TriggerHeight;
 
     if O.Rotate then HandleRotate;
@@ -1552,13 +1552,9 @@ var
     if MO.CanResizeHorizontal then
       TW := TW + (OW - MO.Width);
     if MO.CanResizeVertical then
-      TH := TH + (OH - MO.Height);
+      TH := TH + (OH - MO.Height);*)
 
-    SetRegion( Rect(O.Left + MO.TriggerLeft,
-                    O.Top + MO.TriggerTop,
-                    O.Left + MO.TriggerLeft + TW - 1,
-                    O.Top + MO.TriggerTop + TH - 1),
-               C, 0);
+    SetRegion( Inf.TriggerRect, C, 0);
   end;
 
   procedure ApplyArea(S: TSteel);
@@ -1576,7 +1572,7 @@ var
       else Exit;
     end;
 
-    SetRegion( Rect(S.Left, S.Top, S.Left + S.Width - 1, S.Top + S.Height - 1),
+    SetRegion( Rect(S.Left, S.Top, S.Left + S.Width, S.Top + S.Height),
                C, AntiC);
   end;
 
@@ -1622,13 +1618,10 @@ begin
       Bmp.DrawTo(Dst, T.Left, T.Top);
     end;
 
-    for i := 0 to InteractiveObjects.Count-1 do
+    for i := 0 to fObjectInfoList.Count-1 do
     begin
-      O := InteractiveObjects[i];
-      MO := FindMetaObject(O);
-      if not (MO.TriggerEffect in [7, 8, 19]) then
-        Continue;
-      ApplyOWW(O, MO);
+      O := fObjectInfoList[i];
+      ApplyOWW(O); // ApplyOWW takes care of ignoring non-OWW objects, no sense duplicating the check
     end;
 
     for i := 0 to Steels.Count-1 do
@@ -1692,12 +1685,6 @@ begin
 
   fDisableBackground := not DoBackground;
 
-  // Draw the PhysicsMap
-  RenderPhysicsMap;
-
-  // Prepare the bitmaps
-  fLayers.Prepare(Inf.Level.Info.Width, Inf.Level.Info.Height);
-
   // Background layer
   fBgColor := Theme.Colors[BACKGROUND_COLOR] and $FFFFFF;
   //fLayers[rlBackground].Clear($FF000000 or fBgColor);
@@ -1714,11 +1701,6 @@ begin
       BgImg.Free;
     end;
   end;
-
-
-  // Creating the list of all interactive objects.
-  fObjectInfoList.Clear;
-  CreateInteractiveObjectList(fObjectInfoList);
 
   // Check whether there are no buttons to display open exits
   CheckLockedExits;
@@ -1848,6 +1830,19 @@ begin
   fAni.ReadData;
 
   fRecolorer.LoadSwaps(LemSprites);
+
+  // Prepare the bitmaps
+  fLayers.Prepare(Inf.Level.Info.Width, Inf.Level.Info.Height);
+
+  // Creating the list of all interactive objects.
+  fObjectInfoList.Clear;
+  CreateInteractiveObjectList(fObjectInfoList);
+
+  if fRenderInterface <> nil then
+    fRenderInterface.UserHelper := hpi_None;
+
+  // Draw the PhysicsMap
+  RenderPhysicsMap;
 end;
 
 end.

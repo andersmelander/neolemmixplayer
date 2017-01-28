@@ -180,8 +180,7 @@ begin
     GameParams.MainForm.WindowState := wsMaximized;
   end;
 
-  if GameParams.ReplayCheckIndex = -2 then
-    FadeOut;
+  FadeOut;
 
   if GameParams.ZoomLevel = 0 then
   begin
@@ -515,8 +514,18 @@ var
   Steps: Integer; i: Integer;
   P: PColor32;
   StepStartTickCount: Integer;
+
+  StepDelay: Integer;
 begin
-  Steps := 16;
+  if (GameParams.LinearResampleMenu and not IsGameplayScreen)
+  or (GameParams.LinearResampleGame and IsGameplayScreen) then
+  begin
+    Steps := 8;
+    StepDelay := 6;
+  end else begin
+    Steps := 16;
+    StepDelay := 3;
+  end;
   while Steps > 0 do
   begin
     with ScreenImg.Bitmap do
@@ -536,7 +545,7 @@ begin
       Changed;
       Update;
       repeat
-      until GetTickCount - StepStartTickCount >= 3; // changed Sleep(3) to this so that if Update takes a while, there isn't further delay on top of that
+      until GetTickCount - StepStartTickCount >= StepDelay; // changed Sleep(3) to this so that if Update takes a while, there isn't further delay on top of that
     end;
 
     Dec(Steps);

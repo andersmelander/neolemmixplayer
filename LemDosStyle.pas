@@ -16,6 +16,7 @@ uses
   LemNeoSave,
   LemNeoParserOld,
   LemNeoParser,
+  LemRendering, PngInterface, // for image mass dump, yeah, finally moved it to here :D
   UZip; // For checking whether files actually exist
 
 const
@@ -73,7 +74,6 @@ type
   protected
     fDefaultLevelCount: Integer;
     fLevelCount : array[0..15] of Integer;
-    fOddHistory: array of Integer;
     fLookForLVL: Boolean; // looks for user-overridden lvl-files on disk
   { overridden from base loader }
     procedure InternalLoadLevel(aInfo: TLevelInfo; aLevel: TLevel; OddLoad: Byte = 0); override;
@@ -95,6 +95,7 @@ type
     function GetSectionCount: Integer; virtual;
     function GetLevelName(aSection, aLevel: Integer): String;
     procedure DumpAllLevels;
+    procedure DumpAllImages;
 
     //For the time being it is not needed to virtualize this into a higher class.
     function FindFirstLevel(var Rec: TDosGamePlayInfoRec): Boolean; override;
@@ -104,7 +105,6 @@ type
     function FindFirstUnsolvedLevel(var Rec : TDosGamePlayInfoRec): Boolean; override;
     function FindNextUnsolvedLevel(var Rec : TDosGamePlayInfoRec): Boolean; override;
     function FindPreviousUnsolvedLevel(var Rec : TDosGamePlayInfoRec; CheatMode: Boolean = false): Boolean; override;
-    procedure ResetOddtableHistory;
 
     procedure QuickLoadLevelNames;
 
@@ -287,6 +287,65 @@ begin
   inherited;
 end;
 
+procedure TBaseDosLevelSystem.DumpAllImages;
+var
+  aInfo: TLevelInfo;
+  aLevel: TLevel;
+  dS, dL: Integer;
+  aFileName: String;
+  aFileIndex: Integer;
+  OldLookForLvls: Boolean;
+  BasePath: String;
+  FilePath: String;
+
+  Renderer: TRenderer;
+  RenderInfo: TRenderInfoRec;
+
+  BMP: TBitmap32;
+begin
+  OldLookForLvls := fLookForLVL;
+  fLookForLVL := false;
+  aInfo := TLevelInfo.Create(nil);
+  aLevel := TLevel.Create;
+  Renderer := TRenderer.Create;
+  BMP := TBitmap32.Create;
+
+  try
+    if not ForceDirectories(ExtractFilePath(ParamStr(0)) + 'Dump\' + ChangeFileExt(ExtractFileName(GameFile), '') + '\') then Exit;
+
+    BasePath :=   AppPath + 'Dump\'
+              + ChangeFileExt(ExtractFileName(GameFile), '')
+              + '\';
+
+    for dS := 0 to fDefaultSectionCount-1 do
+      for dL := 0 to GetLevelCount(dS)-1 do
+      begin
+
+        GetEntry(dS, dL, aFilename, aFileIndex);
+        aInfo.DosLevelPackFileName := aFilename;
+        aInfo.DosLevelPackIndex := aFileIndex;
+        LoadSingleLevel(aFileIndex, dS, dL, aLevel);
+
+        RenderInfo.Level := aLevel;
+        Renderer.PrepareGameRendering(RenderInfo);
+        Renderer.RenderWorld(BMP, true);
+
+        FilePath := BasePath + LeadZeroStr(dS + 1, 2) + LeadZeroStr(dL + 1, 2) + '.png';
+
+        TPngInterface.SavePngFile(FilePath, BMP);
+
+      end;
+
+  except
+  end;
+
+  aInfo.Free;
+  aLevel.Free;
+  Renderer.Free;
+  fLookForLVL := OldLookForLvls;
+  BMP.Free;
+
+end;
 
 procedure TBaseDosLevelSystem.DumpAllLevels;
 var
@@ -319,7 +378,6 @@ try
   for dS := 0 to fDefaultSectionCount-1 do
     for DL := 0 to GetLevelCount(dS)-1 do
     begin
-      ResetOddtableHistory;
       GetEntry(dS, dL, aFilename, aFileIndex);
       aInfo.DosLevelPackFileName := aFilename;
       aInfo.DosLevelPackIndex := aFileIndex;
@@ -705,11 +763,6 @@ begin
   TLVLLoader.LoadLevelFromStream(DataStream, aLevel, OddLoad);
 end;
 
-procedure TBaseDosLevelSystem.ResetOddtableHistory;
-begin
-  SetLength(fOddHistory, 0);
-end;
-
 procedure TBaseDosLevelSystem.InternalLoadSingleLevel(aSection, aLevelIndex: Integer; aLevel: TLevel; OddLoad: Byte = 0);
 {-------------------------------------------------------------------------------
   Method for loading one level, without the preparing caching system.
@@ -730,13 +783,6 @@ begin
   Assert(Owner is TBaseDosLemmingStyle);
 
   IsLoaded := False;
-
-  for i := 0 to Length(fOddHistory)-1 do
-    if fOddHistory[i] = (aSection shl 8) + aLevelIndex then
-      raise Exception.Create('ERROR: Self-referencing or circular oddtabling detected.');
-
-  SetLength(fOddHistory, Length(fOddHistory)+1);
-  fOddHistory[Length(fOddHistory)-1] := (aSection shl 8) + aLevelIndex;
 
   // added override on demand (look for tricky21 = 221.lvl)
 
