@@ -11,6 +11,7 @@ interface
 
 uses
   LemmixHotkeys,
+  Math,
   Dialogs, SysUtils, Classes, Forms, GR32,
   LemVersion,
   LemTypes, LemLevel, LemDosStyle,
@@ -97,7 +98,6 @@ type
     moNoShadows,
     moShowMinimap,
     moDisableWineWarnings,
-    moUseEntireScreen,
     moLinearResampleMenu,
     moLinearResampleGame
   );
@@ -131,7 +131,11 @@ type
     fSaveSystem : TNeoSave;
     fOneLevelMode: Boolean;
     fDoneUpdateCheck: Boolean;
+
     fZoomLevel: Integer;
+    fWindowWidth: Integer;
+    fWindowHeight: Integer;
+
     fMainForm: TForm; // link to the FMain form
 
     MiscOptions           : TMiscOptions;
@@ -221,7 +225,6 @@ type
     property NoShadows: boolean Index moNoShadows read GetOptionFlag write SetOptionFlag;
     property ShowMinimap: boolean Index moShowMinimap read GetOptionFlag write SetOptionFlag;
     property DisableWineWarnings: boolean Index moDisableWineWarnings read GetOptionFlag write SetOptionFlag;
-    property UseEntireScreen: boolean Index moUseEntireScreen read GetOptionFlag write SetOptionFlag;
     property LinearResampleMenu: boolean Index moLinearResampleMenu read GetOptionFlag write SetOptionFlag;
     property LinearResampleGame: boolean Index moLinearResampleGame read GetOptionFlag write SetOptionFlag;
 
@@ -236,8 +239,12 @@ type
     property Directory: string read fDirectory write fDirectory;
     property ForceSkillset: Word read fForceSkillset write fForceSkillset;
     property QuickTestMode: Integer read fTestScreens write fTestScreens;
+
     property ZoomLevel: Integer read fZoomLevel write fZoomLevel;
     property ZoomForNextLoad: Integer read fZoomForNextLoad write fZoomForNextLoad;
+    property WindowWidth: Integer read fWindowWidth write fWindowWidth;
+    property WindowHeight: Integer read fWindowHeight write fWindowHeight;
+
     property MainForm: TForm read fMainForm write fMainForm;
 
     property Talismans: TTalismans read fTalismans;
@@ -320,7 +327,9 @@ begin
   else
     SL.Add('ZoomLevel=' + IntToStr(ZoomForNextLoad));
 
-  SaveBoolean('UseEntireScreen', UseEntireScreen);
+  SL.Add('WindowWidth=' + IntToStr(WindowWidth));
+  SL.Add('WindowHeight=' + IntToStr(WindowHeight));
+
   SaveBoolean('LinearResampleMenu', LinearResampleMenu);
   SaveBoolean('LinearResampleGame', LinearResampleGame);
 
@@ -366,6 +375,45 @@ var
       Result := true;
   end;
 
+  procedure EnsureValidWindowSize;
+  var
+    Scale: Integer;
+    InternalZoomLevel: Integer;
+  begin
+    // Zoom level must not be so high that 320x200 x ZoomLevel won't fit on screen
+    if (ZoomLevel > (Screen.Width div 320)) or (ZoomLevel > (Screen.Height div 200)) then
+      ZoomLevel := Min(Screen.Width div 320, Screen.Height div 200);
+
+    // WindowWidth and WindowHeight can't exceed screen area
+    if (WindowWidth > Screen.Width) or (WindowHeight > Screen.Height) then
+    begin
+      WindowWidth := -1;
+      WindowHeight := -1;
+    end;
+
+    // If no WindowWidth or WindowHeight is specified, we want to set them so that they
+    // match 320x200 x ZoomLevel exactly.
+    if (WindowWidth = -1) or (WindowHeight = -1) then
+    begin
+      if ZoomLevel = 0 then
+        InternalZoomLevel := Min(Screen.Width div 320, Screen.Height div 200)
+      else
+        InternalZoomLevel := ZoomLevel;
+
+      WindowWidth := 320 * InternalZoomLevel;
+      WindowHeight := 200 * InternalZoomLevel;
+    end;
+
+    // Once we've got our window size, ensure the zoom is low enough to fit on it
+    while ((WindowWidth < (ZoomLevel * 320)) or (WindowHeight < (ZoomLevel * 200))) and (ZoomLevel > 1) do
+      ZoomLevel := ZoomLevel - 1;
+
+    // Finally, we must make sure the window size is an integer multiple of the zoom level
+    InternalZoomLevel := Max(1, ZoomLevel); // avoid div by 0 errors
+    WindowWidth := (WindowWidth div InternalZoomLevel) * InternalZoomLevel;
+    WindowHeight := (WindowHeight div InternalZoomLevel) * InternalZoomLevel;
+  end;
+
 begin
   if not FileExists(ExtractFilePath(ParamStr(0)) + 'NeoLemmix147Settings.ini') then
     if not FileExists(ExtractFilePath(ParamStr(0)) + 'NeoLemmixSettings.ini') then
@@ -398,7 +446,12 @@ begin
   DisableWineWarnings := LoadBoolean('DisableWineWarnings');
 
   ZoomLevel := StrToIntDef(SL.Values['ZoomLevel'], 0);
-  UseEntireScreen := LoadBoolean('UseEntireScreen');
+
+  WindowWidth := StrToIntDef(SL.Values['WindowWidth'], -1);
+  WindowHeight := StrToIntDef(SL.Values['WindowHeight'], -1);
+
+  EnsureValidWindowSize;
+
   LinearResampleMenu := LoadBoolean('LinearResampleMenu');
   LinearResampleGame := LoadBoolean('LinearResampleGame');
 

@@ -35,6 +35,7 @@ type
     fSaveList: TLemmingGameSavedStateList;
     fLastReplayingIteration: Integer;
     fReplayKilled: Boolean;
+    fInternalZoom: Integer;
   { game eventhandler}
     procedure Game_Finished;
   { self eventhandlers }
@@ -67,6 +68,7 @@ type
     procedure ExecuteReplayEdit;
     procedure SetClearPhysics(aValue: Boolean);
     procedure ProcessGameMessages;
+    procedure ApplyResize;
 
     function GetLevelMusicName: String;
   protected
@@ -102,6 +104,7 @@ type
     procedure CloseScreen(aNextScreen: TGameScreenType); override;
     procedure SaveShot;
     function IsGameplayScreen: Boolean; override;
+    procedure MainFormResized; override;
   { internal properties }
     property Game: TLemmingGame read fGame;
   public
@@ -124,6 +127,42 @@ implementation
 uses FBaseDosForm, FEditReplay;
 
 { TGameWindow }
+
+procedure TGameWindow.MainFormResized;
+begin
+  ApplyResize;
+  DoDraw;
+end;
+
+procedure TGameWindow.ApplyResize;
+var
+  OSHorz, OSVert: Single;
+begin
+  OSHorz := Img.OffsetHorz - (Img.Width / 2);
+  OSVert := Img.OffsetVert - (Img.Height / 2);
+
+  ClientWidth := GameParams.MainForm.ClientWidth;
+  ClientHeight := GameParams.MainForm.ClientHeight;
+  Img.Width := Min(ClientWidth, GameParams.Level.Info.Width * fInternalZoom);
+  Img.Height := Min(ClientHeight - SkillPanel.Height, GameParams.Level.Info.Height * fInternalZoom);
+  Img.Left := (ClientWidth div 2) - (Img.Width div 2);
+  Img.Top := ClientHeight - (SkillPanel.Height + Img.Height);
+  SkillPanel.Left := (ClientWidth div 2) - (SkillPanel.Width div 2);
+  SkillPanel.Top := ClientHeight - SkillPanel.Height;
+
+  MinScroll := -((GameParams.Level.Info.Width * fInternalZoom) - Img.Width);
+  MaxScroll := 0;
+
+  MinVScroll := -((GameParams.Level.Info.Height * fInternalZoom) - Img.Height);
+  MaxVScroll := 0;
+
+  OSHorz := OSHorz + (Img.Width / 2);
+  OSVert := OSVert + (Img.Height / 2);
+  Img.OffsetHorz := Min(Max(OSHorz, MinScroll), MaxScroll);
+  Img.OffsetVert := Min(Max(OSVert, MinVScroll), MaxVScroll);
+
+  SkillPanel.DoHorizontalScroll := (ClientWidth = SkillPanel.Width);
+end;
 
 function TGameWindow.IsGameplayScreen: Boolean;
 begin
@@ -500,6 +539,7 @@ end;
 procedure TGameWindow.DoDraw;
 var
   DrawRect: TRect;
+  DrawWidth, DrawHeight: Integer;
 begin
   if Game.HyperSpeed then Exit;
   try
@@ -507,7 +547,9 @@ begin
     fRenderInterface.MousePos := Game.CursorPoint;
     fRenderer.DrawAllObjects(fRenderInterface.ObjectList, true, fClearPhysics);
     fRenderer.DrawLemmings(fClearPhysics);
-    DrawRect := Rect(fRenderInterface.ScreenPos.X, fRenderInterface.ScreenPos.Y, fRenderInterface.ScreenPos.X + 320, fRenderInterface.ScreenPos.Y + 160);
+    DrawWidth := ClientWidth div fInternalZoom;
+    DrawHeight := ClientHeight div fInternalZoom;
+    DrawRect := Rect(fRenderInterface.ScreenPos.X, fRenderInterface.ScreenPos.Y, fRenderInterface.ScreenPos.X + DrawWidth, fRenderInterface.ScreenPos.Y + DrawHeight);
     fRenderer.DrawLevel(GameParams.TargetBitmap, DrawRect, fClearPhysics);
     fNeedRedraw := false;
   except
@@ -635,10 +677,10 @@ function TGameWindow.CheckScroll: Boolean;
   begin
     Img.OffsetHorz := Img.OffsetHorz - DisplayScale * dx * fScrollSpeed;
     Img.OffsetVert := Img.OffsetVert - DisplayScale * dy * fScrollSpeed;
-    Img.OffsetHorz := Max(MinScroll * DisplayScale, Img.OffsetHorz);
-    Img.OffsetHorz := Min(MaxScroll * DisplayScale, Img.OffsetHorz);
-    Img.OffsetVert := Max(MinVScroll * DisplayScale, Img.OffsetVert);
-    Img.OffsetVert := Min(MaxVScroll * DisplayScale, Img.OffsetVert);
+    Img.OffsetHorz := Max(MinScroll, Img.OffsetHorz);
+    Img.OffsetHorz := Min(MaxScroll, Img.OffsetHorz);
+    Img.OffsetVert := Max(MinVScroll, Img.OffsetVert);
+    Img.OffsetVert := Min(MaxVScroll, Img.OffsetVert);
   end;
 begin
   Img.BeginUpdate;
@@ -1005,6 +1047,25 @@ begin
   end;
 end;
 
+procedure TGameWindow.Form_MouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+begin
+  if fSuspendCursor then Exit;
+
+  if X <= Img.Left then
+    GameScroll := gsLeft
+  else if X >= (Img.Left + Img.Width - 1) then
+    GameScroll := gsRight
+  else
+    GameScroll := gsNone;
+
+  if Y <= Img.Top then
+    GameVScroll := gsUp
+  else if Y >= (SkillPanel.Top + SkillPanel.Height - 1) then
+    GameVScroll := gsDown
+  else
+    GameVScroll := gsNone;
+end;
+
 procedure TGameWindow.Img_MouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer; Layer: TCustomLayer);
 begin
   if Game.Playing then
@@ -1019,7 +1080,7 @@ begin
       Game.HitTest;
     end;
 
-    Game.HitTestAutoFail := (Y >= SkillPanel.Top);
+    Game.HitTestAutoFail := not PtInRect(Img.BoundsRect, Point(X, Y));
 
     if X >= Img.Width - 1 then
       GameScroll := gsRight
@@ -1036,7 +1097,7 @@ begin
       GameVScroll := gsNone;
 
     if Game.Paused then
-      DoDraw;
+      DoDraw; // probably causing major lag, can we detect if it's nessecary and only redraw if it is?
   end;
 
 end;
@@ -1139,6 +1200,7 @@ procedure TGameWindow.PrepareGameParams;
 var
   Sca: Integer;
   CenterPoint: TPoint;
+  HorzStart, VertStart: Integer;
 begin
   inherited;
 
@@ -1150,6 +1212,7 @@ begin
     DisplayScale := Sca;
   end;
 
+  fInternalZoom := Sca;
   GameParams.TargetBitmap := Img.Bitmap;
   GameParams.TargetBitmap.SetSize(GameParams.Level.Info.Width, GameParams.Level.Info.Height);
   fGame.PrepareParams;
@@ -1159,18 +1222,35 @@ begin
   IdealScrollTimeMS := 60;
   IdealFrameTimeMS := 60; // slow motion
 
-  Img.Width := 320 * Sca;
-  Img.Height := 160 * Sca;
+  //Img.Width := 320 * Sca;
+  //Img.Height := 160 * Sca;
   Img.Scale := Sca;
-  Img.OffsetHorz := -GameParams.Level.Info.ScreenPosition * Sca;
-  Img.OffsetVert := -GameParams.Level.Info.ScreenYPosition * Sca;
-  Img.Left := 0;
-  Img.Top := 0;
+  //Img.Left := 0;
+  //Img.Top := 0;
 
-  SkillPanel.Top := Img.Top + Img.Height;
-  SkillPanel.left := Img.Left;
-  SkillPanel.Width := Img.Width;
+  //SkillPanel.Top := Img.Top + Img.Height;
+  //SkillPanel.left := Img.Left;
+  SkillPanel.Width := 320 * Sca;
   SkillPanel.Height := 40 * Sca;
+
+  (*ClientWidth := GameParams.MainForm.ClientWidth;
+  ClientHeight := GameParams.MainForm.ClientHeight;
+  Img.Width := Min(ClientWidth, GameParams.Level.Info.Width * fInternalZoom);
+  Img.Height := Min(ClientHeight - SkillPanel.ClientHeight, (GameParams.Level.Info.Height * fInternalZoom) - SkillPanel.ClientHeight);
+  Img.Left := (ClientWidth div 2) - (Img.Width div 2);
+  Img.Top := ClientHeight - (SkillPanel.ClientHeight + Img.Height);
+  SkillPanel.Left := (ClientWidth div 2) - (SkillPanel.ClientWidth div 2);
+  SkillPanel.Top := ClientHeight - SkillPanel.ClientHeight;*)
+  //Img.OffsetHorz := -GameParams.Level.Info.ScreenPosition * Sca;
+  //Img.OffsetVert := -GameParams.Level.Info.ScreenYPosition * Sca;
+  ApplyResize;
+
+  HorzStart := GameParams.Level.Info.ScreenPosition - ((Img.Width div 2) div Sca);
+  VertStart := GameParams.Level.Info.ScreenYPosition - ((Img.Height div 2) div Sca);
+  HorzStart := HorzStart * Sca;
+  VertStart := VertStart * Sca;
+  Img.OffsetHorz := Min(Max(-HorzStart, MinScroll), MaxScroll);
+  Img.OffsetVert := Min(Max(-VertStart, MinVScroll), MaxVScroll);
 
   SkillPanel.SetStyleAndGraph(Gameparams.Style, Sca);
 
@@ -1183,14 +1263,8 @@ begin
     TLinearResampler.Create(SkillPanel.Img.Bitmap);
   end;
 
-  MinScroll := -(GameParams.Level.Info.Width - 320);
-  MaxScroll := 0;
-
-  MinVScroll := -(GameParams.Level.Info.Height - 160);
-  MaxVScroll := 0;
-
   InitializeCursor;
-  CenterPoint := ClientToScreen(Point(Width div 2, Height div 2));
+  CenterPoint := ClientToScreen(Point(ClientWidth div 2, ClientHeight div 2));
   SetCursorPos(CenterPoint.X, CenterPoint.Y);
   ApplyMouseTrap;
 
@@ -1228,27 +1302,6 @@ begin
   if O > MaxVScroll * DisplayScale then O := MaxVScroll * DisplayScale;
   Img.OffsetVert := O;
   DoDraw;
-end;
-
-
-
-procedure TGameWindow.Form_MouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
-begin
-  with MouseClipRect do
-  begin
-    if (Y >= Img.Top) and (Y <= Img.Top + Img.Height - 1) then
-    begin
-      if X <= Img.Left + DisplayScale then
-        GameScroll := gsLeft
-      else if X >= Img.Left + Img.Width - 1 + DisplayScale then
-        GameScroll := gsRight
-      else
-        GameScroll := gsNone;
-    end
-    else
-      GameScroll := gsNone;
-  end;
-
 end;
 
 procedure TGameWindow.Form_MouseUp(Sender: TObject; Button: TMouseButton;

@@ -39,6 +39,9 @@ type
       Shift: TShiftState; X, Y: Integer);
     procedure FormMouseMove(Sender: TObject; Shift: TShiftState; X,
       Y: Integer);
+    procedure FormResize(Sender: TObject);
+    procedure FormCanResize(Sender: TObject; var NewWidth,
+      NewHeight: Integer; var Resize: Boolean);
   private
     Started: Boolean;
     AppController: TAppController;
@@ -59,7 +62,8 @@ var
 implementation
 
 uses
-  GameControl;
+  Math,
+  GameControl, GameBaseScreen;
 
 {$R *.dfm}
 
@@ -161,6 +165,43 @@ begin
   if fChildForm = nil then Exit;
   if not Assigned(fChildForm.OnMouseMove) then Exit;
   fChildForm.OnMouseMove(Sender, Shift, X, Y);
+end;
+
+procedure TMainForm.FormResize(Sender: TObject);
+begin
+  if not (fChildForm is TGameBaseScreen) then Exit;
+  TGameBaseScreen(fChildForm).MainFormResized;
+  GameParams.WindowWidth := ClientWidth;
+  GameParams.WindowHeight := ClientHeight;
+end;
+
+procedure TMainForm.FormCanResize(Sender: TObject; var NewWidth,
+  NewHeight: Integer; var Resize: Boolean);
+var
+  CWDiff, CHDiff: Integer;
+  NewCW, NewCH: Integer;
+begin
+  if GameParams.ZoomLevel = 0 then
+  begin
+    NewWidth := Screen.Width;
+    NewHeight := Screen.Height;
+    Exit;
+  end;
+
+  CWDiff := Width - ClientWidth;
+  CHDiff := Height - ClientHeight;
+
+  NewCW := NewWidth - CWDiff;
+  NewCH := NewHeight - CHDiff;
+
+  NewCW := Max(GameParams.ZoomLevel * 320, NewCW);
+  NewCH := Max(GameParams.ZoomLevel * 200, NewCH);
+
+  NewCW := (NewCW div GameParams.ZoomLevel) * GameParams.ZoomLevel;
+  NewCH := (NewCH div GameParams.ZoomLevel) * GameParams.ZoomLevel;
+
+  NewWidth := NewCW + CWDiff;
+  NewHeight := NewCH + CHDiff;
 end;
 
 end.

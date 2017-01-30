@@ -569,17 +569,19 @@ begin
         if Height < 160 then Height := 160;
 
         // Screen positions are saved as a Word, i.e. unsigned. So we treat anything >32768 as negative
-        if Buf.ScreenPosition > 32768 then ScreenPosition := 0
+        if Buf.ScreenPosition > 32768 then ScreenPosition := 160
         else
         begin
-          ScreenPosition   := (Buf.ScreenPosition * 8) div LRes;
-          if ScreenPosition > (Width - 320) then ScreenPosition := (Width - 320);
+          ScreenPosition   := ((Buf.ScreenPosition * 8) div LRes) + 160;
+          if ScreenPosition > (Width - 160) then ScreenPosition := (Width - 160);
+          if ScreenPosition < 160 then ScreenPosition := 160;
         end;
-        if Buf.ScreenYPosition > 32768 then ScreenYPosition := 0
+        if Buf.ScreenYPosition > 32768 then ScreenYPosition := 80
         else
         begin
-          ScreenYPosition := (Buf.ScreenYPosition * 8) div LRes;
-          if ScreenYPosition > (Height - 160) then ScreenYPosition := (Height - 160);
+          ScreenYPosition := ((Buf.ScreenYPosition * 8) div LRes) + 80;
+          if ScreenYPosition > (Height - 80) then ScreenYPosition := (Height - 80);
+          if ScreenYPosition < 80 then ScreenYPosition := 80;
         end;
 
         GraphicSetName := trim(Buf.StyleName);
@@ -692,15 +694,14 @@ begin
         5: begin
              aStream.Read(Buf2, SizeOf(Buf2));
              HasSubHeader := true;
-             Info.ScreenPosition := (Buf2.ScreenPosition * 8) div LRes;
-             Info.ScreenYPosition := (Buf2.ScreenYPosition * 8) div LRes;
+             Info.ScreenPosition := ((Buf2.ScreenPosition * 8) div LRes) + 160;
+             Info.ScreenYPosition := ((Buf2.ScreenYPosition * 8) div LRes) + 80;
              with Info do
              begin
-               // Screen positions are saved as a Word, i.e. unsigned. So we treat anything >32768 as negative
-               if ScreenPosition > 32768 then ScreenPosition := 0
-               else if ScreenPosition > Width-320 then ScreenPosition := Width-320;
-               if ScreenYPosition > 32768 then ScreenYPosition := 0
-               else if ScreenYPosition > Height-160 then ScreenYPosition := Height-160;
+               if ScreenPosition > Width-160 then ScreenPosition := Width-160;
+               if ScreenYPosition > Height-80 then ScreenYPosition := Height-80;
+               if ScreenPosition < 160 then ScreenPosition := 160;
+               if ScreenYPosition < 80 then ScreenYPosition := 80;
              end;
              if OddLoad <> 1 then
              begin
@@ -818,11 +819,12 @@ begin
         LevelOptions := LevelOptions and $71;
         Exit;
       end;
-      ScreenPosition   := System.Swap(Buf.ScreenPosition);
+      ScreenPosition   := System.Swap(Buf.ScreenPosition) + 160;
       ScreenYPosition  := 0;
       Width := 1584;
       Height := 160;
-      if ScreenPosition > (Width - 320) then ScreenPosition := (Width - 320);
+      if ScreenPosition > (Width - 160) then ScreenPosition := (Width - 160);
+      if ScreenPosition < 160 then ScreenPosition := 160;
       GraphicSet       := (System.Swap(Buf.GraphicSet) and $00FF) + (GraphicSet and $FF00);
 
       SFinder := TStyleFinder.Create;
@@ -1043,10 +1045,12 @@ begin
       Height := Buf.HeightAdjust + 160;
       if Width < 320 then Width := 320;
       if Height < 160 then Height := 160;
-      ScreenPosition   := Buf.ScreenPosition;
-      if ScreenPosition > (Width - 320) then ScreenPosition := (Width - 320);
-      ScreenYPosition := Buf.ScreenYPosition;
-      if ScreenYPosition > (Height - 160) then ScreenYPosition := (Height - 160);
+      ScreenPosition   := Buf.ScreenPosition + 160;
+      if ScreenPosition > (Width - 160) then ScreenPosition := (Width - 160);
+      if ScreenPosition < 160 then ScreenPosition := 160;
+      ScreenYPosition := Buf.ScreenYPosition + 80;
+      if ScreenYPosition > (Height - 80) then ScreenYPosition := (Height - 80);
+      if ScreenYPosition < 80 then ScreenYPosition := 80;
 
       SFinder := TStyleFinder.Create;
 

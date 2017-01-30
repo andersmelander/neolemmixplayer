@@ -49,6 +49,8 @@ begin
   BorderIcons := [{biSystemMenu, biMinimize, biMaximize}];
   WindowState := wsNormal {wsMaximized};
   Cursor := crNone;
+  HorzScrollBar.Visible := False;
+  VertScrollBar.Visible := False;
 end;
 
 procedure TBaseDosForm.CreateParams(var Params: TCreateParams);
@@ -74,28 +76,10 @@ begin
     //BorderStyle := bsToolWindow;
     //WindowState := wsNormal;
     Parent := GameParams.MainForm;
-    if GameParams.ZoomLevel = 0 then
-    begin
-      if IsGameplayScreen or not GameParams.UseEntireScreen then
-      begin
-        Scale := Screen.Width div 320;
-        if Scale > Screen.Height div 200 then Scale := Screen.Height div 200;
-        ClientWidth := 320 * Scale;
-        ClientHeight := 200 * Scale;
-        Left := (Screen.Width - ClientWidth) div 2;
-        Top := (Screen.Height - ClientHeight) div 2;
-      end else begin
-        ClientWidth := GameParams.MainForm.Width;
-        ClientHeight := GameParams.MainForm.Height;
-        Left := 0;
-        Top := 0;
-      end;
-    end else begin
-      ClientWidth := 320 * GameParams.ZoomLevel;
-      ClientHeight := 200 * GameParams.ZoomLevel;
-      Left := 0; //GameParams.MainForm.Left;
-      Top := 0; //GameParams.MainForm.Top;
-    end;
+    ClientWidth := GameParams.MainForm.Width;
+    ClientHeight := GameParams.MainForm.Height;
+    Left := 0; //GameParams.MainForm.Left;
+    Top := 0; //GameParams.MainForm.Top;
   //end;
 
 end;
