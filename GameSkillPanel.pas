@@ -37,6 +37,8 @@ type
 
     fOriginal      : TBitmap32;
     fMinimapRegion : TBitmap32;
+    fMinimapTemp   : TBitmap32;
+
     fLevel         : TLevel;
     fSkillFont     : array['0'..'9', 0..1] of TBitmap32;
     fSkillCountErase : TBitmap32;
@@ -58,6 +60,8 @@ type
     fSkillCounts: Array[TSkillPanelButton] of Integer; // includes "non-skill" buttons as error-protection, but also for the release rate
 
     fDoHorizontalScroll: Boolean;
+    fDisplayWidth: Integer;
+    fDisplayHeight: Integer;
 
 
     procedure SetLevel(const Value: TLevel);
@@ -105,6 +109,8 @@ type
     procedure SetCurrentScreenOffset(X: Integer);
     property OnMinimapClick: TMinimapClickEvent read fOnMinimapClick write fOnMinimapClick;
     property DoHorizontalScroll: Boolean read fDoHorizontalScroll write fDoHorizontalScroll;
+    property DisplayWidth: Integer read fDisplayWidth write fDisplayWidth;
+    property DisplayHeight: Integer read fDisplayHeight write fDisplayHeight;
   published
     procedure SetStyleAndGraph(const Value: TBaseDosLemmingStyle; aScale: Integer);
 
@@ -137,6 +143,7 @@ begin
   fImg.RepaintMode := rmOptimizer;
 
   fMinimapRegion := TBitmap32.Create;
+  fMinimapTemp := TBitmap32.Create;
 
   fImg.OnMouseDown := ImgMouseDown;
   fImg.OnMouseMove := ImgMouseMove;
@@ -201,6 +208,7 @@ begin
   fSkillLock.Free;
 
   fMinimapRegion.Free;
+  fMinimapTemp.Free;
 
   fOriginal.Free;
   inherited;
@@ -1067,34 +1075,71 @@ end;
 procedure TSkillPanelToolbar.DrawMinimap(Map: TBitmap32);
 var
   X, Y: Integer;
-  Dx : Integer;
+  SrcX, SrcY: Integer;
+  DstX, DstY: Integer;
+  MinPos, MaxPos, Range: Integer;
+  ViewRect: TRect;
   SrcRect : TRect;
+const
+  MINIMAP_REGION_WIDTH = 104;
+  MINIMAP_REGION_HEIGHT = 20;
 begin
   if not GameParams.ShowMinimap then Exit;
 
   fMinimapRegion.DrawTo(Img.Bitmap, 193, 16);
 
-  Dx := 196;
-  if Map.Width < 104 then Dx := Dx + (52 - (Map.Width div 2));
-  SrcRect := Rect(0, 0, 104, 20);
+  // We want to add some space for when the viewport rect lies on the very edges
+  fMinimapTemp.Width := Map.Width + 2;
+  fMinimapTemp.Height := Map.Height + 2;
+  fMinimapTemp.Clear(0);
+  Map.DrawTo(fMinimapTemp, 1, 1);
 
   if Parent <> nil then
   begin
-    X := -Round(TGameWindow(Parent).ScreenImg.OffsetHorz/(16 * fImg.Scale));
-    Y := -Round(TGameWindow(Parent).ScreenImg.OffsetVert/(8 * fImg.Scale));
-    if Game.GetLevelWidth < 1664 then X := X + 52 - (Game.GetLevelWidth div 32);
-    if Map.Width > 104 then
-    begin
-      OffsetRect(SrcRect, Round((Map.Width - 104) * X / (Map.Width - 22)), 0);
-      X := X - SrcRect.Left;
-    end;
-    OffsetRect(SrcRect, 0, Y);
-    if SrcRect.Bottom > Map.Height then OffsetRect(SrcRect, 0, -1);
-  end else
-    X := 0;
+    // We want topleft position for now, to draw the visible area frame
+    X := -Round(TGameWindow(Parent).ScreenImg.OffsetHorz / Img.Scale / 16);
+    Y := -Round(TGameWindow(Parent).ScreenImg.OffsetVert / Img.Scale / 8);
 
-  Map.DrawTo(Img.Bitmap, Dx, 18, SrcRect);
-  Img.Bitmap.FrameRectS(196 + X, 18, 196 + X + 20, 38, fRectColor);
+    ViewRect := Rect(0, 0, fDisplayWidth div 16 + 1, fDisplayHeight div 8); // the +1 is to account for that the viewport rect is one pixel outside the actual viewed area
+    OffsetRect(ViewRect, X, Y);
+
+    // On levels of certain exact sizes, the rect can end up being one pixel outside the minimap
+    if ViewRect.Right > fMinimapTemp.Width then
+    begin
+      Dec(ViewRect.Left);
+      Dec(ViewRect.Right);
+    end;
+    if ViewRect.Bottom > fMinimapTemp.Height then
+    begin
+      Dec(ViewRect.Top);
+      Dec(ViewRect.Bottom);
+    end;
+
+    fMinimapTemp.FrameRectS(ViewRect, fRectColor);
+
+    if fMinimapTemp.Width > MINIMAP_REGION_WIDTH then
+    begin
+      DstX := 0;
+      SrcY := X + (fDisplayWidth div 32) - (MINIMAP_REGION_WIDTH div 2);
+    end else begin
+      SrcX := 0;
+      DstX := (MINIMAP_REGION_WIDTH - fMinimapTemp.Width) div 2;
+    end;
+
+    if fMinimapTemp.Height > MINIMAP_REGION_HEIGHT then
+    begin
+      DstY := 0;
+      SrcY := Y + (fDisplayHeight div 16) - (MINIMAP_REGION_HEIGHT div 2);
+    end else begin
+      SrcY := 0;
+      DstY := (MINIMAP_REGION_HEIGHT - fMinimapTemp.Height) div 2;
+    end;
+
+    SrcRect := Rect(SrcX, SrcY, SrcX + MINIMAP_REGION_WIDTH, SrcY + MINIMAP_REGION_HEIGHT);
+    IntersectRect(SrcRect, SrcRect, fMinimapTemp.BoundsRect);
+
+    fMinimapTemp.DrawTo(Img.Bitmap, 196 + DstX, 18 + DstY, SrcRect);
+  end;
 end;
 
 procedure TSkillPanelToolbar.SetGame(const Value: TLemmingGame);
