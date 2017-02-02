@@ -45,6 +45,7 @@ type
     procedure Form_KeyPress(Sender: TObject; var Key: Char);
     procedure Form_MouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure Form_MouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure Form_MouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
   { app eventhandlers }
     procedure Application_Idle(Sender: TObject; var Done: Boolean);
   { gameimage eventhandlers }
@@ -68,7 +69,8 @@ type
     procedure ExecuteReplayEdit;
     procedure SetClearPhysics(aValue: Boolean);
     procedure ProcessGameMessages;
-    procedure ApplyResize;
+    procedure ApplyResize(NoRecenter: Boolean = false);
+    procedure ChangeZoom(aNewZoom: Integer);
 
     function GetLevelMusicName: String;
   protected
@@ -90,8 +92,6 @@ type
     HCursor2             : HCURSOR;           // highlight play cursor
     LemCursorIconInfo    : TIconInfo;         // normal play cursor icon
     LemSelCursorIconInfo : TIconInfo;         // highlight play cursor icon
-    MaxDisplayScale      : Integer;           // calculated in constructor
-    DisplayScale         : Integer;           // what's the zoomfactor (mostly 2, 3 or 4)
     MinScroll            : Single;            // scroll boundary for image
     MaxScroll            : Single;            // scroll boundary for image
     MinVScroll           : Single;
@@ -128,18 +128,77 @@ uses FBaseDosForm, FEditReplay;
 
 { TGameWindow }
 
+procedure TGameWindow.Form_MouseWheel(Sender: TObject; Shift: TShiftState;
+  WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
+var
+  Key: Word;
+begin
+  Key := 0;
+  if WheelDelta > 0 then
+    Key := $05
+  else if WheelDelta < 0 then
+    Key := $06;
+
+  if Key <> 0 then
+    OnKeyDown(Sender, Key, Shift);
+
+  Handled := true;
+end;
+
 procedure TGameWindow.MainFormResized;
 begin
   ApplyResize;
   DoDraw;
 end;
 
-procedure TGameWindow.ApplyResize;
+procedure TGameWindow.ChangeZoom(aNewZoom: Integer);
 var
   OSHorz, OSVert: Single;
 begin
-  OSHorz := Img.OffsetHorz - (Img.Width / 2);
-  OSVert := Img.OffsetVert - (Img.Height / 2);
+  if aNewZoom < 1 then Exit;
+  if aNewZoom > Min(GameParams.MainForm.Width div 320, GameParams.MainForm.Height div 200) then Exit;
+
+  Img.BeginUpdate;
+  SkillPanel.Img.BeginUpdate;
+  try
+    OSHorz := Img.OffsetHorz - (Img.Width / 2);
+    OSVert := Img.OffsetVert - (Img.Height / 2);
+    OSHorz := (OSHorz * aNewZoom) / fInternalZoom;
+    OSVert := (OSVert * aNewZoom) / fInternalZoom;
+
+    Img.Scale := aNewZoom;
+    SkillPanel.Width := 320 * aNewZoom;
+    SkillPanel.Height := 40 * aNewZoom;
+    SkillPanel.Img.Width := SkillPanel.Width;
+    SkillPanel.Img.Height := SkillPanel.Height;
+    SkillPanel.Img.Scale := aNewZoom;
+
+    fInternalZoom := aNewZoom;
+
+    ApplyResize;
+    InitializeCursor;
+
+    OSHorz := OSHorz + (Img.Width / 2);
+    OSVert := OSVert + (Img.Height / 2);
+    Img.OffsetHorz := Min(Max(OSHorz, MinScroll), MaxScroll);
+    Img.OffsetVert := Min(Max(OSVert, MinVScroll), MaxVScroll);
+  finally
+    Img.EndUpdate;
+    SkillPanel.Img.EndUpdate;
+  end;
+end;
+
+procedure TGameWindow.ApplyResize(NoRecenter: Boolean = false);
+var
+  OSHorz, OSVert: Single;
+
+  VertOffset: Integer;
+begin
+  if not NoRecenter then
+  begin
+    OSHorz := Img.OffsetHorz - (Img.Width / 2);
+    OSVert := Img.OffsetVert - (Img.Height / 2);
+  end;
 
   ClientWidth := GameParams.MainForm.ClientWidth;
   ClientHeight := GameParams.MainForm.ClientHeight;
@@ -150,16 +209,23 @@ begin
   SkillPanel.Left := (ClientWidth div 2) - (SkillPanel.Width div 2);
   SkillPanel.Top := ClientHeight - SkillPanel.Height;
 
+  VertOffset := Img.Top div 2;
+  Img.Top := Img.Top - VertOffset;
+  SkillPanel.Top := SkillPanel.Top - VertOffset;
+
   MinScroll := -((GameParams.Level.Info.Width * fInternalZoom) - Img.Width);
   MaxScroll := 0;
 
   MinVScroll := -((GameParams.Level.Info.Height * fInternalZoom) - Img.Height);
   MaxVScroll := 0;
 
-  OSHorz := OSHorz + (Img.Width / 2);
-  OSVert := OSVert + (Img.Height / 2);
-  Img.OffsetHorz := Min(Max(OSHorz, MinScroll), MaxScroll);
-  Img.OffsetVert := Min(Max(OSVert, MinVScroll), MaxVScroll);
+  if not NoRecenter then
+  begin
+    OSHorz := OSHorz + (Img.Width / 2);
+    OSVert := OSVert + (Img.Height / 2);
+    Img.OffsetHorz := Min(Max(OSHorz, MinScroll), MaxScroll);
+    Img.OffsetVert := Min(Max(OSVert, MinVScroll), MaxVScroll);
+  end;
 
   SkillPanel.DoHorizontalScroll := (ClientWidth = SkillPanel.Width);
 end;
@@ -543,7 +609,7 @@ var
 begin
   if Game.HyperSpeed then Exit;
   try
-    fRenderInterface.ScreenPos := Point(Trunc(Img.OffsetHorz / DisplayScale) * -1, Trunc(Img.OffsetVert / DisplayScale) * -1);
+    fRenderInterface.ScreenPos := Point(Trunc(Img.OffsetHorz / fInternalZoom) * -1, Trunc(Img.OffsetVert / fInternalZoom) * -1);
     fRenderInterface.MousePos := Game.CursorPoint;
     fRenderer.DrawAllObjects(fRenderInterface.ObjectList, true, fClearPhysics);
     fRenderer.DrawLemmings(fClearPhysics);
@@ -675,8 +741,8 @@ end;
 function TGameWindow.CheckScroll: Boolean;
   procedure Scroll(dx, dy: Integer);
   begin
-    Img.OffsetHorz := Img.OffsetHorz - DisplayScale * dx * fScrollSpeed;
-    Img.OffsetVert := Img.OffsetVert - DisplayScale * dy * fScrollSpeed;
+    Img.OffsetHorz := Img.OffsetHorz - fInternalZoom * dx * fScrollSpeed;
+    Img.OffsetVert := Img.OffsetVert - fInternalZoom * dy * fScrollSpeed;
     Img.OffsetHorz := Max(MinScroll, Img.OffsetHorz);
     Img.OffsetHorz := Min(MaxScroll, Img.OffsetHorz);
     Img.OffsetVert := Max(MinVScroll, Img.OffsetVert);
@@ -725,15 +791,6 @@ begin
   SkillPanel := TSkillPanelToolbar.Create(Self);
   SkillPanel.Parent := Self;
 
-  // calculate displayscale
-  // This gets overridden later in windowed mode but is important for fullscreen.
-  HScale := Screen.Width div 320;
-  VScale := Screen.Height div 200;
-  DisplayScale := HScale;
-  if VScale < HScale then
-    DisplayScale := VScale;
-  MaxDisplayScale := DisplayScale;
-
   Self.KeyPreview := True;
 
   // set eventhandlers
@@ -743,6 +800,7 @@ begin
   Self.OnKeyPress := Form_KeyPress;
   Self.OnMouseMove := Form_MouseMove;
   Self.OnMouseUp := Form_MouseUp;
+  Self.OnMouseWheel := Form_MouseWheel;
 
   Img.OnMouseDown := Img_MouseDown;
   Img.OnMouseMove := Img_MouseMove;
@@ -816,7 +874,9 @@ const
                          lka_Restart,
                          lka_ReleaseMouse,
                          lka_Nuke,          // nuke also cancels, but requires double-press to do so so handled elsewhere
-                         lka_ClearPhysics];
+                         lka_ClearPhysics,
+                         lka_ZoomIn,
+                         lka_ZoomOut];
   SKILL_KEYS = [lka_Skill, lka_SkillLeft, lka_SkillRight];
 begin
   func := GameParams.Hotkeys.CheckKeyEffect(Key);
@@ -871,7 +931,7 @@ begin
         end;
 
         case func.Action of
-          lka_ReleaseMouse: if GameParams.ZoomLevel <> 0 then
+          lka_ReleaseMouse: if not GameParams.FullScreen then
                             begin
                               fMouseTrapped := false;
                               ClipCursor(nil);
@@ -946,6 +1006,8 @@ begin
                               ClearPhysics := true;
           lka_EditReplay: ExecuteReplayEdit;
           lka_ReplayInsert: Game.ReplayInsert := not Game.ReplayInsert;
+          lka_ZoomIn: ChangeZoom(fInternalZoom + 1);
+          lka_ZoomOut: ChangeZoom(fInternalZoom - 1);
         end;
 
     end;
@@ -1136,20 +1198,25 @@ var
 
 
 begin
+  if HCursor1 <> 0 then
+    DestroyIcon(HCursor1);
+  if HCursor2 <> 0 then
+    DestroyIcon(HCursor2);
+
   bmpMask := TBitmap.Create;
   bmpColor := TBitmap.Create;
 
   bmpMask.LoadFromResourceName(HINSTANCE, 'GAMECURSOR_DEFAULT_MASK');
   bmpColor.LoadFromResourceName(HINSTANCE, 'GAMECURSOR_DEFAULT');
 
-  ScaleBmp(bmpMask, DisplayScale);
-  ScaleBmp(bmpColor, DisplayScale);
+  ScaleBmp(bmpMask, fInternalZoom);
+  ScaleBmp(bmpColor, fInternalZoom);
 
   with LemCursorIconInfo do
   begin
     fIcon := false;
-    xHotspot := 7 * DisplayScale;
-    yHotspot := 7 * DisplayScale;
+    xHotspot := 7 * fInternalZoom;
+    yHotspot := 7 * fInternalZoom;
     hbmMask := bmpMask.Handle;
     hbmColor := bmpColor.Handle;
   end;
@@ -1172,15 +1239,15 @@ begin
   bmpMask.LoadFromResourceName(HINSTANCE, 'GAMECURSOR_HIGHLIGHT_MASK');
   bmpColor.LoadFromResourceName(HINSTANCE, 'GAMECURSOR_HIGHLIGHT');
 
-  scalebmp(bmpmask, DisplayScale);
-  scalebmp(bmpcolor, DisplayScale);
+  scalebmp(bmpmask, fInternalZoom);
+  scalebmp(bmpcolor, fInternalZoom);
 
 
   with LemSelCursorIconInfo do
   begin
     fIcon := false;
-    xHotspot := 7 * DisplayScale;
-    yHotspot := 7 * DisplayScale;
+    xHotspot := 7 * fInternalZoom;
+    yHotspot := 7 * fInternalZoom;
     hbmMask := bmpMask.Handle;
     hbmColor := bmpColor.Handle;
   end;
@@ -1204,13 +1271,13 @@ var
 begin
   inherited;
 
-  // set the final displayscale
-  if GameParams.ZoomLevel = 0 then
-    Sca := DisplayScale
-  else begin
+  // set the final fInternalZoom
+  //if GameParams.FullScreen = 0 then
+  //  Sca := fInternalZoom
+  //else begin
     Sca := GameParams.ZoomLevel;
-    DisplayScale := Sca;
-  end;
+    fInternalZoom := Sca;
+  //end;
 
   fInternalZoom := Sca;
   GameParams.TargetBitmap := Img.Bitmap;
@@ -1290,13 +1357,13 @@ procedure TGameWindow.SkillPanel_MinimapClick(Sender: TObject; const P: TPoint);
 var
   O: Single;
 begin
-  O := -P.X * DisplayScale;
+  O := -P.X * fInternalZoom;
   O :=  O + Img.Width div 2;
 
   if O < MinScroll then O := MinScroll;
   if O > MaxScroll then O := MaxScroll;
   Img.OffSetHorz := O;
-  O := -P.Y * DisplayScale;
+  O := -P.Y * fInternalZoom;
   O :=  O + Img.Height div 2;
   if O < MinVScroll then O := MinVScroll;
   if O > MaxVScroll then O := MaxVScroll;
