@@ -181,9 +181,7 @@ var
 begin
   Arc := TArchive.Create;
   try
-    // ldtMusic is the most complicated one. We search in several places until we find it.
-    // We also must check for various formats; so any extension passed is ignored. Parts
-    // of this are implemented in MusicFileInArchive and TryMusicPacks subfunctions.
+    IsSingleLevelMode := LowerCase(ExtractFileExt(GameFile)) <> '.nxp';
 
     // First place: The pack's associated music pack.
     // Second place: The NXP.
