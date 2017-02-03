@@ -66,6 +66,7 @@ function LemmingsPath: string;
 function MusicsPath: string;
 
 function CreateDataStream(aFileName: string; aType: TLemDataType; aAllowExternal: Boolean = false): TMemoryStream;
+function DoesFileExist(aFileName: string): Boolean;
 
 function UnderWine: Boolean;
 
@@ -165,7 +166,50 @@ begin
   Result.Bottom := Y + H;
 end;
 
+function DoesFileExist(aFileName: string): Boolean;
+var
+  Arc: TArchive;
+  IsSingleLevelMode: Boolean;
 
+  function MusicFileInArchive: Boolean;
+  begin
+    if Arc.IsOpen then
+      Result := Arc.ArchiveList.IndexOf(aFileName) <> -1
+    else
+      Result := false;
+  end;
+begin
+  Arc := TArchive.Create;
+  try
+    // ldtMusic is the most complicated one. We search in several places until we find it.
+    // We also must check for various formats; so any extension passed is ignored. Parts
+    // of this are implemented in MusicFileInArchive and TryMusicPacks subfunctions.
+
+    // First place: The pack's associated music pack.
+    // Second place: The NXP.
+    // Third place: Music folder.
+    // Final place: lemdata
+    if FormatDateTime('mmdd', Now) = '0401' then
+      aFilename := 'orig_00.it'; // April fools prank. "orig_00" is a rickroll.
+
+    if not IsSingleLevelMode then
+    begin
+      if FileExists(ChangeFileExt(GameFile, '_Music.dat')) then
+        Arc.OpenArchive(ChangeFileExt(GameFile, '_Music.dat'), amOpen);
+    end;
+    if MusicFileInArchive then
+      Result := true
+    else if FileExists(AppPath + 'music/' + aFilename) then
+      Result := true
+    else begin
+      if not IsSingleLevelMode then Arc.OpenArchive(GameFile, amOpen);
+      if not MusicFileInArchive then Arc.OpenResource(HINSTANCE, 'lemdata', 'archive');
+      Result := MusicFileInArchive;
+    end;
+  finally
+    Arc.Free;
+  end;
+end;
 
 function CreateDataStream(aFileName: string; aType: TLemDataType; aAllowExternal: Boolean = false): TMemoryStream;
 {-------------------------------------------------------------------------------

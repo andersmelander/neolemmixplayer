@@ -213,6 +213,18 @@ begin
   Result := '';
   LocalName := ChangeFileExt(aName, '');
 
+  for i := 0 to Length(VALID_EXTS)-1 do
+  begin
+    if DoesFileExist(LocalName + VALID_EXTS[i]) then
+    begin
+      Result := VALID_EXTS[i];
+      Exit;
+    end;
+    if (not aIsMusic) and (VALID_EXTS[i] = LAST_SOUND_EXT) then
+      Exit;
+  end;
+
+  (*
   if aIsMusic then
     BasePath := AppPath + SFMusic
   else
@@ -225,6 +237,7 @@ begin
       Exit;
     end else if (not aIsMusic) and (VALID_EXTS[i] = LAST_SOUND_EXT) then
       Exit;
+  *)
 end;
 
 function TSoundManager.LoadSoundFromFile(aName: String; aDefault: Boolean = false): Integer;
