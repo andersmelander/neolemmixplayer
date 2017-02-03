@@ -260,7 +260,7 @@ begin
   MusicName := ChangeFileExt(GameParams.Level.Info.MusicFile, '');
 
   if (MusicName <> '') and (LeftStr(MusicName, 1) <> '?') then
-    //if SoundManager.FindExtension(MusicName, true) <> '' then
+    if SoundManager.FindExtension(MusicName, true) <> '' then
     begin
       Result := MusicName;
       Exit;
