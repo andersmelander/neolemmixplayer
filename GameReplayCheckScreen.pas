@@ -388,7 +388,7 @@ begin
     ScreenImg.EndUpdate;
   end;
 
-  PieceManager.DisableTidy := true;
+  //PieceManager.DisableTidy := true;
 
   Application.OnIdle := Application_Idle; // this delays processing until the form is visible
 end;

@@ -210,18 +210,8 @@ begin
 end;
 
 procedure TBcGraphicSet.LoadSpecialBitmap(aStream: TStream);
-//var
-//  Vgaspec: TVgaspecBitmap;
 begin
   raise Exception.Create('TBcGraphicSet.LoadSpecialBitmap called; VGASPECs are no longer supported.');
-  (*Vgaspec := TVgaspecBitmap.Create;
-  try
-    fSpecialBitmap := TBitmap32.Create;
-    aStream.Position := 0;
-    Vgaspec.LoadFromStream(aStream, fSpecialBitmap);
-  finally
-    Vgaspec.Free;
-  end;*)
 end;
 
 procedure TBcGraphicSet.LoadGraphicSet(aName: String);
@@ -270,7 +260,6 @@ var
     end;
   end;
 begin
-  // Note: Should add compatibility with the experimental GSTool version's DAT files!
 
   CmpStream := CreateDataStream(aName + '.dat', ldtStyle);
   if CmpStream = nil then
