@@ -301,6 +301,8 @@ begin
   // Commented-out lines are sound files that existed since Lemmix, but don't appear to be referenced anywhere in the code.
   // Just in case, I haven't deleted these files, but put them in an "unused" subfolder of the sound folder.
 
+  // Failure / Success are commented out in backwards-compatible only, as TAppController.Create loads this
+
   //Get('bang');
   //Get('bell');
   Get('chain');
@@ -310,7 +312,7 @@ begin
   Get('door');
   Get('electric');
   Get('explode');
-  Get('failure');
+  //Get('failure');
   Get('fire');
   Get('glug');
   Get('letsgo');
@@ -324,7 +326,7 @@ begin
   Get('slurp');
   Get('splash');
   Get('splat');
-  Get('success');
+  //Get('success');
   Get('tenton');
   Get('thud');
   Get('thunk');

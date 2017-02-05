@@ -174,6 +174,27 @@ var
       SL.Free;
     end;
   end;
+
+  procedure LoadCustomJingles;
+  var
+    S: TMemoryStream;
+  begin
+    S := CreateDataStream('success.ogg', ldtLemmings);
+    if S <> nil then
+    begin
+      SoundManager.LoadSoundFromStream(S, 'success', true);
+      S.Free;
+    end else
+      SoundManager.LoadSoundFromFile('success', true);
+
+    S := CreateDataStream('failure.ogg', ldtLemmings);
+    if S <> nil then
+    begin
+      SoundManager.LoadSoundFromStream(S, 'failure', true);
+      S.Free;
+    end else
+      SoundManager.LoadSoundFromFile('failure', true);
+  end;
 begin
   inherited;
 
@@ -417,6 +438,8 @@ begin
   end;
 
   GameParams.WhichLevel := wlLastUnlocked;
+
+  LoadCustomJingles;
 
   if not fLoadSuccess then
     GameParams.NextScreen := gstExit;
