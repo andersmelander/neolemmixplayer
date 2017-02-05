@@ -179,7 +179,7 @@ var
   var
     S: TMemoryStream;
   begin
-    S := CreateDataStream('success.ogg', ldtLemmings);
+    S := CreateDataStream('success.ogg', ldtMusic);
     if S <> nil then
     begin
       SoundManager.LoadSoundFromStream(S, 'success', true);
@@ -187,7 +187,7 @@ var
     end else
       SoundManager.LoadSoundFromFile('success', true);
 
-    S := CreateDataStream('failure.ogg', ldtLemmings);
+    S := CreateDataStream('failure.ogg', ldtMusic);
     if S <> nil then
     begin
       SoundManager.LoadSoundFromStream(S, 'failure', true);
