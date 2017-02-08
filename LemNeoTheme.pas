@@ -64,8 +64,6 @@ begin
 end;
 
 procedure TNeoTheme.Load(aBc: TBcGraphicSet; aBgIndex: Integer);
-var
-  i: Integer;
 begin
   SetLength(fColors, 3);
   fColors[0].Name := MASK_COLOR;

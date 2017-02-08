@@ -359,9 +359,6 @@ var
   BasePath: String;
   FilePath: String;
   FileStream: TFileStream;
-
-  n: Integer;
-  Suffix: String;
 begin
   OldLookForLvls := fLookForLVL;
   fLookForLVL := false;
@@ -777,7 +774,6 @@ var
 var
   F: TMemoryStream;
   IsLoaded: Boolean;
-  i: integer;
 
 begin
   Assert(Owner is TBaseDosLemmingStyle);
@@ -850,6 +846,8 @@ begin
   fDoneQuickLevelNameLoad := true;
 
   DataStream := CreateDataStream('levels.nxmi', ldtLemmings);
+
+  L := 0;
 
   Parser := TNeoLemmixParser.Create;
   try

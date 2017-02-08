@@ -212,7 +212,6 @@ const
 var
   i: Integer;
   LocalName: String;
-  BasePath: String;
 begin
   Result := '';
   LocalName := ChangeFileExt(aName, '');

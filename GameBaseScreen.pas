@@ -475,9 +475,9 @@ procedure TGameBaseScreen.FadeOut;
 var
   Steps: Integer; i: Integer;
   P: PColor32;
-  StepStartTickCount: Integer;
 
-  StepDelay: Integer;
+  StepDelay: Cardinal;
+  StepStartTickCount: Cardinal;
 begin
   if (GameParams.LinearResampleMenu and not IsGameplayScreen)
   or (GameParams.LinearResampleGame and IsGameplayScreen) then

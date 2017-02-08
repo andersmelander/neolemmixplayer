@@ -13,7 +13,6 @@ uses
   LemTypes,
   LemDosStructures,
   LemDosCmp,
-  //LemDosBmp,
   LemDosMainDat,
   LemMetaAnimation,
   LemAnimationSet,
@@ -125,7 +124,7 @@ type
   private
     fMainDataFile           : string;
     fLemmingPrefix          : string;
-    fAnimationPalette       : TArrayOfColor32;
+    fMaskingColor           : TColor32;
     fExplosionMaskBitmap    : TBitmap32;
     fBashMasksBitmap        : TBitmap32;
     fBashMasksRTLBitmap     : TBitmap32;
@@ -151,7 +150,7 @@ type
     property FencerMasksRTLBitmap  : TBitmap32 read fFencerMasksRTLBitmap;
     property CountDownDigitsBitmap : TBitmap32 read fCountDownDigitsBitmap;
     property HighlightBitmap       : TBitmap32 read fHighlightBitmap;
-    property AnimationPalette: TArrayOfColor32 read fAnimationPalette write fAnimationPalette;
+    property MaskingColor          : TColor32 read fMaskingColor write fMaskingColor;
     property LemmingPrefix: string write fLemmingPrefix;
   published
     property MainDataFile: string read fMainDataFile write fMainDataFile; // must be set by style
@@ -318,14 +317,9 @@ var
   iAnimation, i: Integer;
   MLA: TMetaLemmingAnimation;
   X: Integer;
-  Pal: TArrayOfColor32;
   MainExtractor: TMainDatExtractor;
 
 begin
-  // fried and or vaporizing has high color indices
-  Assert(Length(AnimationPalette) >= 16);
-  Pal := Copy(fAnimationPalette);
-
   Fn := MainDataFile;
   TempBitmap := TBitmap32.Create;
   MainExtractor := TMainDatExtractor.Create;
@@ -349,7 +343,7 @@ begin
           Fn := fLemmingPrefix + '_' + RightStr(MLA.Description, Length(MLA.Description)-1);
 
           TPngInterface.LoadPngFile(Fn + '.png', TempBitmap);
-          TPngInterface.MaskImageFromFile(TempBitmap, Fn + '_mask.png', Pal[7]);
+          TPngInterface.MaskImageFromFile(TempBitmap, Fn + '_mask.png', fMaskingColor);
 
           MLA.Width := TempBitmap.Width div 2;
           MLA.Height := TempBitmap.height div MLA.FrameCount;

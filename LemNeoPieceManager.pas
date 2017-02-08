@@ -41,7 +41,6 @@ type
       function ObtainObject(Identifier: String): Integer;
 
       procedure ObtainGraphicSet(aName: String; aAsTheme: Boolean = false; aBgIndex: Integer = 0);
-      procedure ObtainVgaspec(aName: String);
       function CheckForGraphicSet(aName: String): Boolean;
 
       function GetMetaTerrain(Identifier: String): TMetaTerrain;
@@ -235,20 +234,6 @@ end;
 
 // Backwards-comaptibility code; load entire graphic sets.
 
-procedure TNeoPieceManager.ObtainVgaspec(aName: String);
-var
-  BcSet: TBcGraphicSet;
-begin
-  BcSet := TBcGraphicSet.Create;
-  try
-    BcSet.LoadGraphicSet('x_' + aName);
-    with fTerrains.Add do
-      LoadVgaspec(BcSet);
-  finally
-    BcSet.Free;
-  end;
-end;
-
 procedure TNeoPieceManager.ObtainGraphicSet(aName: String; aAsTheme: Boolean = false; aBgIndex: Integer = 0);
 var
   BcSet: TBcGraphicSet;
@@ -310,17 +295,9 @@ end;
 function TNeoPieceManager.GetMetaTerrain(Identifier: String): TMetaTerrain;
 var
   i: Integer;
-  SetToSteel: Boolean;
 begin
-  if RightStr(Identifier, 2) = '*s' then
-  begin
-    Identifier := LeftStr(Identifier, Length(Identifier)-2);
-    SetToSteel := true;
-  end;
   i := FindTerrainIndexByIdentifier(Identifier);
   Result := fTerrains[i];
-  if SetToSteel then
-    Result.IsSteel := true;
 end;
 
 function TNeoPieceManager.GetMetaObject(Identifier: String): TMetaObject;

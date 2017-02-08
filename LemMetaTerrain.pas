@@ -102,9 +102,7 @@ end;
 procedure TMetaTerrain.Load(aCollection, aPiece: String);
 var
   Parser: TParser;
-  Line: TParserLine;
 begin
-  Parser := TParser.Create;
 
     ClearImages;
 

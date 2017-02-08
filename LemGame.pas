@@ -1054,7 +1054,6 @@ procedure TLemmingGame.PrepareParams;
 var
   Ani: TBaseDosAnimationSet;
   i: Integer;
-  LowPal, HiPal, Pal: TArrayOfColor32;
 begin
   fXmasPal := GameParams.SysDat.Options2 and 2 <> 0;
 
@@ -1062,34 +1061,8 @@ begin
   Level := GameParams.Level;
   Style := GameParams.Style;
 
-  {-------------------------------------------------------------------------------
-    Initialize the palette of AnimationSet.
-    Low part is the fixed palette
-    Hi part comes from the graphicset.
-    After that let the AnimationSet read the animations
-  -------------------------------------------------------------------------------}
-  (*LowPal := DosPaletteToArrayOfColor32(DosInLevelPalette);
-  if fXmasPal then
-  begin
-    LowPal[1] := $D02020;
-    LowPal[4] := $F0F000;
-    LowPal[5] := $4040E0;
-  end;
-  SetLength(HiPal, 8);
-  for i := 0 to 7 do
-    HiPal[i] := PARTICLE_COLORS[i];
-  LowPal[7] := Renderer.Theme.Colors[MASK_COLOR]; // copy the brickcolor
-  SetLength(Pal, 16);
-  for i := 0 to 7 do
-    Pal[i] := LowPal[i];
-  for i := 8 to 15 do
-    Pal[i] := HiPal[i - 8];*)
-
-  SetLength(Pal, 16);
-  Pal[7] := Renderer.Theme.Colors[MASK_COLOR];
-
   Ani := Renderer.LemmingAnimations; //Style.AnimationSet as TBaseDosAnimationSet;
-  Ani.AnimationPalette := Copy(Pal);
+  Ani.MaskingColor := Renderer.Theme.Colors[MASK_COLOR];
   Ani.ClearData;
   if Trim(GameParams.SysDat.StyleNames[0]) = '' then
     Ani.LemmingPrefix := Renderer.Theme.Lemmings

@@ -11,7 +11,6 @@ uses
   PngInterface,
   LemRecolorSprites,
   LemRenderHelpers, LemNeoPieceManager, LemNeoTheme,
-  //LemDosBmp,
   LemDosStructures,
   LemTypes,
   LemTerrain, LemMetaTerrain,
@@ -47,7 +46,6 @@ type
 
     TempBitmap         : TBitmap32;
     Inf                : TRenderInfoRec;
-    fXmasPal : Boolean;
     fTheme: TNeoTheme;
     fHelperImages: THelperImages;
     fAni: TBaseDosAnimationSet;
@@ -1494,7 +1492,6 @@ var
   var
     C: TColor32;
 
-    OW, OH: Integer;
     TW, TH: Integer;
 
     procedure HandleRotate;
@@ -1787,37 +1784,14 @@ end;
 
 procedure TRenderer.PrepareGameRendering(const Info: TRenderInfoRec; XmasPal: Boolean = false);
 var
-  i: Integer;
-  LowPal, Pal: TArrayOfColor32;
   LemSprites: String;
 begin
 
   Inf := Info;
 
-  // create cache to draw from
-
-  fXmasPal := XmasPal;
-
   PieceManager.ApplyTheme(Info.Level.Info.GraphicSetName);
 
-  (*
-  LowPal := DosPaletteToArrayOfColor32(DosInLevelPalette);
-  if fXmasPal then
-  begin
-    LowPal[1] := $D02020;
-    LowPal[4] := $F0F000;
-    LowPal[5] := $4040E0;
-  end;
-  //LowPal[7] := Graph.BrickColor; // copy the brickcolor
-  SetLength(Pal, 16);
-  for i := 0 to 6 do
-    Pal[i] := LowPal[i];
-  for i := 8 to 15 do
-    Pal[i] := PARTICLE_COLORS[i mod 8];
-  *)
 
-  SetLength(Pal, 16);
-  Pal[7] := fTheme.Colors[MASK_COLOR];
 
   fAni.ClearData;
   if Trim(GameParams.SysDat.StyleNames[0]) = '' then
@@ -1825,7 +1799,7 @@ begin
   else
     LemSprites := Trim(GameParams.SysDat.StyleNames[0]);
   fAni.LemmingPrefix := LemSprites;
-  fAni.AnimationPalette := Pal;
+  fAni.MaskingColor := fTheme.Colors[MASK_COLOR];
   fAni.MainDataFile := 'main.dat';
   fAni.ReadData;
 

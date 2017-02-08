@@ -97,13 +97,9 @@ implementation
 procedure BcTranslate(aLevel: TLevel);
 var
   i: Integer;
-  GS: TBcGraphicSet;
   O: TInteractiveObject;
-  MO: TNeoLemmixObjectData;     // for objects from TBcGraphicSet
   MO_PM: TMetaObjectInterface;  // for objects from the piece manager
   L: TPreplacedLemming;
-
-  Vgaspec: String;
 
   procedure RemovedObjectPatch(Removed: Integer);
   var
@@ -373,8 +369,7 @@ class procedure TLVLLoader.LoadLevelFromStream(aStream: TStream; aLevel: TLevel;
 var
   b: byte;
   i, i2: integer;
-  TempStream: TMemoryStream;
-  TempLevel: TLevel;
+  NewLevelID: Integer;
 begin
   aStream.Seek(0, soFromBeginning);
   aStream.Read(b, 1);
@@ -396,48 +391,51 @@ begin
   i2 := 0;
   while aLevel.Info.LevelID = 0 do
   begin
+    NewLevelID := aLevel.Info.LevelID;
     Inc(i2);
     for i := 0 to aLevel.InteractiveObjects.Count-1 do
     begin
-      aLevel.Info.LevelID := aLevel.Info.LevelID + aLevel.InteractiveObjects[i].Left * i2;
-      aLevel.Info.LevelID := aLevel.Info.LevelID + aLevel.InteractiveObjects[i].Top * i2;
-      aLevel.Info.LevelID := aLevel.Info.LevelID + aLevel.InteractiveObjects[i].DrawingFlags;
-      aLevel.Info.LevelID := aLevel.Info.LevelID + aLevel.InteractiveObjects[i].Skill;
-      aLevel.Info.LevelID := aLevel.Info.LevelID + aLevel.InteractiveObjects[i].TarLev;
-      if aLevel.Info.LevelID = 0 then aLevel.Info.LevelID := aLevel.Info.RescueCount;
+      NewLevelID := NewLevelID + aLevel.InteractiveObjects[i].Left * i2;
+      NewLevelID := NewLevelID + aLevel.InteractiveObjects[i].Top * i2;
+      NewLevelID := NewLevelID + aLevel.InteractiveObjects[i].DrawingFlags;
+      NewLevelID := NewLevelID + aLevel.InteractiveObjects[i].Skill;
+      NewLevelID := NewLevelID + aLevel.InteractiveObjects[i].TarLev;
+      if NewLevelID = 0 then NewLevelID := aLevel.Info.RescueCount;
     end;
 
     for i := 0 to aLevel.Terrains.Count-1 do
     begin
-      aLevel.Info.LevelID := aLevel.Info.LevelID + aLevel.Terrains[i].Left * i2;
-      aLevel.Info.LevelID := aLevel.Info.LevelID + aLevel.Terrains[i].Top * i2;
-      aLevel.Info.LevelID := aLevel.Info.LevelID + aLevel.Terrains[i].DrawingFlags;
-      if aLevel.Info.LevelID = 0 then aLevel.Info.LevelID := aLevel.Info.LemmingsCount;
+      NewLevelID := NewLevelID + aLevel.Terrains[i].Left * i2;
+      NewLevelID := NewLevelID + aLevel.Terrains[i].Top * i2;
+      NewLevelID := NewLevelID + aLevel.Terrains[i].DrawingFlags;
+      if NewLevelID = 0 then NewLevelID := aLevel.Info.LemmingsCount;
     end;
 
     for i := 0 to aLevel.Steels.Count-1 do
     begin
-      aLevel.Info.LevelID := aLevel.Info.LevelID + aLevel.Steels[i].Left * i2;
-      aLevel.Info.LevelID := aLevel.Info.LevelID + aLevel.Steels[i].Top * i2;
-      aLevel.Info.LevelID := aLevel.Info.LevelID + aLevel.Steels[i].Width * i2;
-      aLevel.Info.LevelID := aLevel.Info.LevelID + aLevel.Steels[i].Height * i2;
-      aLevel.Info.LevelID := aLevel.Info.LevelID + aLevel.Steels[i].fType;
-      if aLevel.Info.LevelID = 0 then aLevel.Info.LevelID := aLevel.Info.ReleaseRate;
+      NewLevelID := NewLevelID + aLevel.Steels[i].Left * i2;
+      NewLevelID := NewLevelID + aLevel.Steels[i].Top * i2;
+      NewLevelID := NewLevelID + aLevel.Steels[i].Width * i2;
+      NewLevelID := NewLevelID + aLevel.Steels[i].Height * i2;
+      NewLevelID := NewLevelID + aLevel.Steels[i].fType;
+      if NewLevelID = 0 then NewLevelID := aLevel.Info.ReleaseRate;
     end;
 
-    while (aLevel.Info.LevelID < $80000000) and (aLevel.Info.LevelID <> 0) do
-      aLevel.Info.LevelID := aLevel.Info.LevelID xor (aLevel.Info.LevelID shl 1);
+    while (NewLevelID > 0) do
+      NewLevelID := NewLevelID xor (NewLevelID shl 1);
 
     for i := 1 to Length(aLevel.Info.Title)-3 do
     begin
-      aLevel.Info.LevelID := aLevel.Info.LevelID + (i2 * i2);
-      aLevel.Info.LevelID := aLevel.Info.LevelID xor ((Ord(aLevel.Info.Title[i]) shl 24) +
-                                                      (Ord(aLevel.Info.Title[i+1]) shl 16) +
-                                                      (Ord(aLevel.Info.Title[i+2]) shl 8) +
-                                                      (Ord(aLevel.Info.Title[i+3])));
+      NewLevelID := NewLevelID + (i2 * i2);
+      NewLevelID := NewLevelID xor ((Ord(aLevel.Info.Title[i]) shl 24) +
+                                    (Ord(aLevel.Info.Title[i+1]) shl 16) +
+                                    (Ord(aLevel.Info.Title[i+2]) shl 8) +
+                                    (Ord(aLevel.Info.Title[i+3])));
     end;
 
-    aLevel.Info.LevelID := aLevel.Info.LevelID + aLevel.InteractiveObjects.Count + aLevel.Terrains.Count + aLevel.Steels.Count;
+    NewLevelID := NewLevelID + aLevel.InteractiveObjects.Count + aLevel.Terrains.Count + aLevel.Steels.Count;
+
+    aLevel.Info.LevelID := NewLevelID;
   end;
 
   BcTranslate(aLevel);
@@ -453,7 +451,7 @@ class procedure TLVLLoader.LoadNewNeoLevelFromStream(aStream: TStream; aLevel: T
 var
   Buf: TNeoLVLHeader;
   Buf2: TNeoLVLSecondHeader;
-  i, x, x2, x3: Integer;
+  i, x, x2: Integer;
   O: TNewNeoLVLObject;
   T: TNewNeoLVLTerrain;
   S: TNewNeoLVLSteel;
@@ -461,7 +459,6 @@ var
   Ter: TTerrain;
   Steel: TSteel;
   //SFinder: TStyleFinder;
-  GraphicSet: Integer;
   GSNames: array of String;
   GSName: array[0..15] of Char;
 
@@ -548,7 +545,6 @@ begin
 
         Title            := Buf.LevelName;
         Author           := Buf.LevelAuthor;
-        GraphicSet := Buf.MusicNumber shl 8;
         LevelID := Buf.LevelID;
       end;
 
@@ -786,8 +782,6 @@ begin
     -------------------------------------------------------------------------------}
     with Info do
     begin
-      if OddLoad <> 1 then
-      begin
       aLevel.Clear;
       ReleaseRate      := System.Swap(Buf.ReleaseRate) mod 256;
       LemmingsCount    := System.Swap(Buf.LemmingsCount);
@@ -813,19 +807,12 @@ begin
       255: MusicFile := 'gimmick';
         else MusicFile := '?';
       end;
-      end;
-      if (OddLoad = 2) and (LevelOptions and $10 <> 0) then
-      begin
-        LevelOptions := LevelOptions and $71;
-        Exit;
-      end;
       ScreenPosition   := System.Swap(Buf.ScreenPosition) + 160;
       ScreenYPosition  := 0;
       Width := 1584;
       Height := 160;
       if ScreenPosition > (Width - 160) then ScreenPosition := (Width - 160);
       if ScreenPosition < 160 then ScreenPosition := 160;
-      GraphicSet       := (System.Swap(Buf.GraphicSet) and $00FF) + (GraphicSet and $FF00);
 
       SFinder := TStyleFinder.Create;
 
@@ -950,7 +937,7 @@ class procedure TLVLLoader.LoadNeoLevelFromStream(aStream: TStream; aLevel: TLev
 -------------------------------------------------------------------------------}
 var
   Buf: TNeoLVLRec;
-  {H, }i, x, x2, x3: Integer;
+  i, x, x2: Integer;
   O: TNeoLVLObject;
   T: TNeoLVLTerrain;
   S: TNeoLVLSteel;
