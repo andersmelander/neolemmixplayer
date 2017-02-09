@@ -514,10 +514,12 @@ const
   DOM_HINT             = 25;
   DOM_NOSPLAT          = 26;
   DOM_SPLAT            = 27;
-  DOM_TWOWAYTELE       = 28;
-  DOM_SINGLETELE       = 29;
+  DOM_TWOWAYTELE       = 28; // no longer used!!
+  DOM_SINGLETELE       = 29; // no longer used!!
   DOM_BACKGROUND       = 30;
-  DOM_TRAPONCE         = 31;  *)
+  DOM_TRAPONCE         = 31;
+  DOM_BGIMAGE          = 32;
+  DOM_ONEWAYUP         = 33; *)
 
   // removal modes
   RM_NEUTRAL           = 0;
@@ -1348,7 +1350,7 @@ end;
 procedure TLemmingGame.CombineMaskPixels(F: TColor32; var B: TColor32; M: TColor32; E: TColor32);
 // copy masks to world
 begin
-  if (F <> 0) and (B and E = 0) then B := B and not PM_TERRAIN;
+  if (AlphaComponent(F) <> 0) and (B and E = 0) then B := B and not PM_TERRAIN;
 end;
 
 // Not sure who wrote this (probably me), but upon seeing this I forgot what the hell they were
@@ -1415,7 +1417,7 @@ end;
 procedure TLemmingGame.CombineNoOverwriteStoner(F: TColor32; var B: TColor32; M: TColor32);
 // copy Stoner to world
 begin
-  if (B and PM_SOLID = 0) and (F <> 0) then B := (B or PM_SOLID);
+  if (B and PM_SOLID = 0) and (AlphaComponent(F) <> 0) then B := (B or PM_SOLID);
 end;
 
 
@@ -1515,6 +1517,7 @@ procedure TLemmingGame.Transition(L: TLemming; NewAction: TBasicLemmingAction; D
 var
   i: Integer;
   TempMetaAnim: TMetaLemmingAnimation;
+  OldIsStartingAction: Boolean;
 begin
   if DoTurn then TurnAround(L);
 
@@ -1549,6 +1552,8 @@ begin
   L.LemPhysicsFrame := 0;
   L.LemEndOfAnimation := False;
   L.LemNumberOfBricksLeft := 0;
+  OldIsStartingAction := L.LemIsStartingAction;
+  L.LemIsStartingAction := True;
 
   // New animation
   i := AnimationIndices[NewAction, (L.LemDx = -1)];
@@ -1560,7 +1565,7 @@ begin
   // some things to do when entering state
   case L.LemAction of
     baJumping    : L.LemJumped := 0;
-    baClimbing   : L.LemIsNewClimbing := True;
+    baHoisting   : L.LemIsStartingAction := OldIsStartingAction; // it needs to know what the Climber's value was
     baSplatting  : begin
                      L.LemExplosionTimer := 0;
                      CueSoundEffect(SFX_SPLAT, L.Position)
@@ -1573,7 +1578,6 @@ begin
                      L.LemExplosionTimer := 0;
                      CueSoundEffect(SFX_YIPPEE, L.Position);
                    end;
-    baDigging    : L.LemIsNewDigger := True;
     baBuilding   : L.LemNumberOfBricksLeft := 12;
     baPlatforming: L.LemNumberOfBricksLeft := 12;
     baStacking   : L.LemNumberOfBricksLeft := 8;
@@ -1644,7 +1648,6 @@ begin
 
   if (TimePlay <= 0) and not ((GameParams.TimerMode) or (GameParams.Level.Info.TimeLimit > 5999)) then
   begin
-    fGameFinished := True;
     GameResultRec.gTimeIsUp := True;
     Finish;
     Exit;
@@ -1759,9 +1762,34 @@ begin
 end;
 
 function TLemmingGame.ReadBlockerMap(X, Y: Integer): Byte;
+var
+  LemPosRect: TRect;
+  i: Integer;
 begin
   if (X >= 0) and (X < Level.Info.Width) and (Y >= 0) and (Y < Level.Info.Height) then
-    Result := BlockerMap.Value[X, Y]
+  begin
+    Result := BlockerMap.Value[X, Y];
+
+    // For simulations check in addition if the trigger area does not come from a blocker with removed terrain under his feet
+    if fSimulation and (Result in [DOM_FORCERIGHT, DOM_FORCELEFT]) then
+    begin
+      if Result = DOM_FORCERIGHT then
+        LemPosRect := Rect(X - 6, Y - 5, X - 1, Y + 6)
+      else
+        LemPosRect := Rect(X + 2, Y - 5, X + 7, Y + 6);
+
+      for i := 0 to LemmingList.Count - 1 do
+      begin
+        if     LemmingList[i].LemHasBlockerField
+           and PtInRect(LemPosRect, Point(LemmingList[i].LemX, LemmingList[i].LemY))
+           and not HasPixelAt(LemmingList[i].LemX, LemmingList[i].LemY) then
+        begin
+          Result := DOM_NONE;
+          Exit;
+        end;
+      end;
+    end;
+  end
   else
     Result := DOM_NONE; // whoops, important
 end;
@@ -2732,7 +2760,7 @@ begin
     else if L.LemAction = baClimbing then
     begin
       Inc(L.LemX, L.LemDx); // Move out of the wall
-      if not L.LemIsNewClimbing then Inc(L.LemY); // Don't move below original position
+      if not L.LemIsStartingAction then Inc(L.LemY); // Don't move below original position
       Transition(L, baWalking);
     end;
   end;
@@ -3335,9 +3363,9 @@ var
 begin
   Result := True;
 
-  if L.LemIsNewDigger then
+  if L.LemIsStartingAction then
   begin
-    L.LemIsNewDigger := False;
+    L.LemIsStartingAction := False;
     DigOneRow(L.LemX, L.LemY - 1);
     // The first digger cycle is one frame longer!
     // So we need to artificially cancel the very first frame advancement.
@@ -3374,7 +3402,7 @@ begin
   if L.LemPhysicsFrame <= 3 then
   begin
     FoundClip := (HasPixelAt(L.LemX - L.LemDx, L.LemY - 6 - L.LemPhysicsFrame))
-              or (HasPixelAt(L.LemX - L.LemDx, L.LemY - 5 - L.LemPhysicsFrame) and (not L.LemIsNewClimbing));
+              or (HasPixelAt(L.LemX - L.LemDx, L.LemY - 5 - L.LemPhysicsFrame) and (not L.LemIsStartingAction));
 
     if L.LemPhysicsFrame = 0 then // first triggered after 8 frames!
       FoundClip := FoundClip and HasPixelAt(L.LemX - L.LemDx, L.LemY - 7);
@@ -3382,17 +3410,17 @@ begin
     if FoundClip then
     begin
       // Don't fall below original position on hitting terrain in first cycle
-      if not L.LemIsNewClimbing then L.LemY := L.LemY - L.LemPhysicsFrame + 3;
+      if not L.LemIsStartingAction then L.LemY := L.LemY - L.LemPhysicsFrame + 3;
       Dec(L.LemX, L.LemDx);
       Transition(L, baFalling, True); // turn around as well
     end
     else if not HasPixelAt(L.LemX, L.LemY - 7 - L.LemPhysicsFrame) then
     begin
       // if-case prevents too deep bombing, see http://www.lemmingsforums.net/index.php?topic=2620.0
-      if not (L.LemIsNewClimbing and (L.LemPhysicsFrame = 1)) then
+      if not (L.LemIsStartingAction and (L.LemPhysicsFrame = 1)) then
       begin
         L.LemY := L.LemY - L.LemPhysicsFrame + 2;
-        L.LemIsNewClimbing := False;
+        L.LemIsStartingAction := False;
       end;
       Transition(L, baHoisting);
     end;
@@ -3401,7 +3429,7 @@ begin
   else
   begin
     Dec(L.LemY);
-    L.LemIsNewClimbing := False;
+    L.LemIsStartingAction := False;
 
     FoundClip := HasPixelAt(L.LemX - L.LemDx, L.LemY - 7);
 
@@ -3446,7 +3474,7 @@ begin
   if L.LemEndOfAnimation then
     Transition(L, baWalking)
   // special case due to http://www.lemmingsforums.net/index.php?topic=2620.0
-  else if (L.LemPhysicsFrame = 1) and L.LemIsNewClimbing then
+  else if (L.LemPhysicsFrame = 1) and L.LemIsStartingAction then
     Dec(L.LemY, 1)
   else if L.LemPhysicsFrame <= 4 then
     Dec(L.LemY, 2);
@@ -3732,6 +3760,9 @@ var
     // Copy PhysicsMap back
     PhysicsMap.Assign(SavePhysicsMap);
     SavePhysicsMap.Free;
+
+    // Free CopyL
+    CopyL.Free;
   end;
 
 
@@ -3958,6 +3989,40 @@ var
     // Copy PhysicsMap back
     PhysicsMap.Assign(SavePhysicsMap);
     SavePhysicsMap.Free;
+
+    // Free the copy lemming! This was missing in Nepster's code.
+    CopyL.Free;
+  end;
+
+  function WillMoveUp(L: TLemming): Boolean;
+  var
+    CopyL: TLemming;
+    i: Integer;
+    OrigY: Integer;
+  begin
+    // Make deep copy of the lemming
+    CopyL := TLemming.Create;
+    CopyL.Assign(L);
+    // We don't need to copy the physics map, as this simulation only tests frames where no terrain is altered
+
+    // Simulate four frames: 11, 12, 13, 14 (The four frames on which movement occurs)
+    CopyL.LemPhysicsFrame := 11;
+    OrigY := CopyL.LemY;
+
+    for i := 0 to 3 do
+    begin
+      // Move one frame forward
+      SimulateLem(CopyL, False);
+
+
+      // Terminate if we've moved up, no longer exist, or are no longer a fencer
+      if (CopyL.LemY < OrigY) or CopyL.LemRemoved or not (CopyL.LemAction = baFencing) then Break;
+    end;
+
+    Result := CopyL.LemY < OrigY;
+
+    // Free the copy lemming
+    CopyL.Free;
   end;
 
 
@@ -3971,6 +4036,9 @@ begin
   // Remove terrain
   if AdjustedFrame in [2, 3, 4, 5] then
     ApplyFencerMask(L, AdjustedFrame - 2);
+
+  if AdjustedFrame = 15 then
+    L.LemIsStartingAction := false;
 
   // Check for enough terrain to continue working
   if AdjustedFrame = 5 then
@@ -3990,10 +4058,11 @@ begin
 
     // check whether we turn around within the next two fencer strokes (only if we don't simulate)
     if (not ContinueWork) and (not fSimulation) then
-    begin
-      Assert(not fSimulation, 'Lemming simulation does fencer steel turn checks and creates an infinite recursion');
       ContinueWork := DoTurnAtSteel(L);
-    end;
+
+    // check whether we will move up in the next movement
+    if (ContinueWork) and (not fSimulation) and (not L.LemIsStartingAction) then
+      ContinueWork := WillMoveUp(L);
 
     if not ContinueWork then
     begin
@@ -5551,8 +5620,8 @@ begin
       Inc(Inf.CurrentFrame);
 
     if (Inf.TriggerEffect = DOM_TELEPORT)
-       and (((Inf.CurrentFrame >= Inf.AnimationFrameCount) and (Inf.MetaObj.KeyFrame = 0))
-       or ((Inf.CurrentFrame = Inf.MetaObj.KeyFrame) and (Inf.MetaObj.KeyFrame <> 0))) then
+      and (((Inf.CurrentFrame >= Inf.AnimationFrameCount) and (Inf.MetaObj.KeyFrame = 0))
+        or ((Inf.CurrentFrame = Inf.MetaObj.KeyFrame) and (Inf.MetaObj.KeyFrame <> 0))   ) then
     begin
       MoveLemToReceivePoint(LemmingList.List^[Inf.TeleLem], i);
       Inf2 := ObjectInfos[Inf.ReceiverId];
@@ -5596,8 +5665,7 @@ end;
 
 procedure TLemmingGame.Cheat;
 begin
-  fGameCheated := True;   // IN-LEVEL CHEAT // just uncomment these two lines to reverse
-  SetGameResult;
+  fGameCheated := True;
   Finish;
 end;
 
