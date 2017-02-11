@@ -52,6 +52,7 @@ type
     fBgColor : TColor32;
     fParticles                 : TParticleTable; // all particle offsets
     fObjectInfoList: TInteractiveObjectInfoList; // For rendering from Preview screen
+    fDoneBackgroundDraw: Boolean;
 
     // Add stuff
     procedure AddTerrainPixel(X, Y: Integer; Color: TColor32);
@@ -94,7 +95,7 @@ type
     function FindMetaObject(O: TInteractiveObject): TMetaObjectInterface;
     function FindMetaTerrain(T: TTerrain): TMetaTerrain;
 
-    procedure PrepareGameRendering(const Info: TRenderInfoRec; XmasPal: Boolean = false);
+    procedure PrepareGameRendering(const Info: TRenderInfoRec; NoOutput: Boolean = false);
 
     // Terrain rendering
     procedure DrawTerrain(Dst: TBitmap32; T: TTerrain);
@@ -275,6 +276,15 @@ begin
     i := AnimationIndices[aLemming.LemAction, true];
   SrcAnim := fAni.LemmingAnimations[i];
   SrcMetaAnim := fAni.MetaLemmingAnimations[i];
+
+  if aLemming.LemMaxFrame = -1 then
+  begin
+    aLemming.LemMaxFrame := SrcMetaAnim.FrameCount - 1;
+    aLemming.LemKeyFrame := SrcMetaAnim.KeyFrame;
+  end;
+
+  if aLemming.LemFrame > aLemming.LemMaxFrame then
+    aLemming.LemFrame := aLemming.LemKeyFrame;
 
   SrcRect := GetFrameBounds;
   DstRect := GetLocationBounds;
@@ -1298,9 +1308,15 @@ begin
       Inf := ObjectInfos[i];
       if not (Inf.TriggerEffect = DOM_BACKGROUND) then Continue;
 
-      ProcessDrawFrame(rlBackgroundObjects);
-      fLayers.fIsEmpty[rlBackgroundObjects] := False;
+      if (not fDoneBackgroundDraw) and Inf.CanDrawToBackground  then
+        ProcessDrawFrame(rlBackground)
+      else begin
+        ProcessDrawFrame(rlBackgroundObjects);
+        fLayers.fIsEmpty[rlBackgroundObjects] := False;
+      end;
     end;
+
+    fDoneBackgroundDraw := true;
   end;
 
   // Draw no overwrite objects
@@ -1692,6 +1708,7 @@ begin
   if Inf.Level = nil then Exit;
 
   fDisableBackground := not DoBackground;
+  fDoneBackgroundDraw := false;
 
   // Background layer
   fBgColor := Theme.Colors[BACKGROUND_COLOR] and $FFFFFF;
@@ -1792,32 +1809,34 @@ begin
   ObjInfList.FindReceiverID;
 end;
 
-
-procedure TRenderer.PrepareGameRendering(const Info: TRenderInfoRec; XmasPal: Boolean = false);
+procedure TRenderer.PrepareGameRendering(const Info: TRenderInfoRec; NoOutput: Boolean = false);
 var
   LemSprites: String;
 begin
 
   Inf := Info;
 
-  PieceManager.ApplyTheme(Info.Level.Info.GraphicSetName);
+  if not NoOutput then
+  begin
+    PieceManager.ApplyTheme(Info.Level.Info.GraphicSetName);
 
+    fAni.ClearData;
+    if Trim(GameParams.SysDat.StyleNames[0]) = '' then
+      LemSprites := fTheme.Lemmings
+    else
+      LemSprites := Trim(GameParams.SysDat.StyleNames[0]);
+    fAni.LemmingPrefix := LemSprites;
+    fAni.MaskingColor := fTheme.Colors[MASK_COLOR];
+    fAni.MainDataFile := 'main.dat';
+    fAni.ReadData;
 
+    fRecolorer.LoadSwaps(LemSprites);
 
-  fAni.ClearData;
-  if Trim(GameParams.SysDat.StyleNames[0]) = '' then
-    LemSprites := fTheme.Lemmings
-  else
-    LemSprites := Trim(GameParams.SysDat.StyleNames[0]);
-  fAni.LemmingPrefix := LemSprites;
-  fAni.MaskingColor := fTheme.Colors[MASK_COLOR];
-  fAni.MainDataFile := 'main.dat';
-  fAni.ReadData;
+    // Prepare the bitmaps
+    fLayers.Prepare(Inf.Level.Info.Width, Inf.Level.Info.Height);
+  end;
 
-  fRecolorer.LoadSwaps(LemSprites);
-
-  // Prepare the bitmaps
-  fLayers.Prepare(Inf.Level.Info.Width, Inf.Level.Info.Height);
+  fRenderInterface.DisableDrawing := NoOutput;
 
   // Creating the list of all interactive objects.
   fObjectInfoList.Clear;

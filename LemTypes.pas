@@ -64,6 +64,7 @@ function AppPath: string;
 function MakeSuitableForFilename(const aInput: String): String;
 function LemmingsPath: string;
 function MusicsPath: string;
+procedure MoveRect(var aRect: TRect; const DeltaX, DeltaY: Integer);
 
 function CreateDataStream(aFileName: string; aType: TLemDataType; aAllowExternal: Boolean = false): TMemoryStream;
 function DoesFileExist(aFileName: string): Boolean;
@@ -106,6 +107,14 @@ begin
     _UnderWine := 2
   else
     _UnderWine := 1;
+end;
+
+procedure MoveRect(var aRect: TRect; const DeltaX, DeltaY: Integer);
+begin
+  aRect.Right := aRect.Right + DeltaX;
+  aRect.Left := aRect.Left + DeltaX;
+  aRect.Bottom := aRect.Bottom + DeltaY;
+  aRect.Top := aRect.Top + DeltaY;
 end;
 
 function MakeSuitableForFilename(const aInput: String): String;
