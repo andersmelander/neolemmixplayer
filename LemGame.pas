@@ -1556,10 +1556,9 @@ begin
   L.LemPhysicsFrame := 0;
   L.LemEndOfAnimation := False;
   L.LemNumberOfBricksLeft := 0;
-  OldIsStartingAction := L.LemIsStartingAction;
+  OldIsStartingAction := L.LemIsStartingAction; // because for some actions (eg baHoisting) we need to restore previous value
   L.LemIsStartingAction := True;
 
-  // New animation
   L.LemMaxFrame := -1;
   L.LemMaxPhysicsFrame := ANIM_FRAMECOUNT[NewAction] - 1;
 
@@ -3152,9 +3151,6 @@ begin
     if L.LemAction in [baFloating, baGliding] then L.LemPhysicsFrame := 9;
     if L.LemAction in OneTimeActionSet then L.LemEndOfAnimation := True;
   end;
-
-  //if L.LemFrame > L.LemMaxFrame then
-  //  L.LemFrame := L.LemKeyFrame;
 
   // Do Lem action
   Result := LemmingMethods[L.LemAction](L);

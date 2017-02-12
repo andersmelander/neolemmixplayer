@@ -173,7 +173,7 @@ object FormNXConfig: TFormNXConfig
         Left = 8
         Top = 72
         Width = 249
-        Height = 121
+        Height = 105
         Caption = 'Interface Options'
         TabOrder = 1
         object cbLemmingBlink: TCheckBox
@@ -221,21 +221,12 @@ object FormNXConfig: TFormNXConfig
           TabOrder = 4
           OnClick = OptionChanged
         end
-        object cbShowMinimap: TCheckBox
-          Left = 12
-          Top = 96
-          Width = 153
-          Height = 17
-          Caption = 'Show Minimap'
-          TabOrder = 5
-          OnClick = OptionChanged
-        end
       end
       object GroupBox6: TGroupBox
         Left = 8
-        Top = 200
+        Top = 184
         Width = 249
-        Height = 97
+        Height = 113
         Caption = 'Graphics Options'
         TabOrder = 2
         object Label1: TLabel
@@ -284,6 +275,15 @@ object FormNXConfig: TFormNXConfig
           Height = 17
           Caption = 'Full Screen'
           TabOrder = 3
+          OnClick = OptionChanged
+        end
+        object cbMinimapHighQuality: TCheckBox
+          Left = 12
+          Top = 88
+          Width = 153
+          Height = 17
+          Caption = 'High Quality Minimap'
+          TabOrder = 4
           OnClick = OptionChanged
         end
       end

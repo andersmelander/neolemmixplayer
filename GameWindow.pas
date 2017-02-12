@@ -40,6 +40,7 @@ type
     fSaveList: TLemmingGameSavedStateList;
     fReplayKilled: Boolean;
     fInternalZoom: Integer;
+    fMinimapBuffer: TBitmap32;
   { game eventhandler}
     procedure Game_Finished;
   { self eventhandlers }
@@ -125,6 +126,7 @@ type
     property HScroll: TGameScroll read GameScroll write GameScroll;
     property VScroll: TGameScroll read GameVScroll write GameVScroll;
     property ClearPhysics: Boolean read fClearPhysics write SetClearPhysics;
+    property SuspendCursor: Boolean read fSuspendCursor;
   end;
 
 implementation
@@ -161,7 +163,7 @@ var
   OSHorz, OSVert: Single;
 begin
   if aNewZoom < 1 then Exit;
-  if aNewZoom > Min(GameParams.MainForm.Width div 320, GameParams.MainForm.Height div 200) then Exit;
+  if aNewZoom > Min(GameParams.MainForm.Width div 416, GameParams.MainForm.Height div 200) + 2 then Exit;
 
   Img.BeginUpdate;
   SkillPanel.Img.BeginUpdate;
@@ -173,13 +175,14 @@ begin
 
     Img.Scale := aNewZoom;
 
-    if aNewZoom >= GameParams.ZoomLevel then
+    if (aNewZoom >= GameParams.ZoomLevel) and (aNewZoom <= SkillPanel.MaxZoom) then
     begin
-      SkillPanel.Width := 320 * aNewZoom;
+      (*SkillPanel.Width := 416 * aNewZoom;
       SkillPanel.Height := 40 * aNewZoom;
       SkillPanel.Img.Width := SkillPanel.Width;
       SkillPanel.Img.Height := SkillPanel.Height;
-      SkillPanel.Img.Scale := aNewZoom;
+      SkillPanel.Img.Scale := aNewZoom;*)
+      SkillPanel.SetZoom(aNewZoom);
     end;
 
     fInternalZoom := aNewZoom;
@@ -193,7 +196,7 @@ begin
     Img.OffsetVert := Min(Max(OSVert, MinVScroll), MaxVScroll);
 
     DoDraw;
-    CheckResetCursor;
+    CheckResetCursor(true);
   finally
     Img.EndUpdate;
     SkillPanel.Img.EndUpdate;
@@ -300,7 +303,15 @@ end;
 
 procedure TGameWindow.RenderMinimap;
 begin
-  fRenderer.RenderMinimap(SkillPanel.Minimap);
+  if GameParams.MinimapHighQuality then
+  begin
+    fMinimapBuffer.Clear(0);
+    Img.Bitmap.DrawTo(fMinimapBuffer);
+    SkillPanel.Minimap.Clear(0);
+    fMinimapBuffer.DrawTo(SkillPanel.Minimap, SkillPanel.Minimap.BoundsRect, fMinimapBuffer.BoundsRect);
+    fRenderer.RenderMinimap(SkillPanel.Minimap, true);
+  end else
+    fRenderer.RenderMinimap(SkillPanel.Minimap, false);
   SkillPanel.DrawMinimap;
 end;
 
@@ -337,9 +348,9 @@ var
 begin
   fMouseTrapped := true;
 
-  ClientTopLeft := ClientToScreen(Point(Img.Left, Img.Top));
-  ClientBottomRight := ClientToScreen(Point(Img.Left + Img.Width, SkillPanel.Top + SkillPanel.Height));
-    MouseClipRect := Rect(ClientTopLeft, ClientBottomRight);
+  ClientTopLeft := ClientToScreen(Point(Min(SkillPanel.Left, Img.Left), Img.Top));
+  ClientBottomRight := ClientToScreen(Point(Max(Img.Left + Img.Width, SkillPanel.Left + SkillPanel.Width), SkillPanel.Top + SkillPanel.Height));
+  MouseClipRect := Rect(ClientTopLeft, ClientBottomRight);
   ClipCursor(@MouseClipRect);
 end;
 
@@ -622,9 +633,13 @@ begin
     fRenderInterface.MousePos := Game.CursorPoint;
     fRenderer.DrawAllObjects(fRenderInterface.ObjectList, true, fClearPhysics);
     fRenderer.DrawLemmings(fClearPhysics);
-    DrawWidth := ClientWidth div fInternalZoom;
-    DrawHeight := ClientHeight div fInternalZoom;
-    DrawRect := Rect(fRenderInterface.ScreenPos.X, fRenderInterface.ScreenPos.Y, fRenderInterface.ScreenPos.X + DrawWidth, fRenderInterface.ScreenPos.Y + DrawHeight);
+    if GameParams.MinimapHighQuality then
+      DrawRect := Img.Bitmap.BoundsRect
+    else begin
+      DrawWidth := ClientWidth div fInternalZoom;
+      DrawHeight := ClientHeight div fInternalZoom;
+      DrawRect := Rect(fRenderInterface.ScreenPos.X, fRenderInterface.ScreenPos.Y, fRenderInterface.ScreenPos.X + DrawWidth, fRenderInterface.ScreenPos.Y + DrawHeight);
+    end;
     fRenderer.DrawLevel(GameParams.TargetBitmap, DrawRect, fClearPhysics);
     RenderMinimap;
     fNeedRedraw := false;
@@ -765,7 +780,7 @@ begin
     Cursor := NewCursor;
     Img.Cursor := NewCursor;
     Screen.Cursor := NewCursor;
-    SkillPanel.Img.Cursor := NewCursor;
+    SkillPanel.SetCursor(NewCursor);
   end;
 end;
 
@@ -843,6 +858,9 @@ begin
 
   fReplayKilled := false;
 
+  fMinimapBuffer := TBitmap32.Create;
+  TLinearResampler.Create(fMinimapBuffer);
+
   DoubleBuffered := true;
 end;
 
@@ -857,6 +875,9 @@ begin
   fSaveList.Free;
 
   ReleaseCursors;
+
+  fMinimapBuffer.Free;
+
   inherited Destroy;
 end;
 
@@ -1154,6 +1175,8 @@ procedure TGameWindow.Form_MouseMove(Sender: TObject; Shift: TShiftState; X, Y: 
 begin
   if fSuspendCursor then Exit;
 
+  SkillPanel.MinimapScrollFreeze := false;
+
   if X <= Img.Left then
     GameScroll := gsLeft
   else if X >= (Img.Left + Img.Width - 1) then
@@ -1198,6 +1221,8 @@ begin
       GameVScroll := gsUp
     else
       GameVScroll := gsNone;
+
+    SkillPanel.MinimapScrollFreeze := false;
 
     if Game.Paused then
       DoDraw; // probably causing major lag, can we detect if it's nessecary and only redraw if it is?
@@ -1331,8 +1356,10 @@ begin
 
   //SkillPanel.Top := Img.Top + Img.Height;
   //SkillPanel.left := Img.Left;
-  SkillPanel.Width := 320 * Sca;
+  SkillPanel.Width := 416 * Sca;
   SkillPanel.Height := 40 * Sca;
+  SkillPanel.Minimap.SetSize(GameParams.Level.Info.Width div 8, GameParams.Level.Info.Height div 8);
+  fMinimapBuffer.SetSize(GameParams.Level.Info.Width, GameParams.Level.Info.Height);
 
   (*ClientWidth := GameParams.MainForm.ClientWidth;
   ClientHeight := GameParams.MainForm.ClientHeight;
@@ -1364,7 +1391,7 @@ begin
     TLinearResampler.Create(SkillPanel.Img.Bitmap);
   end;
 
-  SetLength(HCURSORS, Min(Screen.Width div 320, Screen.Height div 200));
+  SetLength(HCURSORS, Min(Screen.Width div 416, Screen.Height div 200) + 2);
   InitializeCursor;
   CenterPoint := ClientToScreen(Point(ClientWidth div 2, ClientHeight div 2));
   SetCursorPos(CenterPoint.X, CenterPoint.Y);
@@ -1394,15 +1421,16 @@ var
 begin
   O := -P.X * fInternalZoom;
   O :=  O + Img.Width div 2;
-
   if O < MinScroll then O := MinScroll;
   if O > MaxScroll then O := MaxScroll;
   Img.OffSetHorz := O;
+
   O := -P.Y * fInternalZoom;
   O :=  O + Img.Height div 2;
   if O < MinVScroll then O := MinVScroll;
   if O > MaxVScroll then O := MaxVScroll;
   Img.OffsetVert := O;
+  
   DoDraw;
 end;
 
@@ -1545,10 +1573,11 @@ begin
   CanPlay := False;
   Application.OnIdle := nil;
   ClipCursor(nil);
+  fSuspendCursor := true;
   Cursor := crNone;
   Screen.Cursor := crNone;
   Img.Cursor := crNone;
-  SkillPanel.Img.Cursor := crNone;
+  SkillPanel.SetCursor(crNone);
 
   Game.SetGameResult;
   GameParams.GameResult := Game.GameResultRec;
