@@ -100,7 +100,8 @@ type
     moLinearResampleMenu,
     moLinearResampleGame,
     moFullScreen,
-    moMinimapHighQuality
+    moMinimapHighQuality,
+    moIncreaseZoom
   );
 
   TMiscOptions = set of TMiscOption;
@@ -118,7 +119,8 @@ const
     moPauseAfterBackwards,
     moLinearResampleMenu,
     moFullScreen,
-    moMinimapHighQuality
+    moMinimapHighQuality,
+    moIncreaseZoom
   ];
 
 type
@@ -230,6 +232,7 @@ type
     property LinearResampleGame: boolean Index moLinearResampleGame read GetOptionFlag write SetOptionFlag;
     property FullScreen: boolean Index moFullScreen read GetOptionFlag write SetOptionFlag;
     property MinimapHighQuality: boolean Index moMinimapHighQuality read GetOptionFlag write SetOptionFlag;
+    property IncreaseZoom: boolean Index moIncreaseZoom read GetOptionFlag write SetOptionFlag;
 
     property PostLevelVictorySound: Boolean Index plsVictory read GetPostLevelSoundOptionFlag write SetPostLevelSoundOptionFlag;
     property PostLevelFailureSound: Boolean Index plsFailure read GetPostLevelSoundOptionFlag write SetPostLevelSoundOptionFlag;
@@ -263,6 +266,7 @@ var
 implementation
 
 uses
+  GameWindow, //for EXTRA_ZOOM_LEVELS const
   GameSound;
 
 { TDosGameParams }
@@ -325,6 +329,7 @@ begin
   SaveBoolean('HighQualityMinimap', MinimapHighQuality);
 
   SL.Add('ZoomLevel=' + IntToStr(ZoomLevel));
+  SaveBoolean('IncreaseZoom', IncreaseZoom);
   SaveBoolean('FullScreen', FullScreen);
 
   SL.Add('WindowWidth=' + IntToStr(WindowWidth));
@@ -411,6 +416,10 @@ var
     if fWindowHeight > Screen.Height then
       fWindowHeight := Screen.Height;
 
+    // Disallow zoom levels that are too high
+    if fZoomLevel > Min(Screen.Width div 320, Screen.Height div 200) then
+      fZoomLevel := Min(Screen.Width div 320, Screen.Height div 200);
+
     // Finally, we must make sure the window size is an integer multiple of the zoom level
     WindowWidth := (WindowWidth div ZoomLevel) * ZoomLevel;
     WindowHeight := (WindowHeight div ZoomLevel) * ZoomLevel;
@@ -452,6 +461,7 @@ begin
   NoBackgrounds := LoadBoolean('NoBackgrounds', NoBackgrounds);
   NoShadows := LoadBoolean('NoShadows', NoShadows);
   MinimapHighQuality := LoadBoolean('HighQualityMinimap', MinimapHighQuality);
+  IncreaseZoom := LoadBoolean('IncreaseZoom', IncreaseZoom);
   CheckUpdates := LoadBoolean('UpdateCheck', CheckUpdates);
   UpdateStyles := LoadBoolean('UpdateStyles', UpdateStyles);
 

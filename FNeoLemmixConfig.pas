@@ -63,6 +63,7 @@ type
     cbLinearResampleGame: TCheckBox;
     cbFullScreen: TCheckBox;
     cbMinimapHighQuality: TCheckBox;
+    cbIncreaseZoom: TCheckBox;
     procedure btnApplyClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure btnHotkeysClick(Sender: TObject);
@@ -87,6 +88,9 @@ var
   FormNXConfig: TFormNXConfig;
 
 implementation
+
+uses
+  GameWindow; // for EXTRA_ZOOM_LEVELS constant
 
 {$R *.dfm}
 
@@ -150,7 +154,7 @@ begin
   // Zoom Dropdown
   cbZoom.Items.Clear;
   i := 1;
-  while ((i - 2) * 320 <= Screen.Width) and ((i - 2) * 200 < Screen.Height) do
+  while ((i - EXTRA_ZOOM_LEVELS) * 320 <= Screen.Width) and ((i - EXTRA_ZOOM_LEVELS) * 200 < Screen.Height) do
   begin
     cbZoom.Items.Add(IntToStr(i) + 'x Zoom');
     Inc(i);

@@ -171,7 +171,7 @@ object FormNXConfig: TFormNXConfig
       end
       object GroupBox3: TGroupBox
         Left = 8
-        Top = 72
+        Top = 65
         Width = 249
         Height = 105
         Caption = 'Interface Options'
@@ -224,9 +224,9 @@ object FormNXConfig: TFormNXConfig
       end
       object GroupBox6: TGroupBox
         Left = 8
-        Top = 184
+        Top = 170
         Width = 249
-        Height = 113
+        Height = 127
         Caption = 'Graphics Options'
         TabOrder = 2
         object Label1: TLabel
@@ -252,7 +252,7 @@ object FormNXConfig: TFormNXConfig
         end
         object cbLinearResampleMenu: TCheckBox
           Left = 12
-          Top = 56
+          Top = 72
           Width = 205
           Height = 17
           Caption = 'Use Smooth Resampling In Menus'
@@ -261,7 +261,7 @@ object FormNXConfig: TFormNXConfig
         end
         object cbLinearResampleGame: TCheckBox
           Left = 12
-          Top = 72
+          Top = 88
           Width = 205
           Height = 17
           Caption = 'Use Smooth Resampling In Game'
@@ -279,11 +279,20 @@ object FormNXConfig: TFormNXConfig
         end
         object cbMinimapHighQuality: TCheckBox
           Left = 12
-          Top = 88
+          Top = 104
           Width = 153
           Height = 17
           Caption = 'High Quality Minimap'
           TabOrder = 4
+          OnClick = OptionChanged
+        end
+        object cbIncreaseZoom: TCheckBox
+          Left = 12
+          Top = 56
+          Width = 205
+          Height = 17
+          Caption = 'Increase Zoom On Small Levels'
+          TabOrder = 5
           OnClick = OptionChanged
         end
       end
