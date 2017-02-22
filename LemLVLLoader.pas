@@ -87,7 +87,7 @@ type
     class procedure LoadTradLevelFromStream(aStream: TStream; aLevel: TLevel; OddLoad: Byte = 0);
     class procedure LoadNeoLevelFromStream(aStream: TStream; aLevel: TLevel; OddLoad: Byte = 0);
     class procedure LoadNewNeoLevelFromStream(aStream: TStream; aLevel: TLevel; OddLoad: Byte = 0);
-    class procedure StoreLevelInStream(aLevel: TLevel; aStream: TStream);
+    class procedure StoreLevelInStream(aLevel: TLevel; aStream: TStream; aComment: String = '');
   end;
 
   procedure BcTranslate(aLevel: TLevel);
@@ -133,6 +133,8 @@ begin
     O := aLevel.InteractiveObjects[i];
 
     O.GS := FixStyleName(O.GS);
+
+    if PieceManager = nil then Exit;
 
     MO_PM := PieceManager.Objects[O.GS + ':' + O.Piece].GetInterface(false, false, false);
     if MO_PM.TriggerEffect = 13 then
@@ -1181,7 +1183,7 @@ end;
 
 
 
-class procedure TLVLLoader.StoreLevelInStream(aLevel: TLevel; aStream: TStream);
+class procedure TLVLLoader.StoreLevelInStream(aLevel: TLevel; aStream: TStream; aComment: String = '');
 var
   //Int16: SmallInt; Int32: Integer;
   {H,} i: Integer;
@@ -1318,20 +1320,14 @@ begin
       if k <> '' then System.Move(k[1], Buf.VgaspecName, Length(k));
       SFinder.Free;}
 
-      {if Buf.GraphicSet = 255 then
-      begin}
-        k := GraphicSetName;
-        System.Move(k[1], Buf.StyleName, Length(k));
-      {end;
+      k := GraphicSetName;
+      System.Move(k[1], Buf.StyleName, Length(k));
 
-      if Buf.GraphicSetEx = 255 then
-      begin}
-        k := 'none';
-        System.Move(k[1], Buf.VgaspecName, Length(k));
-      //end;
+      k := 'none';
+      System.Move(k[1], Buf.VgaspecName, Length(k));
 
-      {for i := 0 to 31 do
-        Buf.WindowOrder[i] := WindowOrder[i];}
+      k := LeftStr(aComment, 32);
+      System.Move(k[1], Buf.ReservedStr, Length(k));
 
       Buf.RefSection := 0;
       Buf.RefLevel   := 0;
