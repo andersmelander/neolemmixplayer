@@ -9,8 +9,9 @@ uses
   UMisc,
   LemmixHotkeys, LemStrings, LemTypes,
   LemDosStructures, LemDosStyle,
+  LemLemming,
   LemCore, LemLevel, LemNeoTheme,
-  GameInterfaces, GameControl,
+  GameControl,
   LemGame, LemRenderHelpers, //for PARTICLE_COLORS consts, not that i'm sure if it acutally needs them anymore
   GameSound,
   PngInterface;
@@ -29,7 +30,7 @@ uses
 type
   TMinimapClickEvent = procedure(Sender: TObject; const P: TPoint) of object;
 type
-  TSkillPanelToolbar = class(TCustomControl, IGameToolbar)
+  TSkillPanelToolbar = class(TCustomControl)
   private
     fStyle         : TBaseDosLemmingStyle;
 
@@ -57,7 +58,6 @@ type
 
     fViewPortRect  : TRect;
     fOnMinimapClick            : TMinimapClickEvent; // event handler for minimap
-    fCurrentScreenOffset : Integer;
 
     fHighlitSkill: TSkillPanelButton;
     fLastHighlitSkill: TSkillPanelButton; // to avoid sounds when shouldn't be played
@@ -122,7 +122,6 @@ type
     procedure SetReplayMark(Status: Integer);
     procedure SetTimeLimit(Status: Boolean);
 
-    procedure SetCurrentScreenOffset(X: Integer);
     property OnMinimapClick: TMinimapClickEvent read fOnMinimapClick write fOnMinimapClick;
     property DoHorizontalScroll: Boolean read fDoHorizontalScroll write fDoHorizontalScroll;
     property DisplayWidth: Integer read fDisplayWidth write fDisplayWidth;
@@ -520,6 +519,59 @@ procedure TSkillPanelToolbar.RefreshInfo;
 var
   i: TSkillPanelButton;
   TimeRemaining: Integer;
+
+  function GetSkillString(L: TLemming): String;
+  var
+    i: Integer;
+    ShowAthleteInfo: Boolean;
+
+    procedure DoInc(aText: String);
+    begin
+      Inc(i);
+      case i of
+        1: Result := aText;
+        2: Result := SAthlete;
+        3: Result := STriathlete;
+        4: Result := SQuadathlete;
+      end;
+    end;
+  begin
+    if L = nil then
+    begin
+      Result := '';
+      Exit;
+    end;
+
+    Result := LemmingActionStrings[L.LemAction];
+
+    if not (L.LemAction in [baBuilding, baPlatforming, baStacking, baBashing, baMining, baDigging, baBlocking]) then
+    begin
+      i := 0;
+      if L.LemIsClimber then DoInc(SClimber);
+      if L.LemIsSwimmer then DoInc(SSwimmer);
+      if L.LemIsFloater then DoInc(SFloater);
+      if L.LemIsGlider then DoInc(SGlider);
+      if L.LemIsMechanic then DoInc(SMechanic);
+      if L.LemIsZombie then
+      begin
+        Result := SZombie;
+        ShowAthleteInfo := true;
+      end else
+        ShowAthleteInfo := GameParams.Hotkeys.CheckForKey(lka_ShowAthleteInfo);
+
+      if ShowAthleteInfo then
+      begin
+        Result := '-----';
+        if L.LemIsClimber then Result[1] := 'C';
+        if L.LemIsSwimmer then Result[2] := 'S';
+        if L.LemIsFloater then Result[3] := 'F';
+        if L.LemIsGlider then Result[3] := 'G';
+        if L.LemIsMechanic then Result[4] := 'D';
+        if L.LemIsZombie then Result[5] := 'Z';
+      end;
+    end;
+  end;
+
 begin
   SetInfoLemHatch(Game.LemmingsToSpawn - Level.Info.ZombieCount);
   SetInfoLemAlive(Game.LemmingsToSpawn + Game.LemmingsActive);
@@ -532,17 +584,32 @@ begin
   end else begin
     TimeRemaining := Level.Info.TimeLimit - (Game.CurrentIteration div 17);
     SetInfoMinutes(TimeRemaining div 60);
-    SetInfoMinutes(TimeRemaining mod 60);
+    SetInfoSeconds(TimeRemaining mod 60);
   end;
 
   DrawNewStr;
   fLastDrawnStr := fNewDrawStr;
-  
+
   for i := Low(TSkillPanelButton) to LAST_SKILL_BUTTON do
     DrawSkillCount(i, Game.SkillCount[i]);
 
   DrawSkillCount(spbSlower, Level.Info.ReleaseRate);
   DrawSkillCount(spbFaster, Game.CurrentReleaseRate);
+
+  if fHighlitSkill <> Game.RenderInterface.SelectedSkill then
+  begin
+    DrawButtonSelector(fHighlitSkill, false);
+    DrawButtonSelector(Game.RenderInterface.SelectedSkill, true);
+  end; // ugly code, but it's temporary
+
+  SetInfoCursorLemming(GetSkillString(Game.RenderInterface.SelectedLemming), Game.LastHitCount);
+
+  if not Game.Replaying then
+    SetReplayMark(0)
+  else if Game.ReplayInsert then
+    SetReplayMark(2)
+  else
+    SetReplayMark(1);
 end;
 
 
@@ -1230,18 +1297,8 @@ end;
 
 procedure TSkillPanelToolbar.SetGame(const Value: TLemmingGame);
 begin
-  if fGame <> nil then
-    fGame.InfoPainter := nil;
   fGame := Value;
-  if fGame <> nil then
-    fGame.InfoPainter := Self;
-end;
-
-
-
-procedure TSkillPanelToolbar.SetCurrentScreenOffset(X: Integer);
-begin
-  fCurrentScreenOffset := X;
+  SetTimeLimit(GameParams.Level.Info.TimeLimit < 6000);
 end;
 
 end.

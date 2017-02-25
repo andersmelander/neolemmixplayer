@@ -725,7 +725,6 @@ begin
   begin
     // just redraw TargetImage to display the correct game state
     DoDraw;
-    Game.RefreshAllPanelInfo;
     if Game.CancelReplayAfterSkip then
     begin
       Game.RegainControl;
@@ -848,7 +847,7 @@ begin
   Img.OnMouseMove := Img_MouseMove;
   Img.OnMouseUp := Img_MouseUp;
 
-  SkillPanel.Game := fGame; // this links the game to the infopainter interface as well
+  SkillPanel.Game := fGame;
   SkillPanel.OnMinimapClick := SkillPanel_MinimapClick;
   Application.OnIdle := Application_Idle;
 
