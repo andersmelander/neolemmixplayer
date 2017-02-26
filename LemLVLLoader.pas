@@ -441,7 +441,7 @@ begin
   end;
 
   BcTranslate(aLevel);
-
+  aLevel.Sanitize;
 end;
 
 

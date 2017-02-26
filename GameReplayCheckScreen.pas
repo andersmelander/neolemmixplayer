@@ -332,48 +332,6 @@ var
       Result := Result + ' + ' + IntToStr(f) + ' frames';
   end;
 
-  // Checking the zombie count
-  procedure SimulateSpawn;
-  var
-    i: Integer;
-    LemsSpawned: Integer;
-
-    procedure FindNextWindow;
-    begin
-      if Length(Level.Info.WindowOrder) = 0 then
-      begin
-        repeat
-          i := i + 1;
-          if i = Level.InteractiveObjects.Count then i := 0;
-        until Renderer.FindMetaObject(Level.InteractiveObjects[i]).TriggerEffect = 23;
-      end else begin
-        i := Level.Info.WindowOrder[LemsSpawned mod Length(Level.Info.WindowOrder)];
-      end;
-    end;
-
-  begin
-    // A full blown simulation of lemming spawning is the only way to
-    // check how many Zombies the level has.
-    with Level, Level.Info do
-    begin
-      ZombieCount := 0;
-      for i := 0 to PreplacedLemmings.Count - 1 do
-      begin
-        if PreplacedLemmings[i].IsZombie then ZombieCount := ZombieCount + 1;
-      end;
-
-      LemsSpawned := PreplacedLemmings.Count; // to properly emulate the spawn order glitch, since no decision on how to fix it has been reached
-      i := -1; // Needed for FindNextWindow!
-      while LemsSpawned < LemmingsCount do
-      begin
-        FindNextWindow;
-        if Renderer.FindMetaObject(InteractiveObjects[i]).TriggerEffect <> 23 {DOM_WINDOW} then Continue;
-        Inc(LemsSpawned);
-        if (InteractiveObjects[i].TarLev and 64) <> 0 then ZombieCount := ZombieCount + 1;
-      end;
-    end;
-  end;
-
 begin
   BuildReplaysList;
 
@@ -419,8 +377,6 @@ begin
       Renderer.PrepareGameRendering(RenderInfo, true);
       Game.PrepareParams;
 
-      SimulateSpawn; // to get ZombieCount correct
-
       if LowerCase(ExtractFileExt(fReplays[i].ReplayFile)) = '.lrb' then
         Game.ReplayManager.LoadOldReplayFile(fReplays[i].ReplayFile)
       else
@@ -429,8 +385,8 @@ begin
       fReplays[i].ReplayResult := CR_UNDETERMINED;
 
       Game.Start;
-      Game.HyperSpeedBegin;
-      Game.TargetIteration := 170;
+      //Game.HyperSpeedBegin;
+      //Game.TargetIteration := 170;
       repeat
         if Game.CurrentIteration mod 170 = 0 then
         begin
@@ -454,7 +410,7 @@ begin
           end;
         if fReplays[i].ReplayResult <> CR_UNDETERMINED then Break;
 
-        Game.TargetIteration := Game.TargetIteration + 1; // never actually allow it to reach the targetiteration
+        //Game.TargetIteration := Game.TargetIteration + 1; // never actually allow it to reach the targetiteration
       until Game.CurrentIteration > Game.ReplayManager.LastActionFrame + (5 * 60 * 17);
 
       fReplays[i].ReplayDuration := Game.CurrentIteration;
