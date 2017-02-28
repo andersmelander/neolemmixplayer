@@ -70,7 +70,7 @@ type
       LemmingsToRelease: Integer;
       LemmingsCloned: Integer;
       LemmingsOut: Integer;
-      SpawnedDead: Integer;
+      fSpawnedDead: Integer;
       LemmingsIn: Integer;
       LemmingsRemoved: Integer;
       NextLemmingCountdown: Integer;
@@ -169,7 +169,7 @@ type
     LemmingsToRelease           : Integer; // number of lemmings that were created
     LemmingsCloned             : Integer; // number of cloned lemmings
     LemmingsOut                : Integer; // number of lemmings currently walking around
-    SpawnedDead                : Integer; // number of zombies that were created
+    fSpawnedDead                : Integer; // number of zombies that were created
     LemmingsIn                 : integer; // number of lemmings that made it to heaven
     LemmingsRemoved            : Integer; // number of lemmings removed
     DelayEndFrames             : Integer;
@@ -422,6 +422,7 @@ type
   { properties }
     property CurrentIteration: Integer read fCurrentIteration;
     property LemmingsToSpawn: Integer read LemmingsToRelease;
+    property SpawnedDead: Integer read fSpawnedDead;
     property LemmingsActive: Integer read LemmingsOut;
     property LemmingsSaved: Integer read LemmingsIn;
     property CurrentReleaseRate: Integer read CurrReleaseRate; // for skill panel's usage
@@ -656,7 +657,7 @@ begin
   aState.LemmingsToRelease := LemmingsToRelease;
   aState.LemmingsCloned := LemmingsCloned;
   aState.LemmingsOut := LemmingsOut;
-  aState.SpawnedDead := SpawnedDead;
+  aState.fSpawnedDead := fSpawnedDead;
   aState.LemmingsIn := LemmingsIn;
   aState.LemmingsRemoved := LemmingsRemoved;
   aState.NextLemmingCountdown := NextLemmingCountdown;
@@ -715,7 +716,7 @@ begin
   LemmingsToRelease := aState.LemmingsToRelease;
   LemmingsCloned := aState.LemmingsCloned;
   LemmingsOut := aState.LemmingsOut;
-  SpawnedDead := aState.SpawnedDead;
+  fSpawnedDead := aState.fSpawnedDead;
   LemmingsIn := aState.LemmingsIn;
   LemmingsRemoved := aState.LemmingsRemoved;
   NextLemmingCountdown := aState.NextLemmingCountdown;
@@ -775,7 +776,7 @@ begin
          or ((SaveRequirement = 0) and (LemmingsIn < GameParams.Level.Info.RescueCount)) then Continue;
 
       if    ((TimeLimit <> 0) and (CurrentIteration > TimeLimit))
-         or ((TimeLimit = 0) and (CurrentIteration > Level.Info.TimeLimit * 17)) then Continue;
+         or ((TimeLimit = 0) and Level.Info.HasTimeLimit and (CurrentIteration > Level.Info.TimeLimit * 17)) then Continue;
       if LowestReleaseRate < RRMin then Continue;
       if HighestReleaseRate > RRMax then Continue;
 
@@ -1059,7 +1060,7 @@ begin
   LemmingsToRelease := Level.Info.LemmingsCount;
   LemmingsCloned := 0;
   TimePlay := Level.Info.TimeLimit;
-  if (TimePlay > 5999) or (GameParams.TimerMode) then
+  if (not Level.Info.HasTimeLimit) or (GameParams.TimerMode) then
     TimePlay := 0; // infinite time
 
   FillChar(GameResultRec, SizeOf(GameResultRec), 0);
@@ -1067,7 +1068,7 @@ begin
   GameResultRec.gToRescue := Level.Info.RescueCount;
 
   LemmingsOut := 0;
-  SpawnedDead := Level.Info.ZombieCount;
+  fSpawnedDead := Level.Info.ZombieCount;
   LemmingsIn := 0;
   LemmingsRemoved := 0;
   DelayEndFrames := 0;
@@ -1214,7 +1215,7 @@ begin
       if Lem.IsZombie then
       begin
         RemoveLemming(L, RM_ZOMBIE, true);
-        Dec(SpawnedDead);
+        Dec(fSpawnedDead);
       end;
 
     end;
@@ -1541,7 +1542,7 @@ begin
   if fGameFinished then
     Exit;
 
-  if (TimePlay <= 0) and not ((GameParams.TimerMode) or (GameParams.Level.Info.TimeLimit > 5999)) then
+  if (TimePlay <= 0) and not ((GameParams.TimerMode) or (not GameParams.Level.Info.HasTimeLimit)) then
   begin
     GameResultRec.gTimeIsUp := True;
     Finish(GM_FIN_TIME);
@@ -1557,7 +1558,7 @@ begin
     Exit;
   end;
 
-  if ((Level.Info.LemmingsCount + LemmingsCloned - SpawnedDead) - (LemmingsRemoved) = 0) and (DelayEndFrames = 0) then
+  if ((Level.Info.LemmingsCount + LemmingsCloned - fSpawnedDead) - (LemmingsRemoved) = 0) and (DelayEndFrames = 0) then
   begin
     Finish(GM_FIN_LEMMINGS);
     Exit;
@@ -4838,7 +4839,7 @@ begin
           if (ObjectInfos[ix].PreAssignedSkills and 16) <> 0 then LemIsMechanic := true;
           if (ObjectInfos[ix].PreAssignedSkills and 64) <> 0 then
           begin
-            Dec(SpawnedDead);
+            Dec(fSpawnedDead);
             RemoveLemming(NewLemming, RM_ZOMBIE, true);
           end;
         end;
@@ -5471,43 +5472,6 @@ begin
   end;
 end;
 
-(*
-
-// Nepster: Please keep these until further notice.
-
-function TLemmingGame.CheckLemmingBlink: Boolean;
-var
-  i: Integer;
-  MaxSavedLemCount: Integer;
-begin
-  Result := false;
-  if not GameParams.LemmingBlink then Exit;
-  if GameParams.ChallengeMode and (spbCloner in Level.Info.Skillset) then Exit;
-
-  MaxSavedLemCount := LemmingsOut + LemmingsIn + (Level.Info.LemmingsCount - LemmingsToRelease - SpawnedDead);
-  if (spbCloner in Level.Info.Skillset) then
-  begin
-    Inc(MaxSavedLemCount, CurrSkillCount[baCloning]);
-    for i := 0 to ObjectInfos.Count - 1 do
-      if (ObjectInfos[i].TriggerEffect = DOM_PICKUP) and (ObjectInfos[i].SkillType = spbCloner) then
-        Inc(MaxSavedLemCount);
-  end;
-
-  Result := (CurrentIteration mod 17 > 8) and (MaxSavedLemCount < Level.Info.RescueCount);
-end;
-
-function TLemmingGame.CheckTimerBlink: Boolean;
-begin
-  Result := false;
-  if not (GameParams.TimerBlink) then Exit; 
-  if ((GameParams.TimerMode) or (GameParams.Level.Info.TimeLimit > 5999)) then Exit;
-  if (TimePlay < 30) and (TimePlay >= 0) and (CurrentIteration mod 17 > 8) then
-    Result := true;
-end;
-
-*)
-
-
 function TLemmingGame.CheckSkillAvailable(aAction: TBasicLemmingAction): Boolean;
 var
   HasSkillButton: Boolean;
@@ -5531,7 +5495,8 @@ begin
   end
   else if not Rev then // and neither GameParams.ChallengeMode
   begin
-    CurrSkillCount[aAction] := Max(CurrSkillCount[aAction] - 1, 0);
+    if CurrSkillCount[aAction] < 100 then // need to implement a seperate "infinite" setting
+      CurrSkillCount[aAction] := Max(CurrSkillCount[aAction] - 1, 0);
     Inc(UsedSkillCount[aAction])
   end;
 end;

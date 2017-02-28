@@ -386,6 +386,9 @@ begin
     else raise Exception.Create('Invalid level or unsupported format.');
   end;
 
+  if (b <= 4) then
+    aLevel.Info.HasTimeLimit := aLevel.Info.TimeLimit < 6000;
+
   // if the level has no Level ID, make one.
   // must be pseudo-random to enough extent to generate a different ID for each level,
   // but the same ID for the same level if unmodified

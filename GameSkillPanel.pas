@@ -7,6 +7,7 @@ uses
   Classes, Controls, SysUtils, Math,
   GR32, GR32_Image, GR32_Layers,
   UMisc,
+  Windows,
   LemmixHotkeys, LemStrings, LemTypes,
   LemDosStructures, LemDosStyle,
   LemLemming,
@@ -519,6 +520,8 @@ procedure TSkillPanelToolbar.RefreshInfo;
 var
   i: TSkillPanelButton;
   TimeRemaining: Integer;
+  IsBlinkFrame: Boolean;
+  DoTimerBlink: Boolean;
 
   function GetSkillString(L: TLemming): String;
   var
@@ -544,7 +547,9 @@ var
 
     Result := LemmingActionStrings[L.LemAction];
 
-    if not (L.LemAction in [baBuilding, baPlatforming, baStacking, baBashing, baMining, baDigging, baBlocking]) then
+    ShowAthleteInfo := L.LemIsZombie or GameParams.Hotkeys.CheckForKey(lka_ShowAthleteInfo);
+
+    if ShowAthleteInfo or (not (L.LemAction in [baBuilding, baPlatforming, baStacking, baBashing, baMining, baDigging, baBlocking])) then
     begin
       i := 0;
       if L.LemIsClimber then DoInc(SClimber);
@@ -552,12 +557,7 @@ var
       if L.LemIsFloater then DoInc(SFloater);
       if L.LemIsGlider then DoInc(SGlider);
       if L.LemIsMechanic then DoInc(SMechanic);
-      if L.LemIsZombie then
-      begin
-        Result := SZombie;
-        ShowAthleteInfo := true;
-      end else
-        ShowAthleteInfo := GameParams.Hotkeys.CheckForKey(lka_ShowAthleteInfo);
+      if L.LemIsZombie then Result := SZombie;
 
       if ShowAthleteInfo then
       begin
@@ -573,21 +573,24 @@ var
   end;
 
 begin
+  IsBlinkFrame := (GetTickCount mod 1000) > 499;
+
   // hatch: (Count + Cloned - SpawnedDead) - (Out + Removed)
   // alive: (Count + Cloned - SpawnedDead) - Removed
   //    in: Saved - Requirement
-  SetInfoLemHatch(Game.LemmingsToSpawn);
-  SetInfoLemAlive(Game.LemmingsToSpawn + Game.LemmingsActive);
+  SetInfoLemHatch(Game.LemmingsToSpawn - Game.SpawnedDead);
+  SetInfoLemAlive(Game.LemmingsToSpawn + Game.LemmingsActive - Game.SpawnedDead, ((Game.LemmingsToSpawn + Game.LemmingsActive + Game.SkillCount[spbCloner] - Game.SpawnedDead) < (Level.Info.RescueCount - Game.LemmingsSaved)) and IsBlinkFrame);
   SetInfoLemIn(Game.LemmingsSaved - Level.Info.RescueCount);
 
-  if Level.Info.TimeLimit > 5999 then
+  if Level.Info.HasTimeLimit then
   begin
+    TimeRemaining := Level.Info.TimeLimit - (Game.CurrentIteration div 17);
+    DoTimerBlink := IsBlinkFrame and (TimeRemaining <= 30);
+    SetInfoMinutes(TimeRemaining div 60, DoTimerBlink);
+    SetInfoSeconds(TimeRemaining mod 60, DoTimerBlink);
+  end else begin
     SetInfoMinutes(Game.CurrentIteration div (17 * 60));
     SetInfoSeconds((Game.CurrentIteration mod (17 * 60)) div 17);
-  end else begin
-    TimeRemaining := Level.Info.TimeLimit - (Game.CurrentIteration div 17);
-    SetInfoMinutes(TimeRemaining div 60);
-    SetInfoSeconds(TimeRemaining mod 60);
   end;
 
   DrawNewStr;
@@ -1308,7 +1311,7 @@ end;
 procedure TSkillPanelToolbar.SetGame(const Value: TLemmingGame);
 begin
   fGame := Value;
-  SetTimeLimit(GameParams.Level.Info.TimeLimit < 6000);
+  SetTimeLimit(GameParams.Level.Info.HasTimeLimit);
 end;
 
 end.
