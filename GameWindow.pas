@@ -33,9 +33,13 @@ const
   CURSOR_TYPES = 2;
   EXTRA_ZOOM_LEVELS = 4;
 
+  // special hyperspeed ends. usually only needed for forwards ones, backwards can often get the exact frame.
+  SHE_SHRUGGER = 1;
+
 type
   TGameWindow = class(TGameBaseScreen)
   private
+    fSaveStateReplayStream: TMemoryStream;
     fCloseToScreen: TGameScreenType;
     fSuspendCursor: Boolean;
     fClearPhysics: Boolean;
@@ -51,6 +55,7 @@ type
     fMinimapBuffer: TBitmap32;
   { current gameplay }
     fGameSpeed: TGameSpeed;
+    fHyperSpeedStopCondition: Integer;
     fHyperSpeedTarget: Integer;
   { game eventhandler}
     procedure Game_Finished;
@@ -88,6 +93,7 @@ type
     procedure ApplyResize(NoRecenter: Boolean = false);
     procedure ChangeZoom(aNewZoom: Integer; NoRedraw: Boolean = false);
     procedure ReleaseCursors;
+    procedure HandleSpecialSkip(aSkipType: Integer);
 
     function GetLevelMusicName: String;
     function GetIsHyperSpeed: Boolean;
@@ -375,6 +381,9 @@ procedure TGameWindow.Application_Idle(Sender: TObject; var Done: Boolean);
     Game.UpdateLemmings().
 -------------------------------------------------------------------------------}
 var
+  i: Integer;
+  ContinueHyper: Boolean;
+
   CurrTime: Cardinal;
   Fast, ForceOne, TimeForFrame, TimeForFastForwardFrame, TimeForScroll, Hyper, Pause: Boolean;
 begin
@@ -446,19 +455,40 @@ begin
       end;
     end;
 
+    if Hyper and (fHyperSpeedStopCondition <> 0) then
+    begin
+      ContinueHyper := false;
+      case fHyperSpeedStopCondition of
+        SHE_SHRUGGER: for i := 0 to fRenderInterface.LemmingList.Count-1 do
+                      begin
+                        if fRenderInterface.LemmingList[i].LemRemoved then Continue;
+
+                        if fRenderInterface.LemmingList[i].LemAction = baShrugging then
+                        begin
+                          ContinueHyper := false;
+                          Break;
+                        end;
+
+                        if fRenderInterface.LemmingList[i].LemAction in [baBuilding, baStacking, baPlatforming] then
+                          ContinueHyper := true;
+                      end;
+      end;
+
+      if not ContinueHyper then
+      begin
+        fHyperSpeedTarget := Game.CurrentIteration;
+        fHyperSpeedStopCondition := 0;
+      end else
+        fHyperSpeedTarget := Game.CurrentIteration + 1;
+    end;
+
     // Refresh panel if in usual or fast play mode
     if not Hyper then
     begin
       SkillPanel.RefreshInfo;
       CheckResetCursor;
-    end
-    // End hyperspeed if we have reached the TargetIteration and are not mass replay checking
-    // Note that TargetIteration is 1 less than the actual target frame number,
-    // because we only set Game.LeavingHyperSpeed=True here,
-    // any only exit hyperspeed after calling Game.UpdateLemmings once more!
-    else if (Game.CurrentIteration = fHyperSpeedTarget) then
+    end else if (Game.CurrentIteration = fHyperSpeedTarget) then
     begin
-      //Game.HyperSpeedEnd;
       fHyperSpeedTarget := -1;
       SkillPanel.RefreshInfo;
       fNeedRedraw := true;
@@ -479,7 +509,7 @@ end;
 
 function TGameWindow.GetIsHyperSpeed: Boolean;
 begin
-  Result := fHyperSpeedTarget > Game.CurrentIteration;
+  Result := (fHyperSpeedTarget > Game.CurrentIteration) or (fHyperSpeedStopCondition <> 0);
 end;
 
 procedure TGameWindow.ProcessGameMessages;
@@ -497,7 +527,7 @@ begin
       GAMEMSG_SOUND: if not IsHyperSpeed then
                        SoundManager.PlaySound(Msg.MessageDataStr);
       GAMEMSG_SOUND_BAL: if not IsHyperSpeed then
-                           SoundManager.PlaySound(Msg.MessageDataStr, Msg.MessageDataInt);
+                           SoundManager.PlaySound(Msg.MessageDataStr,  (Msg.MessageDataInt - Trunc(((Img.Width / 2) - Img.OffsetHorz) / Img.Scale)) div 2);
       GAMEMSG_MUSIC: SoundManager.PlayMusic;
     end;
   end;
@@ -833,6 +863,8 @@ begin
 
   fNeedReset := true;
 
+  fSaveStateReplayStream := TMemoryStream.Create;
+
   // create game
   fGame := GlobalGame; // set ref to GlobalGame
   fScrollSpeed := 1;
@@ -890,6 +922,8 @@ begin
 
   fSaveList.Free;
 
+  fSaveStateReplayStream.Free;
+
   ReleaseCursors;
 
   fMinimapBuffer.Free;
@@ -939,6 +973,7 @@ const
                          lka_ForceWalker,
                          lka_Cheat,
                          lka_Skip,
+                         lka_SpecialSkip,
                          lka_FastForward,
                          lka_SaveImage,
                          lka_LoadReplay,
@@ -1033,9 +1068,16 @@ begin
                       end else
                         fLastNukeKeyTime := CurrTime;
                     end;
-          lka_SaveState : fSaveStateFrame := fGame.CurrentIteration;
+          lka_SaveState : begin
+                            fSaveStateFrame := fGame.CurrentIteration;
+                            fSaveStateReplayStream.Clear;
+                            Game.ReplayManager.SaveToStream(fSaveStateReplayStream);
+                          end;
           lka_LoadState : if fSaveStateFrame <> -1 then
                           begin
+                            fSaveList.ClearAfterIteration(0);
+                            fSaveStateReplayStream.Position := 0;
+                            Game.ReplayManager.LoadFromStream(fSaveStateReplayStream);
                             GotoSaveState(fSaveStateFrame);
                             if GameParams.NoAutoReplayMode then Game.CancelReplayAfterSkip := true;
                           end;
@@ -1071,17 +1113,15 @@ begin
                       begin
                         if GameParams.NoAutoReplayMode then Game.CancelReplayAfterSkip := true;
                         if CurrentIteration > (func.Modifier * -1) then
-                          GotoSaveState(CurrentIteration + func.Modifier - 1)
+                          GotoSaveState(CurrentIteration + func.Modifier)
                         else
                           GotoSaveState(0);
                       end else if func.Modifier > 1 then
                       begin
-                        // We have to set TargetIteration one frame before the actual target frame number,
-                        // because on TargetIteration, we only set Game.LeavingHyperSpeed=True,
-                        // but exit hyperspeed only after calling Game.UpdateLemmings once more!
-                        fHyperSpeedTarget := CurrentIteration + func.Modifier - 1;
+                        fHyperSpeedTarget := CurrentIteration + func.Modifier;
                       end else
                         if fGameSpeed = gspPause then ForceUpdateOneFrame := true;
+          lka_SpecialSkip: HandleSpecialSkip(func.Modifier);
           lka_ClearPhysics: if func.Modifier = 0 then
                               ClearPhysics := not ClearPhysics
                             else
@@ -1098,6 +1138,45 @@ begin
 
   if (fGameSpeed = gspPause) and not ForceUpdateOneFrame then  // if ForceUpdateOneFrame is active, screen will be redrawn soon enough anyway
     DoDraw;
+end;
+
+procedure TGameWindow.HandleSpecialSkip(aSkipType: Integer);
+var
+  i: Integer;
+  TargetFrame: Integer;
+  HasSuitableSkill: Boolean;
+begin
+  TargetFrame := 0; // fallback
+  case aSkipType of
+    0: begin
+         if (Game.ReplayManager.LastActionFrame = -1) then Exit;
+
+         if Game.CurrentIteration > Game.ReplayManager.LastActionFrame then
+           TargetFrame := Game.ReplayManager.LastActionFrame
+         else
+           for i := 0 to Game.CurrentIteration do
+             if Game.ReplayManager.HasAnyActionAt(i) then
+               TargetFrame := i;
+         GotoSaveState(Max(TargetFrame - 1, 0));
+       end;
+    1: begin
+         HasSuitableSkill := false;
+         for i := 0 to fRenderInterface.LemmingList.Count-1 do
+         begin
+           if fRenderInterface.LemmingList[i].LemRemoved then Continue;
+
+           if fRenderInterface.LemmingList[i].LemAction in [baBuilding, baPlatforming, baStacking] then
+           begin
+             HasSuitableSkill := true;
+             Break;
+           end;
+         end;
+         if not HasSuitableSkill then Exit;
+
+         fHyperSpeedStopCondition := SHE_SHRUGGER;
+         GameSpeed := gspPause;
+       end;
+  end;
 end;
 
 procedure TGameWindow.Form_KeyPress(Sender: TObject; var Key: Char);
@@ -1614,7 +1693,7 @@ begin
     if (GameParams.AutoSaveReplay) and (GameParams.GameResult.gSuccess) and not (GameParams.GameResult.gCheated) then
     begin
       S := Game.ReplayManager.GetSaveFileName(self, Game.Level, true);
-      ForceDirectories(S);
+      ForceDirectories(ExtractFilePath(S));
       Game.EnsureCorrectReplayDetails;
       Game.ReplayManager.SaveToFile(S);
     end;
