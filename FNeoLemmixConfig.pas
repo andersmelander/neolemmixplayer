@@ -64,6 +64,7 @@ type
     cbFullScreen: TCheckBox;
     cbMinimapHighQuality: TCheckBox;
     cbIncreaseZoom: TCheckBox;
+    btnDownloadAll: TButton;
     procedure btnApplyClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure btnHotkeysClick(Sender: TObject);
@@ -76,6 +77,7 @@ type
     procedure SliderChange(Sender: TObject);
     procedure btnUpdateStylesClick(Sender: TObject);
     procedure btnForceRedownloadClick(Sender: TObject);
+    procedure btnDownloadAllClick(Sender: TObject);
   private
     fForceSkillset: Word;
     procedure SetFromParams;
@@ -381,6 +383,7 @@ var
     // Replaces version.ini with one that marks all styles as out of date
     SL := TStringList.Create;
     try
+      ForceDirectories(AppPath + 'styles\');
       if FindFirst(AppPath + 'styles\*.dat', faAnyFile, SearchRec) = 0 then
       begin
         repeat
@@ -403,6 +406,49 @@ begin
     GenerateJunkVersionINI;
     CheckForStyleUpdates(true);
   finally
+    OnlineEnabled := OldEnableOnline;
+  end;
+end;
+
+procedure TFormNXConfig.btnDownloadAllClick(Sender: TObject);
+var
+  SL, VerSL: TStringList;
+  i: Integer;
+  OldEnableOnline: Boolean;
+
+  GSName: String;
+begin
+  SL := TStringList.Create;
+  VerSL := TStringList.Create;
+  OldEnableOnline := OnlineEnabled;
+  try
+    if not cbEnableOnline.Checked then
+      if MessageDlg('You currently have online functionality disabled. Do you want to' + #13 + 'temporarily enable it to download styles?', mtCustom, [mbYes, mbNo], 0) = mrNo then
+        Exit;
+    OnlineEnabled := true;
+
+    ForceDirectories(AppPath + 'styles\');
+    if FileExists(AppPath + 'styles\versions.ini') then
+      VerSL.LoadFromFile(AppPath + 'styles\versions.ini');
+
+    DownloadToStringList(NX_STYLES_URL, SL);
+
+    for i := 0 to SL.Count-1 do
+      if Pos('=', SL[i]) > 0 then
+      begin
+        GSName := SL.Names[i];
+
+        if FileExists(AppPath + 'styles\' + GSName + '.dat') and (VerSL.Values[GSName] <= SL.Values[GSName]) then
+          Continue;
+
+        DownloadToFile(NX_STYLES_FOLDER + GSName + '.dat', AppPath + 'styles\' + GSName + '.dat');
+        VerSL.Values[GSName] := SL.Values[GSName];
+      end;
+
+    VerSL.SaveToFile(AppPath + 'styles\versions.ini');
+  finally
+    SL.Free;
+    VerSL.Free;
     OnlineEnabled := OldEnableOnline;
   end;
 end;

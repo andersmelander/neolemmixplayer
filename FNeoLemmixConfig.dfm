@@ -23,7 +23,7 @@ object FormNXConfig: TFormNXConfig
     Top = 0
     Width = 273
     Height = 345
-    ActivePage = TabSheet5
+    ActivePage = TabSheet1
     TabOrder = 0
     object TabSheet1: TTabSheet
       Caption = 'General'
@@ -90,7 +90,7 @@ object FormNXConfig: TFormNXConfig
         Left = 8
         Top = 128
         Width = 249
-        Height = 137
+        Height = 169
         Caption = 'Internet Options'
         TabOrder = 1
         object cbEnableOnline: TCheckBox
@@ -134,9 +134,18 @@ object FormNXConfig: TFormNXConfig
           Top = 104
           Width = 161
           Height = 25
-          Caption = 'Force Redownload All Styles'
+          Caption = 'Force Redownload Styles'
           TabOrder = 4
           OnClick = btnForceRedownloadClick
+        end
+        object btnDownloadAll: TButton
+          Left = 16
+          Top = 136
+          Width = 161
+          Height = 25
+          Caption = 'Get All Available Styles'
+          TabOrder = 5
+          OnClick = btnDownloadAllClick
         end
       end
     end
