@@ -473,23 +473,27 @@ end;
 
 procedure TGameBaseScreen.FadeOut;
 var
-  Steps: Integer; i: Integer;
+  Steps: Cardinal;
+  i: Integer;
   P: PColor32;
-
-  StepDelay: Cardinal;
-  StepStartTickCount: Cardinal;
+  StartTickCount: Cardinal;
+  IterationDiff: Integer;
+  RGBDiff: Integer;
+const
+  TOTAL_STEPS = 32;
+  STEP_DELAY = 6;
 begin
-  if (GameParams.LinearResampleMenu and not IsGameplayScreen)
-  or (GameParams.LinearResampleGame and IsGameplayScreen) then
+  Steps := 0;
+  StartTickCount := GetTickCount;
+  while Steps < TOTAL_STEPS do
   begin
-    Steps := 8;
-    StepDelay := 6;
-  end else begin
-    Steps := 16;
-    StepDelay := 3;
-  end;
-  while Steps > 0 do
-  begin
+    IterationDiff := ((GetTickCount - StartTickCount) div STEP_DELAY) - Steps;
+
+    if IterationDiff = 0 then
+      Continue;
+
+    RGBDiff := IterationDiff * 8;
+
     with ScreenImg.Bitmap do
     begin
       P := PixelPtr[0, 0];
@@ -497,20 +501,18 @@ begin
       begin
         with TColor32Entry(P^) do
         begin
-          if R > 8 then Dec(R, 8) else R := 0;
-          if G > 8 then Dec(G, 8) else G := 0;
-          if B > 8 then Dec(B, 8) else B := 0;
+          if R > RGBDiff then Dec(R, RGBDiff) else R := 0;
+          if G > RGBDiff then Dec(G, RGBDiff) else G := 0;
+          if B > RGBDiff then Dec(B, RGBDiff) else B := 0;
         end;
         Inc(P);
       end;
-      StepStartTickCount := GetTickCount;
-      Changed;
-      Update;
-      repeat
-      until GetTickCount - StepStartTickCount >= StepDelay; // changed Sleep(3) to this so that if Update takes a while, there isn't further delay on top of that
     end;
+    Inc(Steps, IterationDiff);
 
-    Dec(Steps);
+    ScreenImg.Bitmap.Changed;
+    Changed;
+    Update;
   end;
 
   Application.ProcessMessages;

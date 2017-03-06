@@ -50,6 +50,7 @@ type
     fMouseTrapped: Boolean;
     fSaveList: TLemmingGameSavedStateList;
     fReplayKilled: Boolean;
+    fLastSelectedLemming: TLemming;
     fInternalZoom: Integer;
     fMaxZoom: Integer;
     fMinimapBuffer: TBitmap32;
@@ -200,7 +201,7 @@ begin
     Img.Scale := aNewZoom;
 
     if (aNewZoom >= GameParams.ZoomLevel) or NoRedraw then // NoRedraw is only true during the call at a start of gameplay
-      SkillPanel.SetZoom(aNewZoom);
+      SkillPanel.Zoom := aNewZoom;
 
     fInternalZoom := aNewZoom;
 
@@ -234,6 +235,10 @@ begin
   Img.Width := Min(ClientWidth, GameParams.Level.Info.Width * fInternalZoom);
   Img.Height := Min(ClientHeight - SkillPanel.Height, GameParams.Level.Info.Height * fInternalZoom);
   Img.Left := (ClientWidth - Img.Width) div 2;
+  if SkillPanel.Zoom > SkillPanel.MaxZoom then
+    SkillPanel.Zoom := SkillPanel.MaxZoom
+  else if (SkillPanel.Zoom < fInternalZoom) and (SkillPanel.Zoom < SkillPanel.MaxZoom) then
+    SkillPanel.Zoom := fInternalZoom;
   SkillPanel.Left := (ClientWidth - SkillPanel.Width) div 2;
   // tops are calculated later
 
@@ -435,7 +440,7 @@ begin
     if TimeForScroll then
     begin
       PrevScrollTime := CurrTime;
-      if CheckScroll then fNeedRedraw := True;
+      if CheckScroll and not (GameParams.MinimapHighQuality) then fNeedRedraw := True;
     end;
 
     // Check whether we have to move the lemmings
@@ -772,7 +777,7 @@ begin
   if aTargetIteration = Game.CurrentIteration then
   begin
     // just redraw TargetImage to display the correct game state
-    DoDraw;
+    //DoDraw;
     if Game.CancelReplayAfterSkip then
     begin
       Game.RegainControl;
@@ -1324,8 +1329,13 @@ begin
 
     SkillPanel.MinimapScrollFreeze := false;
 
-    if fGameSpeed = gspPause then
-      DoDraw; // probably causing major lag, can we detect if it's nessecary and only redraw if it is?
+    if (fGameSpeed = gspPause) and
+       ( (fRenderInterface.SelectedLemming <> fLastSelectedLemming) or
+         ((not GameParams.MinimapHighQuality) and ((GameScroll <> gsNone) or (GameVScroll <> gsNone)))
+       ) then
+      DoDraw;
+
+    fLastSelectedLemming := fRenderInterface.SelectedLemming;
   end;
 
 end;
@@ -1517,8 +1527,9 @@ begin
   if O < MinVScroll then O := MinVScroll;
   if O > MaxVScroll then O := MaxVScroll;
   Img.OffsetVert := O;
-  
-  DoDraw;
+
+  if not GameParams.MinimapHighQuality then
+    DoDraw;
 end;
 
 procedure TGameWindow.Form_MouseUp(Sender: TObject; Button: TMouseButton;
