@@ -104,15 +104,6 @@ var
   MO_PM: TMetaObjectInterface;  // for objects from the piece manager
   L: TPreplacedLemming;
 
-  procedure RemovedObjectPatch(Removed: Integer);
-  var
-    i: Integer;
-  begin
-    for i := 0 to Length(aLevel.Info.WindowOrder)-1 do
-      if aLevel.Info.WindowOrder[i] >= Removed then
-        aLevel.Info.WindowOrder[i] := aLevel.Info.WindowOrder[i] - 1;
-  end;
-
   function FixStyleName(aName: String): String;
   begin
     // Fixes a few style names that have been changed
@@ -157,7 +148,6 @@ begin
       L.IsBlocker := (O.TarLev and 32) <> 0;
       L.IsZombie := (O.TarLev and 64) <> 0;
       aLevel.InteractiveObjects.Delete(i);
-      RemovedObjectPatch(i);
       Continue;
     end;
 
@@ -187,7 +177,6 @@ begin
     if MO_PM.TriggerEffect = 32 then
     begin
       aLevel.InteractiveObjects.Delete(i);
-      RemovedObjectPatch(i);
       Continue;
     end;
   end;
@@ -1520,19 +1509,6 @@ begin
       aStream.Write(s, SizeOf(S));
     end;
   {end;}
-
-    if Length(Info.WindowOrder) > 0 then
-    begin
-      b := 4;
-      aStream.Write(b, 1);
-      for i := 0 to Length(Info.WindowOrder)-1 do
-      begin
-        w := Info.WindowOrder[i];
-        aStream.Write(w, 2);
-      end;
-      w := $FFFF;
-      aStream.Write(w, 2);
-    end;
 
     b := 5;
     aStream.Write(b, 1);
