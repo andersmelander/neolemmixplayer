@@ -47,8 +47,6 @@ type
     procedure Load(aCollection, aPiece: String); overload; virtual;
     procedure Load(aSet: TBcGraphicSet; aIndex: Integer); overload;
 
-    procedure LoadVgaspec(aSet: TBcGraphicSet);
-
     property Identifier : String read GetIdentifier;
     property GraphicImage[Flip, Invert, Rotate: Boolean]: TBitmap32 read GetGraphicImage;
     property PhysicsImage[Flip, Invert, Rotate: Boolean]: TBitmap32 read GetPhysicsImage;
@@ -146,80 +144,6 @@ begin
   fGeneratedGraphicImage[0] := true;
 
   fIsSteel := TI.TerrainFlags and 1 <> 0;
-end;
-
-procedure TMetaTerrain.LoadVgaspec(aSet: TBcGraphicSet);
-var
-  TempBmp: TBitmap32;
-  ResizeBmp: TBitmap32;
-  TI: TNeoLemmixTerrainData;
-  DS: TMemoryStream;
-
-  procedure HandleResize;
-  begin
-    ResizeBmp.SetSize(TempBmp.Width div aSet.Resolution, TempBmp.Height div aSet.Resolution);
-    TempBmp.DrawTo(ResizeBmp, ResizeBmp.BoundsRect, TempBmp.BoundsRect);
-  end;
-
-  function LoadPiece(aIndex: Integer): Boolean;
-  begin
-    Result := aIndex < aSet.TerrainCount;
-    if not Result then Exit;
-    TI := aSet.TerrainData[aIndex];
-    DS.Position := TI.BaseLoc;
-    LoadNeoLemmixImage(DS, TempBmp);
-    HandleResize;
-  end;
-
-  procedure ModPhysicsMap(aSrc: TBitmap32; aMod: TColor32);
-  var
-    x, y: Integer;
-    MaxX, MaxY: Integer;
-    PM: TBitmap32;
-  begin
-    PM := fPhysicsImages[0];
-    MaxX := Max(aSrc.Width, PM.Width);
-    MaxY := Max(aSrc.Height, PM.Height);
-
-    for y := 0 to MaxY-1 do
-      for x := 0 to MaxX-1 do
-        if aSrc.Pixel[x, y] and $FF000000 <> 0 then
-          PM.Pixel[x, y] := PM.Pixel[x, y] or aMod;
-  end;
-begin
-  TempBmp := TBitmap32.Create;
-  ResizeBmp := TBitmap32.Create;
-
-  try
-    DS := aSet.DataStream;
-
-    ClearImages;
-    fGS := 'special';
-    fPiece := RightStr(aSet.Name, Length(aSet.Name)-2);
-
-    if aSet.SpecialBitmap <> nil then // older format
-    begin
-      fGraphicImages[0].Assign(aSet.SpecialBitmap);
-      fGeneratedGraphicImage[0] := true;
-      Exit;
-    end else begin
-      LoadPiece(0);
-      fGraphicImages[0].Assign(ResizeBmp);
-      GeneratePhysicsImage;
-      fGeneratedGraphicImage[0] := true;
-      fGeneratedPhysicsImage[0] := true;
-
-      if not LoadPiece(1) then Exit;
-      ModPhysicsMap(ResizeBmp, PM_STEEL);
-
-      if not LoadPiece(2) then Exit;
-      ModPhysicsMap(ResizeBmp, PM_ONEWAY);
-    end;
-
-  finally
-    TempBmp.Free;
-    ResizeBmp.Free;
-  end;
 end;
 
 procedure TMetaTerrain.ClearImages;
