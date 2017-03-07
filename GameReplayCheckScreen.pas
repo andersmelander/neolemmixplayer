@@ -251,6 +251,7 @@ var
       Result := true;
     finally
       Parser.Free;
+      DataStream.Free;
     end;
   end;
 
