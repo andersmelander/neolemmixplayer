@@ -31,12 +31,10 @@ type
     public
       class procedure MaskImageFromFile(Bmp: TBitmap32; fn: String; C: TColor32);
       class procedure MaskImageFromImage(Bmp: TBitmap32; Mask: TBitmap32; C: TColor32);
-      class function LoadPngFile(fn: String; ForceInternal: Boolean = false): TBitmap32; overload;
-      class procedure LoadPngFile(fn: String; Bmp: TBitmap32; ForceInternal: Boolean = false); overload;
-      class function LoadPngStream(aStream: TStream): TBitmap32; overload;
+      class procedure LoadPngFile(fn: String; Bmp: TBitmap32; ForceInternal: Boolean = false);
       class procedure LoadPngStream(aStream: TStream; Bmp: TBitmap32); overload;
       class procedure SavePngFile(fn: String; Bmp: TBitmap32; NoAlpha: Boolean = false);
-      class procedure SavePngStream(aStream: TStream; Bmp: TBitmap32; NoAlpha: Boolean = false); overload;
+      class procedure SavePngStream(aStream: TStream; Bmp: TBitmap32; NoAlpha: Boolean = false);
   end;
 
 implementation
@@ -52,7 +50,8 @@ begin
   //if not FileExists(fn) then Exit;
   TempStream := CreateDataStream(fn, ldtLemmings);
   if TempStream = nil then Exit;
-  TempBmp := LoadPngStream(TempStream);
+  TempBmp := TBitmap32.Create;
+  LoadPngStream(TempStream, TempBmp);
   MaskImageFromImage(Bmp, TempBmp, C);
   TempBmp.Free;
   TempStream.Free;
@@ -89,18 +88,6 @@ begin
   MaskBMP.CombineMode := cmMerge;
   MaskBMP.DrawTo(Bmp);
   MaskBMP.Free;
-end;
-
-class function TPngInterface.LoadPngFile(fn: String; ForceInternal: Boolean = false): TBitmap32;
-begin
-  Result := TBitmap32.Create;
-  LoadPngFile(fn, Result, ForceInternal);
-end;
-
-class function TPngInterface.LoadPngStream(aStream: TStream): TBitmap32;
-begin
-  Result := TBitmap32.Create;
-  LoadPngStream(aStream, Result);
 end;
 
 class procedure TPngInterface.LoadPngFile(fn: String; Bmp: TBitmap32; ForceInternal: Boolean = false);
