@@ -51,17 +51,20 @@ type
     fClearPhysics: Boolean;
     fRenderInterface: TRenderInterface;
     fRenderer: TRenderer;
-    fNeedRedraw: TRedrawOption;
     fNeedReset : Boolean;
     fMouseTrapped: Boolean;
     fSaveList: TLemmingGameSavedStateList;
     fReplayKilled: Boolean;
-    fLastSelectedLemming: TLemming;
     fInternalZoom: Integer;
     fMaxZoom: Integer;
     fMinimapBuffer: TBitmap32;
+  { detecting if redraw is needed. These are a bit kludgy but I'm strongly considering a full rewrite of TGameWindow }
+    fNeedRedraw: TRedrawOption;
+    fLastSelectedLemming: TLemming;
+    fLastHighlightLemming: TLemming;
+    fLastSelectedSkill: TSkillPanelButton;
   { current gameplay }
-    fGameSpeed: TGameSpeed;
+    fGameSpeed: TGameSpeed;               // do NOT set directly, set via GameSpeed property
     fHyperSpeedStopCondition: Integer;
     fHyperSpeedTarget: Integer;
   { game eventhandler}
@@ -704,6 +707,14 @@ var
   DrawWidth, DrawHeight: Integer;
 begin
   if IsHyperSpeed then Exit;
+
+  Game.HitTest(PtInRect(Img.BoundsRect, Mouse.CursorPos));
+
+  if (fRenderInterface.SelectedLemming <> fLastSelectedLemming)
+  or (fRenderInterface.HighlitLemming <> fLastHighlightLemming)
+  or (fRenderInterface.SelectedSkill <> fLastSelectedSkill) then
+    fNeedRedraw := rdRedraw;
+
   if fNeedRedraw = rdRefresh then
   begin
     Img.Changed;
@@ -728,6 +739,10 @@ begin
     RenderMinimap;
     SkillPanel.RefreshInfo;
     fNeedRedraw := rdNone;
+
+    fLastSelectedLemming := fRenderInterface.SelectedLemming;
+    fLastHighlightLemming := fRenderInterface.HighlitLemming;
+    fLastSelectedSkill := fRenderInterface.SelectedSkill;
   except
     on E: Exception do
       OnException(E, 'TGameWindow.DoDraw');
@@ -1360,13 +1375,9 @@ begin
 
     SkillPanel.MinimapScrollFreeze := false;
 
-    if (fGameSpeed = gspPause) and
-       ( (fRenderInterface.SelectedLemming <> fLastSelectedLemming) or
-         ((not GameParams.MinimapHighQuality) and ((GameScroll <> gsNone) or (GameVScroll <> gsNone)))
-       ) then
-      DoDraw;
-
-    fLastSelectedLemming := fRenderInterface.SelectedLemming;
+    if fGameSpeed = gspPause then
+      if ((GameScroll <> gsNone) or (GameVScroll <> gsNone)) and not GameParams.MinimapHighQuality then
+        fNeedRedraw := rdRefresh;
   end;
 
 end;
