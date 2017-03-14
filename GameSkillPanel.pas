@@ -684,23 +684,28 @@ begin
                 TGameWindow(Owner).GameSpeed := gspNormal
               else
                 TGameWindow(Owner).GameSpeed := gspPause;
-              DrawButtonSelector(spbFastForward, false);
-              DrawButtonSelector(spbPause, TGameWindow(Owner).GameSpeed = gspPause);
             end else
               Game.SetSelectedSkill(i, True, GameParams.Hotkeys.CheckForKey(lka_Highlight));
           end;
         end else begin // need special handling
           case i of
-            spbFastForward: begin
-                              case TGameWindow(Owner).GameSpeed of
-                                gspNormal: TGameWindow(Owner).GameSpeed := gspFF;
-                                gspFF: TGameWindow(Owner).GameSpeed := gspNormal;
-                              end;
-                              DrawButtonSelector(spbFastForward, TGameWindow(Owner).GameSpeed = gspFF);
+            spbFastForward: case TGameWindow(Owner).GameSpeed of
+                              gspNormal: TGameWindow(Owner).GameSpeed := gspFF;
+                              gspFF: TGameWindow(Owner).GameSpeed := gspNormal;
                             end;
-            spbRestart: TGameWindow(Parent).GotoSaveState(0, true);
-            spbBackOneFrame: TGameWindow(Parent).GotoSaveState(Game.CurrentIteration - 2); // logically this should be -1, but -2 seems to give correct behaviour. should probably investigate this.
-            spbForwardOneFrame: TGameWindow(Parent).ForceUpdateOneFrame := true;
+            spbRestart: TGameWindow(Parent).GotoSaveState(0, -1);
+            spbBackOneFrame: if Button = mbLeft then
+                               TGameWindow(Parent).GotoSaveState(Game.CurrentIteration - 1)
+                             else if Button = mbRight then
+                               TGameWindow(Parent).GotoSaveState(Game.CurrentIteration - 17)
+                             else if Button = mbMiddle then
+                               TGameWindow(Parent).GotoSaveState(Game.CurrentIteration - 85);
+            spbForwardOneFrame: if Button = mbLeft then
+                                  TGameWindow(Parent).ForceUpdateOneFrame := true
+                                else if Button = mbRight then
+                                  TGameWindow(Parent).HyperSpeedTarget := Game.CurrentIteration + 17
+                                else if Button = mbMiddle then
+                                  TGameWindow(Parent).HyperSpeedTarget := Game.CurrentIteration + 85;
             spbClearPhysics: TGameWindow(Parent).ClearPhysics := not TGameWindow(Parent).ClearPhysics;
             spbDirLeft: if TGameWindow(Parent).SkillPanelSelectDx = -1 then
                         begin
