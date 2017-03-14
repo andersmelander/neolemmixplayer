@@ -63,6 +63,7 @@ type
     fLastSelectedLemming: TLemming;
     fLastHighlightLemming: TLemming;
     fLastSelectedSkill: TSkillPanelButton;
+    fLastHelperIcon: THelperIcon;
   { current gameplay }
     fGameSpeed: TGameSpeed;               // do NOT set directly, set via GameSpeed property
     fHyperSpeedStopCondition: Integer;
@@ -446,9 +447,6 @@ begin
   begin
     fRenderInterface.ForceUpdate := false;
 
-    // Check for user helpers
-    CheckUserHelpers;
-
     // only in paused mode adjust RR. If not paused it's updated per frame.
     if fGameSpeed = gspPause then
       if TimeForScroll or ForceOne then
@@ -709,10 +707,12 @@ begin
   if IsHyperSpeed then Exit;
 
   Game.HitTest(PtInRect(Img.BoundsRect, Mouse.CursorPos));
+  CheckUserHelpers;
 
   if (fRenderInterface.SelectedLemming <> fLastSelectedLemming)
   or (fRenderInterface.HighlitLemming <> fLastHighlightLemming)
-  or (fRenderInterface.SelectedSkill <> fLastSelectedSkill) then
+  or (fRenderInterface.SelectedSkill <> fLastSelectedSkill)
+  or (fRenderInterface.UserHelper <> fLastHelperIcon) then
     fNeedRedraw := rdRedraw;
 
   if fNeedRedraw = rdRefresh then
@@ -743,6 +743,7 @@ begin
     fLastSelectedLemming := fRenderInterface.SelectedLemming;
     fLastHighlightLemming := fRenderInterface.HighlitLemming;
     fLastSelectedSkill := fRenderInterface.SelectedSkill;
+    fLastHelperIcon := fRenderInterface.UserHelper;
   except
     on E: Exception do
       OnException(E, 'TGameWindow.DoDraw');
@@ -1376,8 +1377,12 @@ begin
     SkillPanel.MinimapScrollFreeze := false;
 
     if fGameSpeed = gspPause then
-      if ((GameScroll <> gsNone) or (GameVScroll <> gsNone)) and not GameParams.MinimapHighQuality then
+    begin
+      if fRenderInterface.UserHelper <> hpi_None then
+        fNeedRedraw := rdRedraw
+      else if ((GameScroll <> gsNone) or (GameVScroll <> gsNone)) and not GameParams.MinimapHighQuality then
         fNeedRedraw := rdRefresh;
+    end;
   end;
 
 end;
