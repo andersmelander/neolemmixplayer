@@ -46,9 +46,6 @@ type
       function GetMetaTerrain(Identifier: String): TMetaTerrain;
       function GetMetaObject(Identifier: String): TMetaObject;
       function GetBackground(Identifier: String): TBitmap32;
-
-      property TerrainCount: Integer read GetTerrainCount;
-      property ObjectCount: Integer read GetObjectCount;
     public
       constructor Create;
       destructor Destroy; override;
@@ -65,6 +62,10 @@ type
       property Backgrounds[Identifier: String]: TBitmap32 read GetBackground;
 
       property DisableTidy: Boolean read fDisableTidy write fDisableTidy;
+
+      // These two are usually private. Promoted to public for debugging purposes.
+      property TerrainCount: Integer read GetTerrainCount;
+      property ObjectCount: Integer read GetObjectCount;
   end;
 
   function SplitIdentifier(Identifier: String): TLabelRecord;
