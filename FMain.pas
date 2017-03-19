@@ -52,7 +52,6 @@ type
     procedure LMNext(var Msg: TMessage); message LM_NEXT;
     procedure LMExit(var Msg: TMessage); message LM_EXIT;
     procedure PlayGame;
-    procedure DebugInfo;
   public
     constructor Create(aOwner: TComponent); override;
     destructor Destroy; override;
@@ -65,8 +64,6 @@ var
 implementation
 
 uses
-  LemNeoPieceManager, // debugging
-  GR32, // debug version
   Math,
   GameControl, GameBaseScreen;
 
@@ -103,7 +100,6 @@ begin
   GlobalGame.Free;
   AppController.Free;
 //  ProgramSettings.Free;
-  DebugInfo;
   inherited;
 end;
 
@@ -138,11 +134,7 @@ procedure TMainForm.FormKeyDown(Sender: TObject; var Key: Word;
 begin
   if fChildForm = nil then Exit;
   if not Assigned(fChildForm.OnKeyDown) then Exit;
-  if Key = $43 then
-    ShowMessage('Terrains: ' + IntToStr(PieceManager.TerrainCount) + #13 +
-                'Objects: ' + IntToStr(PieceManager.ObjectCount))         // debug stuff
-  else
-    fChildForm.OnKeyDown(Sender, Key, Shift);
+  fChildForm.OnKeyDown(Sender, Key, Shift);
 end;
 
 procedure TMainForm.FormKeyUp(Sender: TObject; var Key: Word;
@@ -223,21 +215,6 @@ procedure TMainForm.FormMouseWheel(Sender: TObject; Shift: TShiftState;
 begin
   if Assigned(fChildForm.OnMouseWheel) then
     fChildForm.OnMouseWheel(Sender, Shift, WheelDelta, MousePos, Handled);
-end;
-
-procedure TMainForm.DebugInfo;
-var
-  SL: TStringList;
-begin
-  SL := TStringList.Create;
-  try
-    SL.Add('Bitmaps created: ' + IntToStr(Gr32DebugCreateCount));
-    SL.Add('Bitmaps destroyed: ' + IntToStr(Gr32DebugDestroyCount));
-    SL.Add('Unfreed bitmaps: ' + IntToStr(Gr32DebugCreateCount - Gr32DebugDestroyCount));
-    SL.SaveToFile(ExtractFilePath(ParamStr(0)) + 'debug.txt');
-  finally
-    SL.Free;
-  end;
 end;
 
 end.

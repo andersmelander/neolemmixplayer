@@ -375,6 +375,7 @@ begin
       fReplays[i].ReplayLevelText := Trim(LevelSys.SysDat.RankNames[LR]) + ' ' + IntToStr(LL + 1);
       fReplays[i].ReplayLevelTitle := Trim(Level.Info.Title);
 
+      PieceManager.Tidy;
       Renderer.PrepareGameRendering(RenderInfo, true);
       Game.PrepareParams;
 
