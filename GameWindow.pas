@@ -706,7 +706,7 @@ var
 begin
   if IsHyperSpeed then Exit;
 
-  Game.HitTest(PtInRect(Img.BoundsRect, Mouse.CursorPos));
+  Game.HitTest(not PtInRect(Img.BoundsRect, Mouse.CursorPos));
   CheckUserHelpers;
 
   if (fRenderInterface.SelectedLemming <> fLastSelectedLemming)
@@ -1580,8 +1580,7 @@ begin
   if O > MaxVScroll then O := MaxVScroll;
   Img.OffsetVert := O;
 
-  if not GameParams.MinimapHighQuality then
-    DoDraw;
+  fNeedRedraw := rdRefresh;
 end;
 
 procedure TGameWindow.Form_MouseUp(Sender: TObject; Button: TMouseButton;

@@ -33,4 +33,5 @@ tools/GSConvert/bin/*
 !tools/GSConvert/bin/*.dat
 !tools/GSConvert/bin/default/
 *.nxp
-bin/*Replay Results.txt
+bin/debug.txt
+bin/* Replay Results.txt

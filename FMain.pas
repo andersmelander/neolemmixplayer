@@ -52,6 +52,7 @@ type
     procedure LMNext(var Msg: TMessage); message LM_NEXT;
     procedure LMExit(var Msg: TMessage); message LM_EXIT;
     procedure PlayGame;
+    procedure DebugInfo;
   public
     constructor Create(aOwner: TComponent); override;
     destructor Destroy; override;
@@ -64,6 +65,7 @@ var
 implementation
 
 uses
+  GR32, // debug version
   Math,
   GameControl, GameBaseScreen;
 
@@ -100,6 +102,7 @@ begin
   GlobalGame.Free;
   AppController.Free;
 //  ProgramSettings.Free;
+  DebugInfo;
   inherited;
 end;
 
@@ -215,6 +218,21 @@ procedure TMainForm.FormMouseWheel(Sender: TObject; Shift: TShiftState;
 begin
   if Assigned(fChildForm.OnMouseWheel) then
     fChildForm.OnMouseWheel(Sender, Shift, WheelDelta, MousePos, Handled);
+end;
+
+procedure TMainForm.DebugInfo;
+var
+  SL: TStringList;
+begin
+  SL := TStringList.Create;
+  try
+    SL.Add('Bitmaps created: ' + IntToStr(Gr32DebugCreateCount));
+    SL.Add('Bitmaps destroyed: ' + IntToStr(Gr32DebugDestroyCount));
+    SL.Add('Unfreed bitmaps: ' + IntToStr(Gr32DebugCreateCount - Gr32DebugDestroyCount));
+    SL.SaveToFile(ExtractFilePath(ParamStr(0)) + 'debug.txt');
+  finally
+    SL.Free;
+  end;
 end;
 
 end.

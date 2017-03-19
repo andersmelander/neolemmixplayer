@@ -101,7 +101,8 @@ type
     moLinearResampleGame,
     moFullScreen,
     moMinimapHighQuality,
-    moIncreaseZoom
+    moIncreaseZoom,
+    moLoadedConfig
   );
 
   TMiscOptions = set of TMiscOption;
@@ -233,6 +234,7 @@ type
     property FullScreen: boolean Index moFullScreen read GetOptionFlag write SetOptionFlag;
     property MinimapHighQuality: boolean Index moMinimapHighQuality read GetOptionFlag write SetOptionFlag;
     property IncreaseZoom: boolean Index moIncreaseZoom read GetOptionFlag write SetOptionFlag;
+    property LoadedConfig: boolean Index moLoadedConfig read GetOptionFlag write SetOptionFlag;
 
     property PostLevelVictorySound: Boolean Index plsVictory read GetPostLevelSoundOptionFlag write SetPostLevelSoundOptionFlag;
     property PostLevelFailureSound: Boolean Index plsFailure read GetPostLevelSoundOptionFlag write SetPostLevelSoundOptionFlag;
@@ -442,10 +444,11 @@ begin
 
   SL := TStringList.Create;
 
-  if not FileExists(ExtractFilePath(ParamStr(0)) + 'NeoLemmix147Settings.ini') then
-    SL.LoadFromFile(ExtractFilePath(ParamStr(0)) + 'NeoLemmixSettings.ini')
-  else
+  if FileExists(ExtractFilePath(ParamStr(0)) + 'NeoLemmix147Settings.ini') then
+  begin
     SL.LoadFromFile(ExtractFilePath(ParamStr(0)) + 'NeoLemmix147Settings.ini');
+    LoadedConfig := true;
+  end;
 
   AutoReplayNames := LoadBoolean('AutoReplayNames', AutoReplayNames);
   AutoSaveReplay := LoadBoolean('AutoSaveReplay', AutoSaveReplay);
