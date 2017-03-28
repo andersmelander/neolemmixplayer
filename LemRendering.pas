@@ -1721,7 +1721,7 @@ begin
 
   // Background layer
   fBgColor := Theme.Colors[BACKGROUND_COLOR] and $FFFFFF;
-  //fLayers[rlBackground].Clear($FF000000 or fBgColor);
+  fLayers[rlBackground].Clear($FF000000 or fBgColor);
 
   if DoBackground and (Inf.Level.Info.Background <> '') then
   begin
