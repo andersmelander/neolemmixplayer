@@ -1367,7 +1367,7 @@ begin
       CheckResetCursor;
     end;
 
-    Game.HitTestAutoFail := not PtInRect(Img.BoundsRect, Point(X, Y));
+    Game.HitTestAutoFail := not PtInRect(Rect(0, 0, Img.Width, Img.Height), Point(X, Y));
 
     if X >= Img.Width - 1 then
       GameScroll := gsRight
@@ -1761,7 +1761,7 @@ begin
       aNextScreen := gstPreview;
     end;
 
-    if (GameParams.AutoSaveReplay) and (GameParams.GameResult.gSuccess) and not (GameParams.GameResult.gCheated) then
+    if (GameParams.AutoSaveReplay) and (Game.ReplayManager.IsModified) and (GameParams.GameResult.gSuccess) and not (GameParams.GameResult.gCheated) then
     begin
       S := Game.ReplayManager.GetSaveFileName(self, Game.Level, true);
       ForceDirectories(ExtractFilePath(S));
