@@ -14,7 +14,6 @@ orig_13
 orig_14
 orig_15
 orig_16
-orig_16
 orig_17
 ohno_01
 ohno_02
