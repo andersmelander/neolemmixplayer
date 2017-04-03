@@ -403,8 +403,6 @@ begin
                     // Second place: The NXP.
                     // Third place: Music folder.
                     // Final place: lemdata
-                    if FormatDateTime('mmdd', Now) = '0401' then
-                      aFilename := 'orig_00'; // April fools prank. "orig_00" is a rickroll.
 
                     if not IsSingleLevelMode then
                     begin
