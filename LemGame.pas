@@ -1261,7 +1261,7 @@ procedure TLemmingGame.CombineMaskPixelsDownLeft(F: TColor32; var B: TColor32; M
 var
   E: TColor32;
 begin
-  E := PM_STEEL or PM_ONEWAYRIGHT;
+  E := PM_STEEL or PM_ONEWAYRIGHT or PM_ONEWAYUP;
   CombineMaskPixels(F, B, M, E);
 end;
 
@@ -1269,7 +1269,7 @@ procedure TLemmingGame.CombineMaskPixelsDownRight(F: TColor32; var B: TColor32; 
 var
   E: TColor32;
 begin
-  E := PM_STEEL or PM_ONEWAYLEFT;
+  E := PM_STEEL or PM_ONEWAYLEFT or PM_ONEWAYUP;
   CombineMaskPixels(F, B, M, E);
 end;
 
