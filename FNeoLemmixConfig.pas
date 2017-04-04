@@ -54,6 +54,7 @@ type
     cbMinimapHighQuality: TCheckBox;
     cbIncreaseZoom: TCheckBox;
     btnDownloadAll: TButton;
+    cbCompactSkillPanel: TCheckBox;
     procedure btnApplyClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure btnHotkeysClick(Sender: TObject);
@@ -136,6 +137,7 @@ begin
   cbIncreaseZoom.Checked := GameParams.IncreaseZoom;
   cbLinearResampleMenu.Checked := GameParams.LinearResampleMenu;
   cbLinearResampleGame.Checked := GameParams.LinearResampleGame;
+  cbCompactSkillPanel.Checked := GameParams.CompactSkillPanel;
   cbMinimapHighQuality.Checked := GameParams.MinimapHighQuality;
 
   // Zoom Dropdown
@@ -215,6 +217,7 @@ begin
   GameParams.IncreaseZoom := cbIncreaseZoom.Checked;
   GameParams.LinearResampleMenu := cbLinearResampleMenu.Checked;
   GameParams.LinearResampleGame := cbLinearResampleGame.Checked;
+  GameParams.CompactSkillPanel := cbCompactSkillPanel.Checked;
   GameParams.MinimapHighQuality := cbMinimapHighQuality.Checked;
 
   // Zoom Dropdown
