@@ -64,6 +64,7 @@ type
     fLastHighlightLemming: TLemming;
     fLastSelectedSkill: TSkillPanelButton;
     fLastHelperIcon: THelperIcon;
+    fLastDrawPaused: Boolean;
   { current gameplay }
     fGameSpeed: TGameSpeed;               // do NOT set directly, set via GameSpeed property
     fHyperSpeedStopCondition: Integer;
@@ -531,6 +532,11 @@ begin
       CheckResetCursor;
     end else if (Game.CurrentIteration = fHyperSpeedTarget) then
     begin
+      if Game.CancelReplayAfterSkip then
+      begin
+        Game.RegainControl(true);
+        Game.CancelReplayAfterSkip := false;
+      end;
       fHyperSpeedTarget := -1;
       SkillPanel.RefreshInfo;
       fNeedRedraw := rdRedraw;
@@ -727,7 +733,8 @@ begin
   if (fRenderInterface.SelectedLemming <> fLastSelectedLemming)
   or (fRenderInterface.HighlitLemming <> fLastHighlightLemming)
   or (fRenderInterface.SelectedSkill <> fLastSelectedSkill)
-  or (fRenderInterface.UserHelper <> fLastHelperIcon) then
+  or (fRenderInterface.UserHelper <> fLastHelperIcon)
+  or ((GameSpeed = gspPause) and not fLastDrawPaused) then
     fNeedRedraw := rdRedraw;
 
   if fNeedRedraw = rdRefresh then
@@ -743,7 +750,7 @@ begin
     fRenderInterface.MousePos := Game.CursorPoint;
     fRenderer.DrawAllObjects(fRenderInterface.ObjectList, true, fClearPhysics);
     fRenderer.DrawLemmings(fClearPhysics);
-    if GameParams.MinimapHighQuality then
+    if GameParams.MinimapHighQuality or (GameSpeed = gspPause) then
       DrawRect := Img.Bitmap.BoundsRect
     else begin
       DrawWidth := ClientWidth div fInternalZoom;
@@ -759,6 +766,7 @@ begin
     fLastHighlightLemming := fRenderInterface.HighlitLemming;
     fLastSelectedSkill := fRenderInterface.SelectedSkill;
     fLastHelperIcon := fRenderInterface.UserHelper;
+    fLastDrawPaused := (GameSpeed = gspPause);
   except
     on E: Exception do
       OnException(E, 'TGameWindow.DoDraw');
@@ -841,11 +849,10 @@ begin
 
   if aTargetIteration = Game.CurrentIteration then
   begin
-    // just redraw TargetImage to display the correct game state
-    //DoDraw;
+    fNeedRedraw := rdRedraw;
     if Game.CancelReplayAfterSkip then
     begin
-      Game.RegainControl;
+      Game.RegainControl(true);
       Game.CancelReplayAfterSkip := false;
     end;
   end else begin
@@ -1159,10 +1166,7 @@ begin
           lka_SaveImage: SaveShot;
           lka_LoadReplay: LoadReplay;
           lka_Music: SoundManager.MuteMusic := not SoundManager.MuteMusic;
-          lka_Restart: begin
-                         if GameParams.NoAutoReplayMode then Game.CancelReplayAfterSkip := true;
-                         GotoSaveState(0, -1); // the -1 prevents pausing afterwards
-                       end;
+          lka_Restart: GotoSaveState(0, -1); // the -1 prevents pausing afterwards
           lka_Sound: SoundManager.MuteSound := not SoundManager.MuteSound;
           lka_SaveReplay: SaveReplay;
           lka_SkillRight: begin

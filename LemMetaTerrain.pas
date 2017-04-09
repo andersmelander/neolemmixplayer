@@ -74,15 +74,10 @@ implementation
 { TMetaTerrain }
 
 constructor TMetaTerrain.Create;
-var
-  i: Integer;
 begin
   inherited;
-  for i := 0 to ALIGNMENT_COUNT-1 do
-  begin
-    fGraphicImages[i] := TBitmap32.Create;
-    fPhysicsImages[i] := TBitmap32.Create;
-  end;
+  fGraphicImages[0] := TBitmap32.Create;
+  fPhysicsImages[0] := TBitmap32.Create;
 end;
 
 destructor TMetaTerrain.Destroy;
@@ -152,8 +147,8 @@ var
 begin
   for i := 0 to ALIGNMENT_COUNT-1 do
   begin
-    fGraphicImages[i].Clear;
-    fPhysicsImages[i].Clear;
+    if fGraphicImages[i] <> nil then fGraphicImages[i].Clear;
+    if fPhysicsImages[i] <> nil then fPhysicsImages[i].Clear;
     fGeneratedGraphicImage[i] := false;
     fGeneratedPhysicsImage[i] := false;
   end;
@@ -243,6 +238,7 @@ var
   BMP: TBitmap32;
 begin
   i := GetImageIndex(Flip, Invert, Rotate);
+  if fGraphicImages[i] = nil then fGraphicImages[i] := TBitmap32.Create;
   BMP := fGraphicImages[i];
   BMP.Assign(fGraphicImages[0]);
   if Rotate then BMP.Rotate90;
@@ -257,6 +253,7 @@ var
   BMP: TBitmap32;
 begin
   i := GetImageIndex(Flip, Invert, Rotate);
+  if fPhysicsImages[i] = nil then fPhysicsImages[i] := TBitmap32.Create;
   BMP := fPhysicsImages[i];
   BMP.Assign(fPhysicsImages[0]);
   if Rotate then BMP.Rotate90;
