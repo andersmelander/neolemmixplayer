@@ -69,6 +69,7 @@ type
     fGameSpeed: TGameSpeed;               // do NOT set directly, set via GameSpeed property
     fHyperSpeedStopCondition: Integer;
     fHyperSpeedTarget: Integer;
+    fLastZombieSound: Cardinal;
   { game eventhandler}
     procedure Game_Finished;
   { self eventhandlers }
@@ -232,8 +233,7 @@ begin
     Img.OffsetHorz := Min(Max(OSHorz, MinScroll), MaxScroll);
     Img.OffsetVert := Min(Max(OSVert, MinVScroll), MaxVScroll);
 
-    if not NoRedraw then
-      DoDraw;
+    fNeedRedraw := rdRedraw;
     CheckResetCursor(true);
   finally
     Img.EndUpdate;
@@ -252,22 +252,27 @@ begin
 
   ClientWidth := GameParams.MainForm.ClientWidth;
   ClientHeight := GameParams.MainForm.ClientHeight;
-  Img.Width := Min(ClientWidth, GameParams.Level.Info.Width * fInternalZoom);
-  Img.Height := Min(ClientHeight - SkillPanel.Height, GameParams.Level.Info.Height * fInternalZoom);
-  Img.Left := (ClientWidth - Img.Width) div 2;
+
   if SkillPanel.Zoom > SkillPanel.MaxZoom then
     SkillPanel.Zoom := SkillPanel.MaxZoom
   else if (SkillPanel.Zoom < fInternalZoom) and (SkillPanel.Zoom < SkillPanel.MaxZoom) then
     SkillPanel.Zoom := fInternalZoom;
+
+  Img.Width := Min(ClientWidth, GameParams.Level.Info.Width * fInternalZoom);
+  Img.Height := Min(ClientHeight - (SkillPanel.Zoom * 40), GameParams.Level.Info.Height * fInternalZoom);
+  Img.Left := (ClientWidth - Img.Width) div 2;
   SkillPanel.Left := (ClientWidth - SkillPanel.Width) div 2;
   // tops are calculated later
 
   SkillPanel.DisplayWidth := Img.Width div fInternalZoom;
   SkillPanel.DisplayHeight := Img.Height div fInternalZoom;
 
-  VertOffset := (ClientHeight - (SkillPanel.Height + Img.Height)) div 2;
+  VertOffset := (ClientHeight - ((SkillPanel.Zoom * 40) + Img.Height)) div 2;
   Img.Top := VertOffset;
   SkillPanel.Top := Img.Top + Img.Height;
+  SkillPanel.Height := Max(SkillPanel.Zoom * 40, ClientHeight - SkillPanel.Top);
+  SkillPanel.Img.Left := (ClientWidth - SkillPanel.Img.Width) div 2;
+  SkillPanel.Img.Update;
 
   MinScroll := -((GameParams.Level.Info.Width * fInternalZoom) - Img.Width);
   MaxScroll := 0;
@@ -284,8 +289,6 @@ begin
   end;
 
   fMaxZoom := Min(Screen.Width div 320, Screen.Height div 200) + EXTRA_ZOOM_LEVELS;
-
-  SkillPanel.DoHorizontalScroll := (ClientWidth = SkillPanel.Width);
 end;
 
 function TGameWindow.IsGameplayScreen: Boolean;
@@ -397,8 +400,8 @@ var
 begin
   fMouseTrapped := true;
 
-  ClientTopLeft := ClientToScreen(Point(Min(SkillPanel.Left, Img.Left), Img.Top));
-  ClientBottomRight := ClientToScreen(Point(Max(Img.Left + Img.Width, SkillPanel.Left + SkillPanel.Width), SkillPanel.Top + SkillPanel.Height));
+  ClientTopLeft := ClientToScreen(Point(Min(SkillPanel.Img.Left, Img.Left), Img.Top));
+  ClientBottomRight := ClientToScreen(Point(Max(Img.Left + Img.Width, SkillPanel.Img.Left + SkillPanel.Img.Width), SkillPanel.Top + SkillPanel.Img.Height));
   MouseClipRect := Rect(ClientTopLeft, ClientBottomRight);
   ClipCursor(@MouseClipRect);
 end;
@@ -573,7 +576,14 @@ begin
 
       // still need to implement sound
       GAMEMSG_SOUND: if not IsHyperSpeed then
+                     begin
+                       if CompareStr(Msg.MessageDataStr, 'zombie') = 0 then
+                         if GetTickCount - fLastZombieSound > 1000 then
+                           fLastZombieSound := GetTickCount
+                         else
+                           Exit;
                        SoundManager.PlaySound(Msg.MessageDataStr);
+                     end;
       GAMEMSG_SOUND_BAL: if not IsHyperSpeed then
                            SoundManager.PlaySound(Msg.MessageDataStr,  (Msg.MessageDataInt - Trunc(((Img.Width / 2) - Img.OffsetHorz) / Img.Scale)) div 2);
       GAMEMSG_MUSIC: SoundManager.PlayMusic;
@@ -916,6 +926,20 @@ function TGameWindow.CheckScroll: Boolean;
     Img.OffsetVert := Min(MaxVScroll, Img.OffsetVert);
   end;
 begin
+  if Mouse.CursorPos.X <= MouseClipRect.Left then
+    GameScroll := gsLeft
+  else if Mouse.CursorPos.X >= MouseClipRect.Right-1 then
+    GameScroll := gsRight
+  else
+    GameScroll := gsNone;
+
+  if Mouse.CursorPos.Y <= MouseClipRect.Top then
+    GameVScroll := gsUp
+  else if Mouse.CursorPos.Y >= MouseClipRect.Bottom-1 then
+    GameVScroll := gsDown
+  else
+    GameVScroll := gsNone;
+
   Img.BeginUpdate;
   case GameScroll of
     gsRight:
@@ -937,6 +961,8 @@ end;
 constructor TGameWindow.Create(aOwner: TComponent);
 begin
   inherited Create(aOwner);
+
+  Color := $202020;
 
   fNeedReset := true;
 
@@ -1344,23 +1370,7 @@ end;
 
 procedure TGameWindow.Form_MouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
 begin
-  if fSuspendCursor then Exit;
-
   SkillPanel.MinimapScrollFreeze := false;
-
-  if X <= Img.Left then
-    GameScroll := gsLeft
-  else if X >= (Img.Left + Img.Width - 1) then
-    GameScroll := gsRight
-  else
-    GameScroll := gsNone;
-
-  if Y <= Img.Top then
-    GameVScroll := gsUp
-  else if Y >= (SkillPanel.Top + SkillPanel.Height - 1) then
-    GameVScroll := gsDown
-  else
-    GameVScroll := gsNone;
 end;
 
 procedure TGameWindow.Img_MouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer; Layer: TCustomLayer);
@@ -1379,28 +1389,12 @@ begin
 
     Game.HitTestAutoFail := not PtInRect(Rect(0, 0, Img.Width, Img.Height), Point(X, Y));
 
-    if X >= Img.Width - 1 then
-      GameScroll := gsRight
-    else if X <= 0 then
-      GameScroll := gsLeft
-    else
-      GameScroll := gsNone;
-
-    {if Y >= Img.Height - 1 then
-      GameVScroll := gsDown
-    else} if Y <= 0 then
-      GameVScroll := gsUp
-    else
-      GameVScroll := gsNone;
-
     SkillPanel.MinimapScrollFreeze := false;
 
     if fGameSpeed = gspPause then
     begin
       if fRenderInterface.UserHelper <> hpi_None then
-        fNeedRedraw := rdRedraw
-      else if ((GameScroll <> gsNone) or (GameVScroll <> gsNone)) and not GameParams.MinimapHighQuality then
-        fNeedRedraw := rdRefresh;
+        fNeedRedraw := rdRedraw;
     end;
   end;
 
