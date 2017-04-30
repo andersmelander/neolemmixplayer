@@ -543,6 +543,7 @@ end;
 procedure TLemmixHotkeyManager.SetKeyFunction(aKey: Word; aFunc: TLemmixHotkeyAction; aMod: Integer = 0);
 begin
   fKeyFunctions[aKey].Action := aFunc;
-  fKeyFunctions[aKey].Modifier := aMod;end;
+  fKeyFunctions[aKey].Modifier := aMod;
+end;
 
 end.
