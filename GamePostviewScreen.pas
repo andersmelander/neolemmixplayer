@@ -6,7 +6,7 @@ interface
 
 uses
   LemmixHotkeys,
-  Windows, Classes, SysUtils, Controls,
+  Windows, Classes, SysUtils, StrUtils, Controls,
   UMisc,
   Gr32, Gr32_Image, Gr32_Layers, GR32_Resamplers,
   LemCore,
@@ -86,12 +86,7 @@ end;
 procedure TGamePostviewScreen.BuildScreen;
 var
   Temp: TBitmap32;
-//  DstRect: TRect;
 begin
-  //fSection := aSection;
-  //fLevelNumber := aLevelNumber;
-  //fGameResult := aResult;
-
   ScreenImg.BeginUpdate;
   Temp := TBitmap32.Create;
   try
@@ -114,20 +109,14 @@ begin
 end;
 
 function TGamePostviewScreen.BuildText(intxt: Array of char): String;
-var
-  tstr : String;
-  x : byte;
 begin
+  // Casts the array to a string, trims it and then takes the first 36 characters.
   Result := '';
-  tstr := '';
-  for x := 0 to 35 do
+  if Length(intxt) > 0 then
   begin
-    if (tstr <> '') or (intxt[x] <> ' ') then
-    begin
-      tstr := tstr + intxt[x];
-    end;
+    SetString(Result, PChar(@intxt[0]), Length(intxt));
+    Result := AnsiLeftStr(Trim(Result), 36);
   end;
-  Result := Trim(tstr);
 end;
 
 constructor TGamePostviewScreen.Create(aOwner: TComponent);
@@ -179,7 +168,7 @@ var
           i := 0
         else if gRescued < gToRescue div 2 then
           i := 1
-        else if gDone < gTarget - 10 then
+        else if gRescued < gToRescue - gCount div 10 then
           i := 2
         else if gRescued <= gToRescue - 2 then
           i := 3
@@ -187,9 +176,9 @@ var
           i := 4
         else if gRescued = gToRescue then
           i := 5
-        else if gDone < gTarget + 20 then
+        else if gRescued < gToRescue + gCount div 5 then
           i := 6
-        else if gDone >= gTarget + 20 then
+        else if gRescued >= gToRescue + gCount div 5 then
           i := 7
         else
           raise exception.Create('leveltext error');

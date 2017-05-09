@@ -6,7 +6,7 @@ object FormNXConfig: TFormNXConfig
   BorderIcons = []
   BorderStyle = bsToolWindow
   Caption = 'NeoLemmix Configuration'
-  ClientHeight = 385
+  ClientHeight = 401
   ClientWidth = 273
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -22,8 +22,8 @@ object FormNXConfig: TFormNXConfig
     Left = 0
     Top = 0
     Width = 273
-    Height = 345
-    ActivePage = TabSheet1
+    Height = 361
+    ActivePage = TabSheet5
     TabOrder = 0
     object TabSheet1: TTabSheet
       Caption = 'General'
@@ -182,7 +182,7 @@ object FormNXConfig: TFormNXConfig
         Left = 8
         Top = 65
         Width = 249
-        Height = 105
+        Height = 120
         Caption = 'Interface Options'
         TabOrder = 1
         object cbLemmingBlink: TCheckBox
@@ -230,10 +230,19 @@ object FormNXConfig: TFormNXConfig
           TabOrder = 4
           OnClick = OptionChanged
         end
+        object cbEdgeScrolling: TCheckBox
+          Left = 12
+          Top = 96
+          Width = 153
+          Height = 17
+          Caption = 'Enable Edge Scrolling'
+          TabOrder = 5
+          OnClick = OptionChanged
+        end
       end
       object GroupBox6: TGroupBox
         Left = 8
-        Top = 170
+        Top = 186
         Width = 249
         Height = 143
         Caption = 'Graphics Options'
@@ -400,7 +409,7 @@ object FormNXConfig: TFormNXConfig
   end
   object btnOK: TButton
     Left = 24
-    Top = 352
+    Top = 368
     Width = 65
     Height = 25
     Caption = 'OK'
@@ -409,7 +418,7 @@ object FormNXConfig: TFormNXConfig
   end
   object btnCancel: TButton
     Left = 104
-    Top = 352
+    Top = 368
     Width = 65
     Height = 25
     Caption = 'Cancel'
@@ -418,7 +427,7 @@ object FormNXConfig: TFormNXConfig
   end
   object btnApply: TButton
     Left = 184
-    Top = 352
+    Top = 368
     Width = 65
     Height = 25
     Caption = 'Apply'

@@ -404,7 +404,6 @@ begin
       VK_F1     : CloseScreen(gstPreview);
       VK_F2     : CloseScreen(gstLevelSelect);
       VK_F3     : ShowConfigMenu;
-      //VK_F4     : CloseScreen(gstNavigation);
       VK_F4     : DumpLevels;
       VK_F5     : DumpImages;
       VK_F6     : if GameParams.Talismans.Count <> 0 then CloseScreen(gstTalisman);
@@ -414,8 +413,6 @@ begin
       VK_ESCAPE : CloseScreen(gstExit);
       VK_UP     : NextSection(True);
       VK_DOWN   : NextSection(False);
-
-      //VK_SPACE  : UserPausing := not UserPausing;
     end;
   end;
 end;
@@ -479,10 +476,6 @@ begin
   if I = mrYes then
   begin
     TBaseDosLevelSystem(GameParams.Style.LevelSystem).DumpAllImages;
-    (*MessageDlg('The screen will go blank while dumping level images.' + CrLf + 'This is normal.', mtCustom, [mbOk], 0);
-    GameParams.DumpMode := true;
-    GameParams.WhichLevel := wlFirst;
-    CloseScreen(gstPreview);*)
   end;
 end;
 
@@ -572,20 +565,14 @@ begin
 end;
 
 function TGameMenuScreen.BuildText(intxt: Array of char): String;
-var
-  tstr : String;
-  x : byte;
 begin
+  // Casts the array to a string and trims it.
   Result := '';
-  tstr := '';
-  for x := 0 to (SizeOf(intxt) - 1) do
+  if Length(intxt) > 0 then
   begin
-    if (tstr <> '') or (intxt[x] <> ' ') then
-    begin
-      tstr := tstr + intxt[x];
-    end;
+    SetString(Result, PChar(@intxt[0]), Length(intxt));
+    Result := Trim(Result);
   end;
-  Result := trim(tstr);
 end;
 
 procedure TGameMenuScreen.SetSoundOptions(aOptions: TGameSoundOptions);
@@ -658,12 +645,9 @@ begin
   TextGoneX := -TextSize;// + 10 * Font_Width;
 end;
 
-procedure TGameMenuScreen.DrawReel;//(aReelShift, aTextX: Integer);
-{-------------------------------------------------------------------------------
-  Drawing of the moving credits. aShift = the reel shift which is wrapped every
-  other 16 pixels to zero.
--------------------------------------------------------------------------------}
+procedure TGameMenuScreen.DrawReel;
 begin
+  // Drawing of the moving credits.
   Reel.DrawTo(ReelBuffer, ReelShift, 0);
   DrawPurpleText(ReelBuffer, CreditString, TextX, 0);
   ReelBuffer.DrawTo(ScreenImg.Bitmap, 48, YPos_Credits);
@@ -673,7 +657,7 @@ procedure TGameMenuScreen.Application_Idle(Sender: TObject; var Done: Boolean);
 {-------------------------------------------------------------------------------
   Animation of credits.
   - 34 characters fit into the reel.
-  - text scolls from right to left. when one line is centered into the reel,
+  - text scolls from right to left. When one line is centered into the reel,
     scrolling is paused for a while.
 -------------------------------------------------------------------------------}
 var

@@ -190,7 +190,6 @@ type
     fExistShadow               : Boolean;  // Whether a shadow is currently drawn somewhere
     fLemNextAction             : TBasicLemmingAction; // action to transition to at the end of lemming movement
     ObjectInfos                : TInteractiveObjectInfoList; // list of objects excluding entrances
-    //fPaused                    : Boolean;
     LowestReleaseRate          : Integer;   // only used for talismans
     HighestReleaseRate         : Integer;   // only used for talismans
     CurrReleaseRate            : Integer;
@@ -215,12 +214,10 @@ type
     fHighlightLemmingID        : Integer;
     fCancelReplayAfterSkip     : Boolean;
   { events }
-    //fOnFinish                  : TNotifyEvent;
     fParticleFinishTimer       : Integer; // extra frames to enable viewing of explosions
     fSimulationDepth           : Integer; // whether we are in simulation mode for drawing shadows
-  { pixel combine eventhandlers }
-    procedure DoTalismanCheck;
 
+  { pixel combine eventhandlers }
     // CombineMaskPixels has variants based on the direction of destruction
     procedure CombineMaskPixels(F: TColor32; var B: TColor32; M: TColor32; E: TColor32); // general-purpose
     procedure CombineMaskPixelsLeft(F: TColor32; var B: TColor32; M: TColor32);       //left-facing basher
@@ -230,10 +227,12 @@ type
     procedure CombineMaskPixelsDownLeft(F: TColor32; var B: TColor32; M: TColor32);   //left-facing miner
     procedure CombineMaskPixelsDownRight(F: TColor32; var B: TColor32; M: TColor32);  //right-facing miner
     procedure CombineMaskPixelsNeutral(F: TColor32; var B: TColor32; M: TColor32);    //bomber
-
     procedure CombineNoOverwriteStoner(F: TColor32; var B: TColor32; M: TColor32);
+
   { internal methods }
+    procedure DoTalismanCheck;
     function GetIsReplaying: Boolean;
+    function GetIsReplayingNoRR(isPaused: Boolean): Boolean;
     procedure ApplyBashingMask(L: TLemming; MaskFrame: Integer);
     procedure ApplyFencerMask(L: TLemming; MaskFrame: Integer);
     procedure ApplyExplosionMask(L: TLemming);
@@ -378,7 +377,7 @@ type
     // for properties
     function GetSkillCount(aSkill: TSkillPanelButton): Integer;
   public
-    GameResult                 : Boolean;
+    //GameResult                 : Boolean;
     GameResultRec              : TGameResultsRec;
     fSelectDx                  : Integer;
     fXmasPal                   : Boolean;
@@ -403,8 +402,6 @@ type
     procedure Finish(aReason: Integer);
     procedure Cheat;
     procedure HitTest(Autofail: Boolean = false);
-    //procedure HyperSpeedBegin(PauseWhenDone: Boolean = False);
-    //procedure HyperSpeedEnd;
     function ProcessSkillAssignment(IsHighlight: Boolean = false): Boolean;
     function ProcessHighlightAssignment: Boolean;
     procedure RegainControl(Force: Boolean = false);
@@ -427,16 +424,13 @@ type
     property SkillCount[Index: TSkillPanelButton]: Integer read GetSkillCount;
     property ClockFrame: Integer read fClockFrame;
     property CursorPoint: TPoint read fCursorPoint write fCursorPoint;
-    //property FastForward: Boolean read fFastForward write fFastForward;
     property GameFinished: Boolean read fGameFinished;
-    //property HyperSpeed: Boolean read fHyperSpeed;
-    //property LeavingHyperSpeed: Boolean read fLeavingHyperSpeed;
     property Level: TLevel read fLevel write fLevel;
     property MessageQueue: TGameMessageQueue read fMessageQueue;
-    //property Paused: Boolean read fPaused write fPaused;
     property Playing: Boolean read fPlaying write fPlaying;
     property Renderer: TRenderer read fRenderer;
     property Replaying: Boolean read GetIsReplaying;
+    property ReplayingNoRR[isPaused: Boolean]: Boolean read GetIsReplayingNoRR;
     property ReplayManager: TReplay read fReplayManager;
     property IsSelectWalkerHotkey: Boolean read fIsSelectWalkerHotkey write fIsSelectWalkerHotkey;
     property IsSelectUnassignedHotkey: Boolean read fIsSelectUnassignedHotkey write fIsSelectUnassignedHotkey;
@@ -455,10 +449,7 @@ type
 
   { save / load state }
     procedure CreateSavedState(aState: TLemmingGameSavedState);
-    function LoadSavedState(aState: TLemmingGameSavedState; SkipTargetBitmap: Boolean = false): Boolean;
-
-  { events }
-    //property OnFinish: TNotifyEvent read fOnFinish write fOnFinish;
+    procedure LoadSavedState(aState: TLemmingGameSavedState);
   end;
 
 {-------------------------------------------------------------------------------
@@ -693,17 +684,10 @@ begin
   end;
 end;
 
-function TLemmingGame.LoadSavedState(aState: TLemmingGameSavedState; SkipTargetBitmap: Boolean = false): Boolean;
+procedure TLemmingGame.LoadSavedState(aState: TLemmingGameSavedState);
 var
   i: Integer;
 begin
-  // Let's check if we can use this state. If a skill was assigned on the frame, we should mark this one
-  // unusable. Code in TGameWindow will then delete it. (This is kludgy, but easier to implement over the
-  // current setup than not creating the state in the first place would be.)
-  Result := true;
-  //if fReplayManager.HasAnyActionAt(aState.CurrentIteration) and (aState.CurrentIteration > 1) then Result := false;
-  if not Result then Exit;
-
   // Simple stuff
   fRenderer.TerrainLayer.Assign(aState.TerrainLayer);
   PhysicsMap.Assign(aState.PhysicsMap);
@@ -1024,10 +1008,6 @@ begin
 end;
 
 procedure TLemmingGame.Start(aReplay: Boolean = False);
-{-------------------------------------------------------------------------------
-  part of the initialization is still in FGame. bad programming
-  (i.e: renderer.levelbitmap, level)
--------------------------------------------------------------------------------}
 var
   i: Integer;
   Inf: TInteractiveObjectInfo;
@@ -1476,8 +1456,7 @@ procedure TLemmingGame.TurnAround(L: TLemming);
 // we assume that the mirrored animations have the same framecount, key frames and physics frames
 // this is safe because current code elsewhere enforces this anyway
 begin
-  with L do
-    LemDX := -LemDX;
+  L.LemDX := -L.LemDX;
 end;
 
 
@@ -2780,8 +2759,6 @@ begin
     MoveRect(S, 0, MaskFrame * 13);
   end;
 
-
-
   D.Left := MaskX;
   D.Top := MaskY;
   D.Right := MaskX + RectWidth(S);
@@ -2979,7 +2956,7 @@ function TLemmingGame.HandleLemming(L: TLemming): Boolean;
   This is the main lemming method, called by CheckLemmings().
   The return value should return true if the lemming has to be checked by
   interactive objects.
-  o Increment lemming animationframe
+  o Increment lemming frame
   o Call specialized action-method
   o Do *not* call this method for a removed lemming
 -------------------------------------------------------------------------------}
@@ -3593,8 +3570,6 @@ var
     // Free CopyL
     CopyL.Free;
   end;
-
-
 begin
   Result := True;
 
@@ -3701,11 +3676,8 @@ var
 
   function FencerIndestructibleCheck(x, y, Direction: Integer): Boolean;
   begin
-    // check for indestructible terrain 3, 4 and 5 pixels above (x, y)
-    Result := (    (HasIndestructibleAt(x, y - 3, Direction, baFencing))
-//                or (HasIndestructibleAt(x, y - 4, Direction, baFencing))
-//                or (HasIndestructibleAt(x, y - 5, Direction, baFencing))
-              );
+    // check for indestructible terrain 3 pixels above (x, y)
+    Result := HasIndestructibleAt(x, y - 3, Direction, baFencing);
   end;
 
   procedure FencerTurn(L: TLemming; SteelSound: Boolean);
@@ -4453,8 +4425,6 @@ var
         Exit;
       end;
   end;
-const
-  OID_ENTRY = 1;
 begin
   Inc(fCurrentIteration);
   Inc(fClockFrame);
@@ -4643,16 +4613,11 @@ begin
         else
           ReleaseRateModifier := -1;
       end;
-    spbPause:
-      begin
-        // this now needs to be handled elsewhere
-        //Paused := not Paused;
-        //FastForward := False;
-      end;
     spbNuke:
       begin
         RecordNuke;
       end;
+    spbPause: ; // Do Nothing
     spbNone: ; // Do Nothing
     else // all skill buttons
       begin
@@ -4849,9 +4814,6 @@ end;
 
 
 procedure TLemmingGame.RecordNuke;
-{-------------------------------------------------------------------------------
-  Easy one: Record nuking. Always add new record.
--------------------------------------------------------------------------------}
 var
   E: TReplayNuke;
 begin
@@ -4879,9 +4841,6 @@ begin
 end;
 
 procedure TLemmingGame.RecordSkillAssignment(L: TLemming; aSkill: TBasicLemmingAction);
-{-------------------------------------------------------------------------------
-  Always add new record.
--------------------------------------------------------------------------------}
 var
   E: TReplaySkillAssignment;
 begin
@@ -5008,7 +4967,7 @@ procedure TLemmingGame.CheckLemmings;
 var
   i: Integer;
   CurrentLemming: TLemming;
-  HandleInteractiveObjects: Boolean; // wrong name: This just remembers whether we should stop checking more of the lemming
+  ContinueWithLem: Boolean;
 begin
 
   ZombieMap.Clear(0);
@@ -5019,8 +4978,8 @@ begin
 
     with CurrentLemming do
     begin
-      HandleInteractiveObjects := True;
-      // @particles
+      ContinueWithLem := True;
+
       if LemParticleTimer >= 0 then
         Dec(LemParticleTimer);
 
@@ -5029,21 +4988,22 @@ begin
 
       // Put lemming out of receiver if teleporting is finished.
       if LemTeleporting then
-        HandleInteractiveObjects := CheckLemTeleporting(CurrentLemming);
+        ContinueWithLem := CheckLemTeleporting(CurrentLemming);
 
       // Explosion-Countdown
-      if HandleInteractiveObjects and (LemExplosionTimer <> 0) then
-        HandleInteractiveObjects := not UpdateExplosionTimer(CurrentLemming);
+      if ContinueWithLem and (LemExplosionTimer <> 0) then
+        ContinueWithLem := not UpdateExplosionTimer(CurrentLemming);
 
-      // HERE COME THE MAIN THREE LINES !!!
       // Let lemmings move
-      if HandleInteractiveObjects then
-        HandleInteractiveObjects := HandleLemming(CurrentLemming);
+      if ContinueWithLem then
+        ContinueWithLem := HandleLemming(CurrentLemming);
+
       // Check whether the lem is still on screen
-      if HandleInteractiveObjects then
-        HandleInteractiveObjects := CheckLevelBoundaries(CurrentLemming);
+      if ContinueWithLem then
+        ContinueWithLem := CheckLevelBoundaries(CurrentLemming);
+
       // Check whether the lem has moved over trigger areas
-      if HandleInteractiveObjects then
+      if ContinueWithLem then
         CheckTriggerArea(CurrentLemming);
     end;
 
@@ -5056,7 +5016,7 @@ begin
     CurrentLemming := LemmingList.List^[i];
     with CurrentLemming do
     begin
-      // Zombies //
+      // Zombies
       if     (ReadZombieMap(LemX, LemY) and 1 <> 0)
          and (LemAction <> baExiting)
          and not CurrentLemming.LemIsZombie then
@@ -5188,80 +5148,31 @@ procedure TLemmingGame.SetGameResult;
   (ccexplore: sorry, code added to implement the nuke error by popular demand)
   (Nepster: sorry, namida removed the code long ago again by popular demand)
 -------------------------------------------------------------------------------}
-var
-  gLemCap : Integer;
 begin
   with GameResultRec do
   begin
     gCount              := Level.Info.LemmingsCount;
     gToRescue           := Level.Info.RescueCount;
     gRescued            := LemmingsIn;
-    gLemCap             := Level.Info.LemmingsCount;
-
     gGotTalisman        := fTalismanReceived;
-
-    if gLemCap = 0 then
-      gTarget := 0
-    else
-      gTarget := (gToRescue * 100) div gLemCap;
-
-    if not fGameCheated then
-    begin
-      if gCount = 0 then
-        gDone := 0
-      else
-        gDone := (gRescued * 100) div gLemCap;   //gCount
-    end else begin
-      gRescued := gCount;
-      if spbCloner in Level.Info.Skillset then gRescued := gRescued + Level.Info.SkillCount[spbCloner];
-      gDone := (gRescued * 100) div gLemCap;
-    end;
-
-    GameResult          := gRescued >= gToRescue;
-    gSuccess            := GameResult;
     gCheated            := fGameCheated;
+    gSuccess            := (gRescued >= gToRescue) or gCheated;
 
+    if fGameCheated then
+    begin
+      gRescued := gCount;
+      if spbCloner in Level.Info.Skillset then
+        Inc(gRescued, Level.Info.SkillCount[spbCloner]);
+    end;
   end;
 end;
 
 procedure TLemmingGame.RegainControl(Force: Boolean = false);
-{-------------------------------------------------------------------------------
-  This is a very important routine. It jumps from replay into usercontrol.
--------------------------------------------------------------------------------}
 begin
   if ReplayInsert and not Force then Exit;
 
   fReplayManager.Cut(fCurrentIteration);
 end;
-
-
-(*procedure TLemmingGame.HyperSpeedBegin(PauseWhenDone: Boolean = False);
-begin
-  Inc(fHyperSpeedCounter);
-  fHyperSpeed := True;
-  FastForward := False;
-  if PauseWhenDone then
-    fPauseOnHyperSpeedExit := True
-  else
-    fPauseOnHyperSpeedExit := False;
-end;
-
-procedure TLemmingGame.HyperSpeedEnd;
-begin
-  if fHyperSpeedCounter > 0 then
-  begin
-    Dec(fHyperSpeedCounter);
-    if fHyperSpeedCounter = 0 then
-    begin
-      fLeavingHyperSpeed := True;
-      if CancelReplayAfterSkip then
-      begin
-        RegainControl;
-        CancelReplayAfterSkip := false;
-      end;
-    end;
-  end;
-end;*)
 
 
 procedure TLemmingGame.UpdateInteractiveObjects;
@@ -5275,8 +5186,6 @@ procedure TLemmingGame.UpdateInteractiveObjects;
 var
   Inf, Inf2: TInteractiveObjectInfo;
   i: Integer;
-const
-  OID_ENTRY = 1;
 begin
   for i := ObjectInfos.Count - 1 downto 0 do
   begin
@@ -5307,9 +5216,7 @@ begin
       Inf.HoldActive := False;
       Inf.ZombieMode := False;
     end;
-
   end;
-
 end;
 
 procedure TLemmingGame.CheckAdjustReleaseRate;
@@ -5406,6 +5313,15 @@ function TLemmingGame.GetIsReplaying: Boolean;
 begin
   Result := fCurrentIteration <= fReplayManager.LastActionFrame;
 end;
+
+function TLemmingGame.GetIsReplayingNoRR(isPaused: Boolean): Boolean;
+begin
+  // Ignore RR changes at the current frame when paused
+  Result :=     (fCurrentIteration < fReplayManager.LastActionFrame)
+            or  (fReplayManager.Assignment[fCurrentIteration, 0] <> nil)
+            or  ((fReplayManager.ReleaseRateChange[fCurrentIteration, 0] <> nil) and not isPaused);
+end;
+
 
 function TLemmingGame.GetIsSimulating: Boolean;
 begin

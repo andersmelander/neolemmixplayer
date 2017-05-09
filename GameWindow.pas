@@ -35,6 +35,12 @@ type
    rdRedraw   // needs to redraw completely
   );
 
+  THoldScrollData = record
+    Active: Boolean;
+    StartCursor: TPoint;
+    StartImg: TFloatPoint;
+  end;
+
 const
   CURSOR_TYPES = 2;
   EXTRA_ZOOM_LEVELS = 4;
@@ -70,6 +76,8 @@ type
     fHyperSpeedStopCondition: Integer;
     fHyperSpeedTarget: Integer;
     fLastZombieSound: Cardinal;
+
+    fHoldScrollPoint: THoldScrollData;
   { game eventhandler}
     procedure Game_Finished;
   { self eventhandlers }
@@ -117,7 +125,6 @@ type
     Img                  : TImage32;          // the image in which the level is drawn (reference to inherited ScreenImg!)
     SkillPanel           : TSkillPanelToolbar;// our good old dos skill panel
     fActivateCount       : Integer;           // used when activating the form
-    //ForceUpdateOneFrame  : Boolean;           // used when paused -- MOVED TO PUBLIC FOR SKILL PANEL'S USE
     GameScroll           : TGameScroll;       // scrollmode
     GameVScroll          : TGameScroll;
     IdealFrameTimeMS     : Cardinal;          // normal frame speed in milliseconds
@@ -384,7 +391,6 @@ begin
       OldClearReplay := GameParams.NoAutoReplayMode;
       fSaveList.ClearAfterIteration(0);
       GotoSaveState(Game.CurrentIteration);
-      //ForceUpdateOneFrame := true;
       GameParams.NoAutoReplayMode := OldClearReplay;
     end;
   finally
@@ -424,9 +430,9 @@ var
 begin
   if fCloseToScreen <> gstUnknown then
   begin
+    // This allows any mid-processing code to finish, and averts access violations, compared to directly calling CloseScreen.
     CloseScreen(fCloseToScreen);
     Exit;
-    // This allows any mid-processing code to finish, and averts access violations, compared to directly calling CloseScreen.
   end;
 
   // this makes sure this method is called very often :)
@@ -845,14 +851,8 @@ begin
   // Load save state or restart the level
   for i := UseSaveState downto -1 do
   begin
-    if i >= 0 then
-    begin
-      if Game.LoadSavedState(fSaveList[i], true) then
-        Break
-      else
-        fSaveList.Delete(i);
-    end else
-      Game.Start(true);
+    if i >= 0 then Game.LoadSavedState(fSaveList[i])
+    else Game.Start(true);
   end;
 
   fSaveList.ClearAfterIteration(Game.CurrentIteration);
@@ -924,14 +924,44 @@ function TGameWindow.CheckScroll: Boolean;
     Img.OffsetHorz := Min(MaxScroll, Img.OffsetHorz);
     Img.OffsetVert := Max(MinVScroll, Img.OffsetVert);
     Img.OffsetVert := Min(MaxVScroll, Img.OffsetVert);
+    Result := (dx <> 0) or (dy <> 0) or Result; // though it should never happen anyway, a Scroll(0, 0) call after an earlier nonzero call should not set Result to false 
+  end;
+
+  procedure HandleHeldScroll;
+  var
+    HDiff, VDiff: Integer;
+  begin
+    HDiff := (Mouse.CursorPos.X - fHoldScrollPoint.StartCursor.X) div fInternalZoom;
+    VDiff := (Mouse.CursorPos.Y - fHoldScrollPoint.StartCursor.Y) div fInternalZoom;
+
+    if Abs(HDiff) = 1 then
+      fHoldScrollPoint.StartCursor.X := Mouse.CursorPos.X
+    else
+      fHoldScrollPoint.StartCursor.X := fHoldScrollPoint.StartCursor.X + (HDiff * 3 div 4);
+
+    if Abs(VDiff) = 1 then
+      fHoldScrollPoint.StartCursor.Y := Mouse.CursorPos.Y
+    else
+      fHoldScrollPoint.StartCursor.Y := fHoldScrollPoint.StartCursor.Y + (VDiff * 3 div 4);
+
+    Img.BeginUpdate;
+    Scroll(HDiff, VDiff);
+    Img.EndUpdate;
   end;
 begin
+  Result := false;
+
   if fNeedResetMouseTrap or not fMouseTrapped then // why are these two seperate variables anyway?
   begin
     GameScroll := gsNone;
     GameVScroll := gsNone;
-    Result := false;
-  end else begin
+  end else if fHoldScrollPoint.Active then
+  begin
+    if GameParams.Hotkeys.CheckForKey(lka_Scroll) then
+      HandleHeldScroll
+    else
+      fHoldScrollPoint.Active := false;
+  end else if GameParams.EdgeScroll then begin
     if Mouse.CursorPos.X <= MouseClipRect.Left then
       GameScroll := gsLeft
     else if Mouse.CursorPos.X >= MouseClipRect.Right-1 then
@@ -960,8 +990,6 @@ begin
         Scroll(0, 8);
     end;
     Img.EndUpdate;
-
-    Result := (GameScroll in [gsRight, gsLeft]) or(GameVScroll in [gsUp, gsDown]);
   end;
 end;
 
@@ -1098,7 +1126,8 @@ const
                          lka_Nuke,          // nuke also cancels, but requires double-press to do so so handled elsewhere
                          lka_ClearPhysics,
                          lka_ZoomIn,
-                         lka_ZoomOut];
+                         lka_ZoomOut,
+                         lka_Scroll];
   SKILL_KEYS = [lka_Skill, lka_SkillLeft, lka_SkillRight];
 begin
   func := GameParams.Hotkeys.CheckKeyEffect(Key);
@@ -1234,6 +1263,14 @@ begin
           lka_ReplayInsert: Game.ReplayInsert := not Game.ReplayInsert;
           lka_ZoomIn: ChangeZoom(fInternalZoom + 1);
           lka_ZoomOut: ChangeZoom(fInternalZoom - 1);
+          lka_Scroll: begin
+                        if PtInRect(Img.BoundsRect, Img.ParentToClient(ScreenToClient(Mouse.CursorPos))) and not fHoldScrollPoint.Active then
+                        begin
+                          fHoldScrollPoint.Active := true;
+                          fHoldScrollPoint.StartCursor := Mouse.CursorPos;
+                          fHoldScrollPoint.StartImg := FloatPoint(Img.OffsetHorz, Img.OffsetVert);
+                        end;
+                      end;
         end;
 
     end;
@@ -1299,7 +1336,6 @@ begin
 
   with Game do
   begin
-
     case func.Action of
       lka_ReleaseRateDown    : SetSelectedSkill(spbSlower, False);
       lka_ReleaseRateUp      : SetSelectedSkill(spbFaster, False);
@@ -1337,7 +1373,6 @@ begin
   // so we're not allowing it
   if Game.Playing and not IsHyperSpeed then
   begin
-
     SetAdjustedGameCursorPoint(Img.ControlToBitmap(Point(X, Y)));
 
     CheckShifts(Shift);
@@ -1424,24 +1459,25 @@ var
   n: Integer;
   LocalMaxZoom: Integer;
 
-    procedure scalebmp(bmp:tbitmap; ascale:integer);
-    var                         //bad code but it works for now
-      b: tbitmap32;
-      src,dst:trect;
+  procedure ScaleBmp(Bmp: TBitmap; aScale: Integer);
+  var
+    NewBmp: TBitmap32;
+    src, dst: TRect;
+  begin
+    // Problem: Only a TBitmap32 may scale using the Draw method, not a TBitmap itself!
+    if aScale = 1 then Exit;
+    NewBmp := TBitmap32.Create;
+    NewBmp.SetSize(Bmp.Width * aScale, Bmp.Height * aScale);
 
-    begin
-      if ascale=1 then exit;
-      b:=tbitmap32.create;
-      src:=rect(0,0,bmp.width,bmp.height);
-      dst:=rect(0,0,bmp.width * ascale, bmp.height*ascale);
-      b.setsize(bmp.width*ascale, bmp.height*ascale);
-      b.Draw(dst,src, bmp.canvas.handle);
-      bmp.Width := b.width;
-      bmp.height:=b.height;
-      b.drawto(bmp.canvas.handle, 0, 0);// gr32
-      b.free;
-    end;
+    src := Rect(0, 0, Bmp.Width, Bmp.Height);
+    dst := Rect(0, 0, NewBmp.Width, NewBmp.Height);
+    NewBmp.Draw(dst, src, Bmp.Canvas.Handle);
 
+    Bmp.Width := NewBmp.Width;
+    Bmp.Height := NewBmp.Height;
+    NewBmp.DrawTo(Bmp.Canvas.Handle, 0, 0);
+    NewBmp.Free;
+  end;
 
 begin
   ReleaseCursors;
@@ -1454,12 +1490,12 @@ begin
   LocalMaxZoom := Min(Screen.Width div 320, (Screen.Height - (40 * SkillPanel.MaxZoom)) div 160) + EXTRA_ZOOM_LEVELS;
   SetLength(HCursors, LocalMaxZoom);
 
-  for i := 0 to Length(HCursors)-1 do
+  for i := 0 to Length(HCursors) - 1 do
   begin
     bmpMask.LoadFromResourceName(HINSTANCE, 'GAMECURSOR_DEFAULT_MASK');
     bmpColor.LoadFromResourceName(HINSTANCE, 'GAMECURSOR_DEFAULT');
-    ScaleBmp(bmpMask, i+1);
-    ScaleBmp(bmpColor, i+1);
+    ScaleBmp(bmpMask, i + 1);
+    ScaleBmp(bmpColor, i + 1);
 
     with LemCursorIconInfo do
     begin
@@ -1477,9 +1513,8 @@ begin
     bmpMask.LoadFromResourceName(HINSTANCE, 'GAMECURSOR_HIGHLIGHT_MASK');
     bmpColor.LoadFromResourceName(HINSTANCE, 'GAMECURSOR_HIGHLIGHT');
 
-    scalebmp(bmpmask, i+1);
-    scalebmp(bmpcolor, i+1);
-
+    ScaleBmp(bmpMask, i + 1);
+    ScaleBmp(bmpColor, i + 1);
 
     with LemSelCursorIconInfo do
     begin
@@ -1570,12 +1605,7 @@ begin
   fRenderInterface := Game.RenderInterface;
   fRenderer.SetInterface(fRenderInterface);
 
-  //if FileExists(AppPath + SFMusic + GetLevelMusicName + SoundManager.FindExtension(GetLevelMusicName, true)) then
-    SoundManager.LoadMusicFromFile(GetLevelMusicName)
-  //else begin
-  //  ShowMessage('not found!' + #13 + AppPath + SFMusic + GetLevelMusicName + SoundManager.FindExtension(GetLevelMusicName, true));
-  //  SoundManager.FreeMusic; // This is safe to call even if no music is loaded, but ensures we don't just get the previous level's music
-  //end;
+  SoundManager.LoadMusicFromFile(GetLevelMusicName);
 
 end;
 
