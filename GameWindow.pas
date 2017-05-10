@@ -1201,7 +1201,7 @@ begin
                       if CurrTime - fLastNukeKeyTime < 250 then
                       begin
                         RegainControl;
-                        SetSelectedSkill(spbNuke)
+                        SetSelectedSkill(spbNuke);
                       end else
                         fLastNukeKeyTime := CurrTime;
                     end;
