@@ -12,21 +12,18 @@ uses
   LemCore, LemLevel, LemDosStyle, LemRendering, LemRenderHelpers,
   LemGame, LemGameMessageQueue,
   GameSound, LemTypes, LemStrings, LemLemming,
-  GameControl, GameSkillPanel, GameBaseScreen;
+  GameControl, GameBaseSkillPanel, GameSkillPanel, GameBaseScreen,
+  GameWindowInterface;
 
 type
+  // For TGameSpeed see unit GameWindowInterface
+
   TGameScroll = (
     gsNone,
     gsRight,
     gsLeft,
     gsUp,
     gsDown
-  );
-
-  TGameSpeed = (
-    gspNormal,
-    gspPause,
-    gspFF
   );
 
   TRedrawOption = (
@@ -38,7 +35,7 @@ type
   THoldScrollData = record
     Active: Boolean;
     StartCursor: TPoint;
-    StartImg: TFloatPoint;
+    //StartImg: TFloatPoint;
   end;
 
 const
@@ -49,7 +46,7 @@ const
   SHE_SHRUGGER = 1;
 
 type
-  TGameWindow = class(TGameBaseScreen)
+  TGameWindow = class(TGameBaseScreen, IGameWindow)
   private
     fSaveStateReplayStream: TMemoryStream;
     fCloseToScreen: TGameScreenType;
@@ -75,9 +72,10 @@ type
     fGameSpeed: TGameSpeed;               // do NOT set directly, set via GameSpeed property
     fHyperSpeedStopCondition: Integer;
     fHyperSpeedTarget: Integer;
+    fForceUpdateOneFrame: Boolean;        // used when paused
     fLastZombieSound: Cardinal;
 
-    fHoldScrollPoint: THoldScrollData;
+    fHoldScrollData: THoldScrollData;
   { game eventhandler}
     procedure Game_Finished;
   { self eventhandlers }
@@ -110,6 +108,7 @@ type
     procedure OnException(E: Exception; aCaller: String = 'Unknown');
     procedure ExecuteReplayEdit;
     procedure SetClearPhysics(aValue: Boolean);
+    function GetClearPhysics: Boolean;
     procedure ProcessGameMessages;
     procedure ApplyResize(NoRecenter: Boolean = false);
     procedure ChangeZoom(aNewZoom: Integer; NoRedraw: Boolean = false);
@@ -120,10 +119,11 @@ type
     function GetIsHyperSpeed: Boolean;
 
     procedure SetGameSpeed(aValue: TGameSpeed);
+    function GetGameSpeed: TGameSpeed;
   protected
     fGame                : TLemmingGame;      // reference to globalgame gamemechanics
     Img                  : TImage32;          // the image in which the level is drawn (reference to inherited ScreenImg!)
-    SkillPanel           : TSkillPanelToolbar;// our good old dos skill panel
+    SkillPanel           : TBaseSkillPanel;   // our good old dos skill panel (now improved!)
     fActivateCount       : Integer;           // used when activating the form
     GameScroll           : TGameScroll;       // scrollmode
     GameVScroll          : TGameScroll;
@@ -152,9 +152,6 @@ type
   { internal properties }
     property Game: TLemmingGame read fGame;
   public
-    ForceUpdateOneFrame  : Boolean;           // used when paused
-    SkillPanelSelectDx: Integer; //for skill panel dir select buttons
-    
     constructor Create(aOwner: TComponent); override;
     destructor Destroy; override;
     procedure ApplyMouseTrap;
@@ -167,11 +164,18 @@ type
     property HScroll: TGameScroll read GameScroll write GameScroll;
     property VScroll: TGameScroll read GameVScroll write GameVScroll;
     property ClearPhysics: Boolean read fClearPhysics write SetClearPhysics;
-    property SuspendCursor: Boolean read fSuspendCursor;
+    function DoSuspendCursor: Boolean;
 
-    property GameSpeed: TGameSpeed read fGameSpeed write SetGameSpeed;
+    property GameSpeed: TGameSpeed read GetGameSpeed write SetGameSpeed;
     property HyperSpeedTarget: Integer read fHyperSpeedTarget write fHyperSpeedTarget;
     property IsHyperSpeed: Boolean read GetIsHyperSpeed;
+
+    function GetWidth: Integer;  // to satisfy IGameWindow
+    function GetHeight: Integer; // to satisfy IGameWindow
+    function ScreenImage: TImage32; // to staisfy IGameWindow, should be moved to TGameBaseScreen, but it causes bugs there.
+    procedure SetForceUpdateOneFrame(aValue: Boolean);  // to satisfy IGameWindow
+    procedure SetHyperSpeedTarget(aValue: Integer);     // to satisfy IGameWindow
+
   end;
 
 implementation
@@ -185,6 +189,11 @@ begin
   fGameSpeed := aValue;
   SkillPanel.DrawButtonSelector(spbPause, fGameSpeed = gspPause);
   SkillPanel.DrawButtonSelector(spbFastForward, fGameSpeed = gspFF);
+end;
+
+function TGameWindow.GetGameSpeed: TGameSpeed;
+begin
+  Result := fGameSpeed;
 end;
 
 procedure TGameWindow.Form_MouseWheel(Sender: TObject; Shift: TShiftState;
@@ -219,7 +228,7 @@ begin
     Exit;
 
   Img.BeginUpdate;
-  SkillPanel.Img.BeginUpdate;
+  SkillPanel.Image.BeginUpdate;
   try
     OSHorz := Img.OffsetHorz - (Img.Width / 2);
     OSVert := Img.OffsetVert - (Img.Height / 2);
@@ -244,7 +253,7 @@ begin
     CheckResetCursor(true);
   finally
     Img.EndUpdate;
-    SkillPanel.Img.EndUpdate;
+    SkillPanel.Image.EndUpdate;
   end;
 end;
 
@@ -260,10 +269,7 @@ begin
   ClientWidth := GameParams.MainForm.ClientWidth;
   ClientHeight := GameParams.MainForm.ClientHeight;
 
-  if SkillPanel.Zoom > SkillPanel.MaxZoom then
-    SkillPanel.Zoom := SkillPanel.MaxZoom
-  else if (SkillPanel.Zoom < fInternalZoom) and (SkillPanel.Zoom < SkillPanel.MaxZoom) then
-    SkillPanel.Zoom := fInternalZoom;
+  SkillPanel.Zoom := Max(SkillPanel.Zoom, fInternalZoom); // this checks for MaxZoom automatically.
 
   Img.Width := Min(ClientWidth, GameParams.Level.Info.Width * fInternalZoom);
   Img.Height := Min(ClientHeight - (SkillPanel.Zoom * 40), GameParams.Level.Info.Height * fInternalZoom);
@@ -278,8 +284,8 @@ begin
   Img.Top := VertOffset;
   SkillPanel.Top := Img.Top + Img.Height;
   SkillPanel.Height := Max(SkillPanel.Zoom * 40, ClientHeight - SkillPanel.Top);
-  SkillPanel.Img.Left := (ClientWidth - SkillPanel.Img.Width) div 2;
-  SkillPanel.Img.Update;
+  SkillPanel.Image.Left := (ClientWidth - SkillPanel.Image.Width) div 2;
+  SkillPanel.Image.Update;
 
   MinScroll := -((GameParams.Level.Info.Width * fInternalZoom) - Img.Width);
   MaxScroll := 0;
@@ -360,6 +366,11 @@ begin
   SkillPanel.DrawButtonSelector(spbClearPhysics, fClearPhysics);
 end;
 
+function TGameWindow.GetClearPhysics: Boolean;
+begin
+  Result := fClearPhysics;
+end;
+
 procedure TGameWindow.RenderMinimap;
 begin
   if GameParams.MinimapHighQuality then
@@ -406,8 +417,8 @@ var
 begin
   fMouseTrapped := true;
 
-  ClientTopLeft := ClientToScreen(Point(Min(SkillPanel.Img.Left, Img.Left), Img.Top));
-  ClientBottomRight := ClientToScreen(Point(Max(Img.Left + Img.Width, SkillPanel.Img.Left + SkillPanel.Img.Width), SkillPanel.Top + SkillPanel.Img.Height));
+  ClientTopLeft := ClientToScreen(Point(Min(SkillPanel.Image.Left, Img.Left), Img.Top));
+  ClientBottomRight := ClientToScreen(Point(Max(Img.Left + Img.Width, SkillPanel.Image.Left + SkillPanel.Image.Width), SkillPanel.Top + SkillPanel.Image.Height));
   MouseClipRect := Rect(ClientTopLeft, ClientBottomRight);
   ClipCursor(@MouseClipRect);
 end;
@@ -454,8 +465,8 @@ begin
 
   Pause := (fGameSpeed = gspPause);
   Fast := (fGameSpeed = gspFF);
-  ForceOne := ForceUpdateOneFrame or fRenderInterface.ForceUpdate;
-  ForceUpdateOneFrame := (PanelFrameSkip > 0);
+  ForceOne := fForceUpdateOneFrame or fRenderInterface.ForceUpdate;
+  fForceUpdateOneFrame := (PanelFrameSkip > 0);
   CurrTime := TimeGetTime;
   TimeForFrame := (not Pause) and (CurrTime - PrevCallTime > IdealFrameTimeMS); // don't check for frame advancing when paused
   TimeForFastForwardFrame := Fast and (CurrTime - PrevCallTime > IdealFrameTimeMSFast);
@@ -803,14 +814,14 @@ begin
   if GameParams.Hotkeys.CheckForKey(lka_DirRight) then SDir := SDir + 1; // These two cancel each other out if both are pressed. Genius. :D
   if SDir = 0 then
   begin
-    SDir := SkillPanelSelectDx;
+    SDir := SkillPanel.SkillPanelSelectDx;
     if (SDir = 0) and (Game.fSelectDx <> 0) then
     begin
       SkillPanel.DrawButtonSelector(spbDirLeft, false);
       SkillPanel.DrawButtonSelector(spbDirRight, false);
     end;
   end else begin
-    SkillPanelSelectDx := 0;
+    SkillPanel.SkillPanelSelectDx := 0;
     if (Game.fSelectDx <> SDir) then
     begin
       SkillPanel.DrawButtonSelector(spbDirLeft, (SDir = -1));
@@ -915,6 +926,12 @@ begin
   end;
 end;
 
+function TGameWindow.DoSuspendCursor: Boolean;
+begin
+  Result := fSuspendCursor;
+end;
+
+
 function TGameWindow.CheckScroll: Boolean;
   procedure Scroll(dx, dy: Integer);
   begin
@@ -931,18 +948,18 @@ function TGameWindow.CheckScroll: Boolean;
   var
     HDiff, VDiff: Integer;
   begin
-    HDiff := (Mouse.CursorPos.X - fHoldScrollPoint.StartCursor.X) div fInternalZoom;
-    VDiff := (Mouse.CursorPos.Y - fHoldScrollPoint.StartCursor.Y) div fInternalZoom;
+    HDiff := (Mouse.CursorPos.X - fHoldScrollData.StartCursor.X) div fInternalZoom;
+    VDiff := (Mouse.CursorPos.Y - fHoldScrollData.StartCursor.Y) div fInternalZoom;
 
     if Abs(HDiff) = 1 then
-      fHoldScrollPoint.StartCursor.X := Mouse.CursorPos.X
+      fHoldScrollData.StartCursor.X := Mouse.CursorPos.X
     else
-      fHoldScrollPoint.StartCursor.X := fHoldScrollPoint.StartCursor.X + (HDiff * 3 div 4);
+      fHoldScrollData.StartCursor.X := fHoldScrollData.StartCursor.X + (HDiff * 3 div 4);
 
     if Abs(VDiff) = 1 then
-      fHoldScrollPoint.StartCursor.Y := Mouse.CursorPos.Y
+      fHoldScrollData.StartCursor.Y := Mouse.CursorPos.Y
     else
-      fHoldScrollPoint.StartCursor.Y := fHoldScrollPoint.StartCursor.Y + (VDiff * 3 div 4);
+      fHoldScrollData.StartCursor.Y := fHoldScrollData.StartCursor.Y + (VDiff * 3 div 4);
 
     Img.BeginUpdate;
     Scroll(HDiff, VDiff);
@@ -955,12 +972,12 @@ begin
   begin
     GameScroll := gsNone;
     GameVScroll := gsNone;
-  end else if fHoldScrollPoint.Active then
+  end else if fHoldScrollData.Active then
   begin
     if GameParams.Hotkeys.CheckForKey(lka_Scroll) then
       HandleHeldScroll
     else
-      fHoldScrollPoint.Active := false;
+      fHoldScrollData.Active := false;
   end else if GameParams.EdgeScroll then begin
     if Mouse.CursorPos.X <= MouseClipRect.Left then
       GameScroll := gsLeft
@@ -1018,7 +1035,11 @@ begin
   Img.ScaleMode := smScale;
 
   // create toolbar
-  SkillPanel := TSkillPanelToolbar.Create(Self);
+  if GameParams.CompactSkillPanel then
+    SkillPanel := TSkillPanelCompact.Create(Self, Self)
+  else
+    SkillPanel := TSkillPanelStandard.Create(Self, Self);
+
   SkillPanel.Parent := Self;
 
   Self.KeyPreview := True;
@@ -1036,8 +1057,8 @@ begin
   Img.OnMouseMove := Img_MouseMove;
   Img.OnMouseUp := Img_MouseUp;
 
-  SkillPanel.Game := fGame;
-  SkillPanel.OnMinimapClick := SkillPanel_MinimapClick;
+  SkillPanel.SetGame(fGame);
+  SkillPanel.SetOnMinimapClick(SkillPanel_MinimapClick);
   Application.OnIdle := Application_Idle;
 
   fSaveList := TLemmingGameSavedStateList.Create(true);
@@ -1056,7 +1077,7 @@ begin
   Application.OnIdle := nil;
 
   if SkillPanel <> nil then
-    SkillPanel.Game := nil;
+    SkillPanel.SetGame(nil);
 
   fSaveList.Free;
 
@@ -1201,7 +1222,7 @@ begin
                       if CurrTime - fLastNukeKeyTime < 250 then
                       begin
                         RegainControl;
-                        SetSelectedSkill(spbNuke)
+                        SetSelectedSkill(spbNuke);
                       end else
                         fLastNukeKeyTime := CurrTime;
                     end;
@@ -1253,7 +1274,7 @@ begin
                       begin
                         fHyperSpeedTarget := CurrentIteration + func.Modifier;
                       end else
-                        if fGameSpeed = gspPause then ForceUpdateOneFrame := true;
+                        if fGameSpeed = gspPause then fForceUpdateOneFrame := true;
           lka_SpecialSkip: HandleSpecialSkip(func.Modifier);
           lka_ClearPhysics: if func.Modifier = 0 then
                               ClearPhysics := not ClearPhysics
@@ -1264,11 +1285,10 @@ begin
           lka_ZoomIn: ChangeZoom(fInternalZoom + 1);
           lka_ZoomOut: ChangeZoom(fInternalZoom - 1);
           lka_Scroll: begin
-                        if PtInRect(Img.BoundsRect, Img.ParentToClient(ScreenToClient(Mouse.CursorPos))) and not fHoldScrollPoint.Active then
+                        if PtInRect(Img.BoundsRect, Img.ParentToClient(ScreenToClient(Mouse.CursorPos))) and not fHoldScrollData.Active then
                         begin
-                          fHoldScrollPoint.Active := true;
-                          fHoldScrollPoint.StartCursor := Mouse.CursorPos;
-                          fHoldScrollPoint.StartImg := FloatPoint(Img.OffsetHorz, Img.OffsetVert);
+                          fHoldScrollData.Active := true;
+                          fHoldScrollData.StartCursor := Mouse.CursorPos;
                         end;
                       end;
         end;
@@ -1277,7 +1297,8 @@ begin
 
   CheckShifts(Shift);
 
-  if (fGameSpeed = gspPause) and not ForceUpdateOneFrame then  // if ForceUpdateOneFrame is active, screen will be redrawn soon enough anyway
+  // if ForceUpdateOneFrame is active, screen will be redrawn soon enough anyway
+  if (fGameSpeed = gspPause) and not fForceUpdateOneFrame then
     DoDraw;
 end;
 
@@ -1393,7 +1414,7 @@ begin
     begin
       Game.RegainControl;
       Game.ProcessSkillAssignment;
-      if fGameSpeed = gspPause then ForceUpdateOneFrame := True;
+      if fGameSpeed = gspPause then fForceUpdateOneFrame := True;
     end;
 
     if Game.IsHighlightHotkey and not (Game.Replaying and GameParams.ExplicitCancel) then
@@ -1572,11 +1593,10 @@ begin
 
   Img.Scale := Sca;
 
+  SkillPanel.PrepareForGame;
 
-  SkillPanel.Minimap.SetSize(GameParams.Level.Info.Width div 8, GameParams.Level.Info.Height div 8);
   fMinimapBuffer.SetSize(GameParams.Level.Info.Width, GameParams.Level.Info.Height);
 
-  SkillPanel.SetStyleAndGraph(Gameparams.Style, Sca);
   ChangeZoom(Sca, true);
 
   HorzStart := GameParams.Level.Info.ScreenPosition - ((Img.Width div 2) div Sca);
@@ -1586,13 +1606,10 @@ begin
   Img.OffsetHorz := Min(Max(-HorzStart, MinScroll), MaxScroll);
   Img.OffsetVert := Min(Max(-VertStart, MinVScroll), MaxVScroll);
 
-  SkillPanel.Level := GameParams.Level;
-  SkillPanel.SetSkillIcons;
-
   if GameParams.LinearResampleGame then
   begin
     TLinearResampler.Create(Img.Bitmap);
-    TLinearResampler.Create(SkillPanel.Img.Bitmap);
+    TLinearResampler.Create(SkillPanel.Image.Bitmap);
   end;
 
   SetLength(HCURSORS, fMaxZoom);
@@ -1618,13 +1635,13 @@ procedure TGameWindow.SkillPanel_MinimapClick(Sender: TObject; const P: TPoint);
 var
   O: Single;
 begin
-  O := -P.X * fInternalZoom;
+  O := -P.X * 8 * fInternalZoom;
   O :=  O + Img.Width div 2;
   if O < MinScroll then O := MinScroll;
   if O > MaxScroll then O := MaxScroll;
   Img.OffSetHorz := O;
 
-  O := -P.Y * fInternalZoom;
+  O := -P.Y * 8 * fInternalZoom;
   O :=  O + Img.Height div 2;
   if O < MinVScroll then O := MinVScroll;
   if O > MaxVScroll then O := MaxVScroll;
@@ -1818,6 +1835,32 @@ procedure TGameWindow.AddSaveState;
 begin
   fGame.CreateSavedState(fSaveList.Add);
 end;
+
+function TGameWindow.GetWidth: Integer;
+begin
+  Result := Width;
+end;
+
+function TGameWindow.GetHeight: Integer;
+begin
+  Result := Height;
+end;
+
+function TGameWindow.ScreenImage: TImage32;
+begin
+  Result := ScreenImg;
+end;
+
+procedure TGameWindow.SetForceUpdateOneFrame(aValue: Boolean);
+begin
+  fForceUpdateOneFrame := aValue;
+end;
+
+procedure TGameWindow.SetHyperSpeedTarget(aValue: Integer);
+begin
+  fHyperSpeedTarget := aValue;
+end;
+
 
 end.
 
