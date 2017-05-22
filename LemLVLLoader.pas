@@ -524,7 +524,10 @@ begin
         aLevel.Clear;
         ReleaseRate      := Buf.ReleaseRate;
         ReleaseRateLocked := (Buf.LevelOptions2 and 1) <> 0;
-        Background := IntToStr(Buf.BgIndex);
+        if Buf.BgIndex = $FF then
+          Background := ''
+        else
+          Background := IntToStr(Buf.BgIndex);
 
         LemmingsCount    := Buf.LemmingsCount;
         RescueCount      := Buf.RescueCount;
@@ -1327,8 +1330,12 @@ begin
 
       Buf.Resolution := 8;
       k := Background;
-      k := MidStr(k, Pos('BG', k) + 2, Length(k));
-      Buf.BgIndex := StrToIntDef(k, 0);
+      if k = '' then
+        Buf.BgIndex := $FF
+      else begin
+        k := MidStr(k, Pos('BG', k) + 2, Length(k));
+        Buf.BgIndex := StrToIntDef(k, 0);
+      end;
 
       Buf.Width := Width;
       Buf.Height := Height;
