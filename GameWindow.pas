@@ -835,7 +835,6 @@ procedure TGameWindow.GotoSaveState(aTargetIteration: Integer; PauseAfterSkip: I
 -------------------------------------------------------------------------------}
 var
   UseSaveState: Integer;
-  i: Integer;
 begin
   CanPlay := False;
   if PauseAfterSkip < 0 then
