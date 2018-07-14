@@ -60,7 +60,7 @@ begin
   inherited CreateParams(Params);
   with Params.WindowClass do
   begin
-    Style := Style or CS_OWNDC; // maybe faster screen output
+    //Style := Style or CS_OWNDC; // maybe faster screen output
   end;
 end;
 
