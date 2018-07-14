@@ -3,7 +3,7 @@ unit GamePreviewScreen;
 interface
 
 uses
-  System.Types,
+  Types,
   StrUtils,
   PngInterface,
   LemNeoLevelPack,
@@ -186,9 +186,9 @@ end;
 constructor TGamePreviewScreen.Create(aOwner: TComponent);
 begin
   inherited;
-  OnKeyDown := Form_KeyDown;
-  OnMouseDown := Form_MouseDown;
-  ScreenImg.OnMouseDown := Img_MouseDown;
+  OnKeyDown := @Form_KeyDown;
+  OnMouseDown := @Form_MouseDown;
+  ScreenImg.OnMouseDown := @Img_MouseDown;
 end;
 
 destructor TGamePreviewScreen.Destroy;

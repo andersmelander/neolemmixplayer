@@ -375,7 +375,7 @@ begin
     ScreenImg.EndUpdate;
   end;
 
-  Application.OnIdle := Application_Idle; // this delays processing until the form is visible
+  Application.OnIdle := @Application_Idle; // this delays processing until the form is visible
 end;
 
 procedure TGameReplayCheckScreen.OutputText;
@@ -409,10 +409,10 @@ end;
 constructor TGameReplayCheckScreen.Create(aOwner: TComponent);
 begin
   inherited;
-  OnKeyDown := Form_KeyDown;
-  OnKeyPress := Form_KeyPress;
-  OnMouseDown := Form_MouseDown;
-  ScreenImg.OnMouseDown := Img_MouseDown;
+  OnKeyDown := @Form_KeyDown;
+  OnKeyPress := @Form_KeyPress;
+  OnMouseDown := @Form_MouseDown;
+  ScreenImg.OnMouseDown := @Img_MouseDown;
 
   fScreenText := TStringList.Create;
   fReplays := TReplayCheckEntries.Create;
@@ -484,7 +484,7 @@ end;
 
 function TReplayCheckEntries.GetItem(Index: Integer): TReplayCheckEntry;
 begin
-  Result := inherited Get(Index);
+  Result := TReplayCheckEntry(inherited Get(Index));
 end;
 
 procedure TReplayCheckEntries.SaveToFile(aName: String);

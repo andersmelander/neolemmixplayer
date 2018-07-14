@@ -56,7 +56,7 @@ var
 
 implementation
 
-{$R *.dfm}
+{$R *.lfm}
 
 procedure TFLemmixHotkeys.FormCreate(Sender: TObject);
 begin

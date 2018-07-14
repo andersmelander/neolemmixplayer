@@ -116,10 +116,10 @@ end;
 constructor TGamePostviewScreen.Create(aOwner: TComponent);
 begin
   inherited Create(aOwner);
-  OnKeyDown := Form_KeyDown;
-  OnKeyPress := Form_KeyPress; 
-  OnMouseDown := Form_MouseDown;
-  ScreenImg.OnMouseDown := Img_MouseDown;
+  OnKeyDown := @Form_KeyDown;
+  OnKeyPress := @Form_KeyPress; 
+  OnMouseDown := @Form_MouseDown;
+  ScreenImg.OnMouseDown := @Img_MouseDown;
 end;
 
 destructor TGamePostviewScreen.Destroy;

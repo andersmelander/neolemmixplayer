@@ -526,7 +526,7 @@ end;
 
 function TSoundEffects.GetItem(Index: Integer): TSoundEffect;
 begin
-  Result := inherited Get(Index);
+  Result := TSoundEffect(inherited Get(Index));
 end;
 
 end.

@@ -171,7 +171,7 @@ begin
   // one currently running. If running an experimental version, also checks if it's the
   // exact same version (as it would be a stable release).
   GameParams.DoneUpdateCheck := true;
-  if not (GameParams.EnableOnline and GameParams.CheckUpdates) then Exit;
+  (*if not (GameParams.EnableOnline and GameParams.CheckUpdates) then Exit;
   if GetLatestNeoLemmixVersion(NxaPlayer, Format, Core, Feature, Fix) then
   begin
     CurVer := CurrentVersionID;
@@ -184,7 +184,9 @@ begin
         OpenURL(PChar('http://www.neolemmix.com/neolemmix.html')); { *Converted from ShellExecute* }
         CloseScreen(gstExit);
       end;
-  end;
+  end;*)
+
+  // online code dummied out
 end;
 
 procedure TGameMenuScreen.DrawBitmapElement(aElement: TGameMenuBitmap);

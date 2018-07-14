@@ -14,6 +14,8 @@
 
 unit Bass;
 
+{$mode delphi}
+
 interface
 
 uses
@@ -649,8 +651,8 @@ type
 
 const
   // special STREAMPROCs
-  STREAMPROC_DUMMY : STREAMPROC = STREAMPROC(0);  // "dummy" stream
-  STREAMPROC_PUSH  : STREAMPROC = STREAMPROC(-1); // push stream
+  STREAMPROC_DUMMY = Pointer(0);  // "dummy" stream
+  STREAMPROC_PUSH  = Pointer(-1); // push stream
 
 type
 
@@ -843,22 +845,6 @@ implementation
 var
   fLoopStart: QWord;
   fLoopLength: QWord;
-
-{
-var
-   oldmode : integer;
-begin
-  if BASSCD_Handle <> 0 then // is it already there ?
-     result := true
-   else
-     begin {go & load the dll}
-    {   oldmode := SetErrorMode($8001);
-       BASSCD_Handle := LoadLibrary(pchar(dllfilename));  // obtain the handle we want
-       SetErrorMode(oldmode);
-    if BASSCD_Handle <> 0 then
-     begin
-     {$IFDEF UNICODE}
-
 
 
 Function Load_BASSDLL (const dllfilename : String) :boolean;

@@ -465,7 +465,7 @@ begin
 
   ClientTopLeft := ClientToScreen(Point(Min(SkillPanel.Image.Left, Img.Left), Img.Top));
   ClientBottomRight := ClientToScreen(Point(Max(Img.Left + Img.Width, SkillPanel.Image.Left + SkillPanel.Image.Width), SkillPanel.Top + SkillPanel.Image.Height));
-  MouseClipRect := Rect(ClientTopLeft, ClientBottomRight);
+  MouseClipRect := Rect(ClientTopLeft.X, ClientTopLeft.Y, ClientBottomRight.X, ClientBottomRight.Y);
   ClipCursor(@MouseClipRect);
 end;
 
@@ -1098,21 +1098,21 @@ begin
   Self.KeyPreview := True;
 
   // set eventhandlers
-  Self.OnActivate := Form_Activate;
-  Self.OnKeyDown := Form_KeyDown;
-  Self.OnKeyUp := Form_KeyUp;
-  Self.OnKeyPress := Form_KeyPress;
-  Self.OnMouseMove := Form_MouseMove;
-  Self.OnMouseUp := Form_MouseUp;
-  Self.OnMouseWheel := Form_MouseWheel;
+  Self.OnActivate := @Form_Activate;
+  Self.OnKeyDown := @Form_KeyDown;
+  Self.OnKeyUp := @Form_KeyUp;
+  Self.OnKeyPress := @Form_KeyPress;
+  Self.OnMouseMove := @Form_MouseMove;
+  Self.OnMouseUp := @Form_MouseUp;
+  Self.OnMouseWheel := @Form_MouseWheel;
 
-  Img.OnMouseDown := Img_MouseDown;
-  Img.OnMouseMove := Img_MouseMove;
-  Img.OnMouseUp := Img_MouseUp;
+  Img.OnMouseDown := @Img_MouseDown;
+  Img.OnMouseMove := @Img_MouseMove;
+  Img.OnMouseUp := @Img_MouseUp;
 
   SkillPanel.SetGame(fGame);
-  SkillPanel.SetOnMinimapClick(SkillPanel_MinimapClick);
-  Application.OnIdle := Application_Idle;
+  SkillPanel.SetOnMinimapClick(@SkillPanel_MinimapClick);
+  Application.OnIdle := @Application_Idle;
 
   fSaveList := TLemmingGameSavedStateList.Create(true);
 

@@ -49,7 +49,7 @@ type
     fCloseDelay          : Integer;
     procedure AdjustImage;
     procedure MakeList(const S: string; aList: TStrings);
-    procedure CNKeyDown(var Message: TWMKeyDown); message CN_KEYDOWN;
+    //procedure CNKeyDown(var Message: TWMKeyDown); message CN_KEYDOWN;
   protected
     procedure PrepareGameParams; override;
     procedure CloseScreen(aNextScreen: TGameScreenType); virtual;
@@ -138,7 +138,7 @@ end;
 
 { TGameBaseScreen }
 
-procedure TGameBaseScreen.CNKeyDown(var Message: TWMKeyDown);
+(*procedure TGameBaseScreen.CNKeyDown(var Message: TWMKeyDown);
 var
   AssignedEventHandler: TKeyEvent;
 begin
@@ -147,7 +147,7 @@ begin
     if Assigned(AssignedEventHandler) then
       OnKeyDown(Self, Message.CharCode, KeyDataToShiftState(Message.KeyData));
   inherited;
-end;
+end;*)
 
 procedure TGameBaseScreen.AdjustImage;
 begin

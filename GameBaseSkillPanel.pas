@@ -3,7 +3,7 @@ unit GameBaseSkillPanel;
 interface
 
 uses
-  System.Types,
+  Types, Windows,
   Classes, Controls, GR32, GR32_Image, GR32_Layers, GR32_Resamplers,
   GameWindowInterface,
   LemCore, LemLemming, LemGame, LemLevel;
@@ -191,7 +191,7 @@ const
 implementation
 
 uses
-  SysUtils, Math, Windows, UMisc, PngInterface,
+  SysUtils, Math, UMisc, PngInterface,
   GameControl, GameSound,
   LemTypes, LemReplay, LemStrings, LemNeoTheme,
   LemmixHotkeys, LemDosStructures;
@@ -222,7 +222,7 @@ begin
 
   // Some general settings for the panel
   Color := $000000;
-  ParentBackground := false;
+  //ParentBackground := false;
   DoubleBuffered := true;
 
   fLastClickFrameskip := GetTickCount;
@@ -249,13 +249,13 @@ begin
   fOriginal := TBitmap32.Create;
 
   // Initialize event handlers
-  fImage.OnMouseDown := ImgMouseDown;
-  fImage.OnMouseMove := ImgMouseMove;
-  fImage.OnMouseUp := ImgMouseUp;
+  fImage.OnMouseDown := @ImgMouseDown;
+  fImage.OnMouseMove := @ImgMouseMove;
+  fImage.OnMouseUp := @ImgMouseUp;
 
-  fMinimapImage.OnMouseDown := MinimapMouseDown;
-  fMinimapImage.OnMouseMove := MinimapMouseMove;
-  fMinimapImage.OnMouseUp := MinimapMouseUp;
+  fMinimapImage.OnMouseDown := @MinimapMouseDown;
+  fMinimapImage.OnMouseMove := @MinimapMouseMove;
+  fMinimapImage.OnMouseUp := @MinimapMouseUp;
 
   // Create font and skill panel images (but do not yet load them)
   SetLength(fInfoFont, NUM_FONT_CHARS);
@@ -869,7 +869,7 @@ begin
       if DoRecolor then
       begin
         fInfoFont[CharID].DrawMode := dmCustom;
-        fInfoFont[CharID].OnPixelCombine := CombineToRed;
+        fInfoFont[CharID].OnPixelCombine := @CombineToRed;
         fInfoFont[CharID].DrawTo(fImage.Bitmap, (i - 1) * 8, 0);
         fInfoFont[CharID].DrawMode := dmBlend;
       end

@@ -43,10 +43,7 @@ var
 
 implementation
 
-{$R *.dfm}
-
-uses
-  UITypes;
+{$R *.lfm}
 
 procedure TFReplayEditor.NoteChangeAtFrame(aFrame: Integer);
 begin
@@ -58,7 +55,7 @@ procedure TFReplayEditor.ListReplayActions(aSelect: TBaseReplayItem = nil);
 var
   Selected: TObject;
   i: Integer;
-  Action: TBaseReplayItem;
+  LocalAction: TBaseReplayItem;
 
   function GetString(aItem: TBaseReplayItem): String;
   var
@@ -118,12 +115,12 @@ begin
     lbReplayActions.Items.Clear;
     for i := 0 to fReplay.LastActionFrame do
     begin
-      Action := fReplay.SpawnIntervalChange[i, 0];
-      if Action <> nil then
-        lbReplayActions.AddItem(GetString(Action), Action);
-      Action := fReplay.Assignment[i, 0];
-      if Action <> nil then
-        lbReplayActions.AddItem(GetString(Action), Action);
+      LocalAction := fReplay.SpawnIntervalChange[i, 0];
+      if LocalAction <> nil then
+        lbReplayActions.AddItem(GetString(LocalAction), LocalAction);
+      LocalAction := fReplay.Assignment[i, 0];
+      if LocalAction <> nil then
+        lbReplayActions.AddItem(GetString(LocalAction), LocalAction);
     end;
   finally
     for i := 0 to lbReplayActions.Items.Count-1 do
@@ -133,7 +130,7 @@ begin
         Break;
       end;
     lbReplayActions.Items.EndUpdate;
-    lbReplayActions.OnClick := lbReplayActionsClick;
+    lbReplayActions.OnClick := @lbReplayActionsClick;
     lbReplayActionsClick(lbReplayActions);
   end;
 end;

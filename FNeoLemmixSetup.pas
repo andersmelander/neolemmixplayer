@@ -34,7 +34,7 @@ implementation
 uses
   GameControl, LemmixHotkeys;
 
-{$R *.dfm}
+{$r *.lfm}
 
 { Misc Functions }
 

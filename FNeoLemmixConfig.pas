@@ -72,7 +72,7 @@ uses
   GameWindow, // for EXTRA_ZOOM_LEVELS constant
   GameMenuScreen; // for disabling the MassReplayCheck button if necessary.
 
-{$R *.dfm}
+{$r *.lfm}
 
 constructor TFormNXConfig.Create(aOwner: TComponent);
 begin

@@ -68,8 +68,8 @@ end;
 constructor TGameTalismanScreen.Create(aOwner: TComponent);
 begin
   inherited Create(aOwner);
-  OnKeyDown := Form_KeyDown;
-  OnKeyPress := Form_KeyPress;
+  OnKeyDown := @Form_KeyDown;
+  OnKeyPress := @Form_KeyPress;
 end;
 
 destructor TGameTalismanScreen.Destroy;
