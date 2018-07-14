@@ -5,10 +5,10 @@ unit LemRendering;
 interface
 
 uses
-  System.Types,
-  Classes, Math, Windows,
+  Types,
+  Math, Windows,
   GR32, GR32_Blend,
-  UMisc, SysUtils, StrUtils,
+  UMisc, Classes, SysUtils, StrUtils,
   PngInterface,
   LemRecolorSprites,
   LemRenderHelpers, LemNeoPieceManager, LemNeoTheme,
@@ -88,7 +88,7 @@ type
 
     // Were sub-procedures or part of DrawAllObjects
     procedure DrawGadgetsOnLayer(aLayer: TRenderLayer);
-    procedure ProcessDrawFrame(Gadget: TGadget; Dst: TBitmap32; TempBitmap: TBitmap32 = nil);
+    procedure ProcessDrawFrame(Gadget: TGadget; Dst: TBitmap32; LocalTempBitmap: TBitmap32 = nil);
     procedure DrawTriggerArea(Gadget: TGadget);
     procedure DrawUserHelper;
     function IsUseful(Gadget: TGadget): Boolean;
@@ -163,9 +163,9 @@ implementation
 procedure TRenderer.SetInterface(aInterface: TRenderInterface);
 begin
   fRenderInterface := aInterface;
-  fRenderInterface.SetDrawRoutineBrick(AddTerrainPixel);
-  fRenderInterface.SetDrawRoutineStoner(AddStoner);
-  fRenderInterface.SetRemoveRoutine(ApplyRemovedTerrain);
+  fRenderInterface.SetDrawRoutineBrick(@AddTerrainPixel);
+  fRenderInterface.SetDrawRoutineStoner(@AddStoner);
+  fRenderInterface.SetRemoveRoutine(@ApplyRemovedTerrain);
 end;
 
 // Minimap drawing
@@ -187,7 +187,7 @@ begin
     OldMode := fPhysicsMap.DrawMode;
 
     fPhysicsMap.DrawMode := dmCustom;
-    fPhysicsMap.OnPixelCombine := CombineMinimapPixels;
+    fPhysicsMap.OnPixelCombine := @CombineMinimapPixels;
 
     fPhysicsMap.DrawTo(Dst, Dst.BoundsRect, fPhysicsMap.BoundsRect);
 
@@ -311,7 +311,7 @@ begin
   SrcRect := GetFrameBounds;
   DstRect := GetLocationBounds;
   SrcAnim.DrawMode := dmCustom;
-  SrcAnim.OnPixelCombine := fRecolorer.CombineLemmingPixels;
+  SrcAnim.OnPixelCombine := @fRecolorer.CombineLemmingPixels;
   SrcAnim.DrawTo(fLayers[rlLemmings], DstRect, SrcRect);
 
   // Helper for selected blockers
@@ -434,10 +434,10 @@ begin
       if cx < 0 then Continue;
       if cx >= MapWidth then Break;
       
-      if PhysicsArrPtr[cy * MapWidth + cx] and PM_SOLID = 0 then
+      if PhysicsArrPtr^[cy * MapWidth + cx] and PM_SOLID = 0 then
       begin
         // should we double-check all terrain bits are erased?
-        TerrLayerArrPtr[cy * MapWidth + cx] := 0;
+        TerrLayerArrPtr^[cy * MapWidth + cx] := 0;
       end;
     end;
   end;
@@ -898,7 +898,7 @@ end;
 procedure TRenderer.AddStoner(X, Y: Integer);
 begin
   fAni.LemmingAnimations[STONED].DrawMode := dmCustom;
-  fAni.LemmingAnimations[STONED].OnPixelCombine := CombineTerrainNoOverwrite;
+  fAni.LemmingAnimations[STONED].OnPixelCombine := @CombineTerrainNoOverwrite;
   fAni.LemmingAnimations[STONED].DrawTo(fLayers[rlTerrain], X, Y);
 end;
 
@@ -963,11 +963,11 @@ begin
 
   Dst.DrawMode := dmCustom;
   if T.DrawingFlags and tdf_NoOverwrite <> 0 then
-    Dst.OnPixelCombine := CombineTerrainFunctionNoOverwrite
+    Dst.OnPixelCombine := @CombineTerrainFunctionNoOverwrite
   else if T.DrawingFlags and tdf_Erase <> 0 then
-    Dst.OnPixelCombine := CombineTerrainFunctionErase
+    Dst.OnPixelCombine := @CombineTerrainFunctionErase
   else
-    Dst.OnPixelCombine := CombineTerrainFunctionDefault;
+    Dst.OnPixelCombine := @CombineTerrainFunctionDefault;
 end;
 
 procedure TRenderer.CombineTerrainFunctionDefault(F: TColor32; var B: TColor32; M: TColor32);
@@ -1044,11 +1044,11 @@ begin
   Bmp.DrawMode := dmCustom;
 
   if IsOnlyOnTerrain then
-    Bmp.OnPixelCombine := CombineGadgetsDefault
+    Bmp.OnPixelCombine := @CombineGadgetsDefault
   else if IsZombie then
-    Bmp.OnPixelCombine := CombineGadgetsDefaultZombie
+    Bmp.OnPixelCombine := @CombineGadgetsDefaultZombie
   else
-    Bmp.OnPixelCombine := CombineGadgetsDefault;
+    Bmp.OnPixelCombine := @CombineGadgetsDefault;
 end;
 
 procedure TRenderer.DrawTerrain(Dst: TBitmap32; T: TTerrain);
@@ -1073,11 +1073,11 @@ begin
   Bmp.DrawMode := dmCustom;
 
   if DrawingFlags and tdf_NoOverwrite <> 0 then
-    Bmp.OnPixelCombine := CombineTerrainNoOverwrite
+    Bmp.OnPixelCombine := @CombineTerrainNoOverwrite
   else if DrawingFlags and tdf_Erase <> 0 then
-    Bmp.OnPixelCombine := CombineTerrainErase
+    Bmp.OnPixelCombine := @CombineTerrainErase
   else
-    Bmp.OnPixelCombine := CombineTerrainDefault;
+    Bmp.OnPixelCombine := @CombineTerrainDefault;
 end;
 
 
@@ -1299,7 +1299,7 @@ begin
   end;
 end;
 
-procedure TRenderer.ProcessDrawFrame(Gadget: TGadget; Dst: TBitmap32; TempBitmap: TBitmap32 = nil);
+procedure TRenderer.ProcessDrawFrame(Gadget: TGadget; Dst: TBitmap32; LocalTempBitmap: TBitmap32 = nil);
 var
   CountX, CountY, iX, iY: Integer;
   MO: TGadgetMetaAccessor;
@@ -1313,27 +1313,27 @@ var
     TextWidth, TextHeight: Integer;
   begin
     Text := IntToStr(Gadget.SkillCount);
-    TempBitmap.Font.Size := 5;
-    TextWidth := TempBitmap.TextWidth(Text);
-    TextHeight := TempBitmap.TextHeight(Text);
-    TempBitmap.RenderText(Gadget.Width - TextWidth, Gadget.Height - TextHeight + 1, Text, 0, $FF101010);
-    TempBitmap.RenderText(Gadget.Width - TextWidth + 1, Gadget.Height - TextHeight + 1, Text, 0, $FFF0F0F0);
+    LocalTempBitmap.Font.Size := 5;
+    TextWidth := LocalTempBitmap.TextWidth(Text);
+    TextHeight := LocalTempBitmap.TextHeight(Text);
+    LocalTempBitmap.RenderText(Gadget.Width - TextWidth, Gadget.Height - TextHeight + 1, Text, 0, $FF101010);
+    LocalTempBitmap.RenderText(Gadget.Width - TextWidth + 1, Gadget.Height - TextHeight + 1, Text, 0, $FFF0F0F0);
   end;
 begin
   if Gadget.TriggerEffect in [DOM_LEMMING, DOM_HINT] then Exit;
 
-  if TempBitmap = nil then
+  if LocalTempBitmap = nil then
   begin
-    TempBitmap := TBitmap32.Create;
+    LocalTempBitmap := TBitmap32.Create;
     IsOwnBitmap := true;
   end else
     IsOwnBitmap := false;
 
   try
     DrawFrame := Min(Gadget.CurrentFrame, Gadget.AnimationFrameCount-1);
-    TempBitmap.Assign(Gadget.Frames[DrawFrame]);
+    LocalTempBitmap.Assign(Gadget.Frames[DrawFrame]);
 
-    PrepareGadgetBitmap(TempBitmap, Gadget.IsOnlyOnTerrain, Gadget.ZombieMode);
+    PrepareGadgetBitmap(LocalTempBitmap, Gadget.IsOnlyOnTerrain, Gadget.ZombieMode);
     if (Gadget.TriggerEffect = DOM_PICKUP) and (Gadget.SkillCount > 1) then
        AddPickupSkillNumber;
 
@@ -1344,7 +1344,7 @@ begin
     for iY := 0 to CountY do
     begin
       // (re)size rectangles correctly
-      TempBitmapRect := TempBitmap.BoundsRect;
+      TempBitmapRect := LocalTempBitmap.BoundsRect;
       // Move to leftmost X-coordinate and correct Y-coordinate
       DstRect := Rect(0, 0, RectWidth(TempBitmapRect), RectHeight(TempBitmapRect));
       OffsetRect(DstRect, Gadget.Left, Gadget.Top + (MO.Height * iY));
@@ -1364,14 +1364,14 @@ begin
           Dec(TempBitmapRect.Right, MO.Width - (Gadget.Width mod MO.Width));
         end;
         // Draw copy of object onto alayer at this place
-        TempBitmap.DrawTo(Dst, DstRect, TempBitmapRect);
+        LocalTempBitmap.DrawTo(Dst, DstRect, TempBitmapRect);
         // Move to next row
         OffsetRect(DstRect, MO.Width, 0);
       end;
     end;
   finally
     if IsOwnBitmap then
-      TempBitmap.Free;
+      LocalTempBitmap.Free;
   end;
 end;
 

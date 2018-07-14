@@ -127,7 +127,6 @@ type
       function GetItemByFrame(aFrame: Integer; aIndex: Integer; aItemType: Integer): TBaseReplayItem;
       procedure SaveReplayList(aList: TReplayItemList; Sec: TParserSection);
       procedure UpdateFormat(SL: TStringList);
-      procedure HandleLoadSection(aSection: TParserSection; const aIteration: Integer);
     public
       constructor Create;
       destructor Destroy; override;
@@ -484,6 +483,32 @@ begin
   CheckForAction(fSpawnIntervalChanges);
 end;
 
+procedure HandleLoadSection(Sender: TObject; aSection: TParserSection; const aIteration: Integer);
+var
+  Replay: TReplay absolute Sender;
+  Item: TBaseReplayItem;
+begin
+  if not (Sender is TReplay) then Exit;
+
+  with Replay do
+  begin
+    Item := nil;
+    if aSection.Keyword = 'assignment' then Item := TReplaySkillAssignment.Create;
+    if aSection.Keyword = 'release_rate' then Item := TReplayChangeSpawnInterval.Create(true);
+    if aSection.Keyword = 'spawn_interval' then Item := TReplayChangeSpawnInterval.Create(false);
+    if aSection.Keyword = 'nuke' then Item := TReplayNuke.Create;
+
+    if Item = nil then Exit;
+
+    Item.Load(aSection);
+
+    if Item is TReplayChangeSpawnInterval then
+      fSpawnIntervalChanges.Add(Item)
+    else
+      fAssignments.Add(Item);
+  end;
+end;
+
 procedure TReplay.LoadFromStream(aStream: TStream);
 var
   Parser: TParser;
@@ -515,34 +540,14 @@ begin
     end else
       fLevelID := Sec.LineNumeric['id'];
 
-    Sec.DoForEachSection('assignment', HandleLoadSection);
-    Sec.DoForEachSection('release_rate', HandleLoadSection);
-    Sec.DoForEachSection('spawn_interval', HandleLoadSection);
-    Sec.DoForEachSection('nuke', HandleLoadSection);
+    Sec.DoForEachSection(self, 'assignment', @HandleLoadSection);
+    Sec.DoForEachSection(self, 'release_rate', @HandleLoadSection);
+    Sec.DoForEachSection(self, 'spawn_interval', @HandleLoadSection);
+    Sec.DoForEachSection(self, 'nuke', @HandleLoadSection);
   finally
     Parser.Free;
     SL.Free
   end;
-end;
-
-procedure TReplay.HandleLoadSection(aSection: TParserSection; const aIteration: Integer);
-var
-  Item: TBaseReplayItem;
-begin
-  Item := nil;
-  if aSection.Keyword = 'assignment' then Item := TReplaySkillAssignment.Create;
-  if aSection.Keyword = 'release_rate' then Item := TReplayChangeSpawnInterval.Create(true);
-  if aSection.Keyword = 'spawn_interval' then Item := TReplayChangeSpawnInterval.Create(false);
-  if aSection.Keyword = 'nuke' then Item := TReplayNuke.Create;
-
-  if Item = nil then Exit;
-
-  Item.Load(aSection);
-
-  if Item is TReplayChangeSpawnInterval then
-    fSpawnIntervalChanges.Add(Item)
-  else
-    fAssignments.Add(Item);
 end;
 
 procedure TReplay.SaveToFile(aFile: String);
@@ -959,7 +964,7 @@ end;
 
 function TReplayItemList.GetItem(Index: Integer): TBaseReplayItem;
 begin
-  Result := inherited Get(Index);
+  Result := TBaseReplayItem(inherited Get(Index));
 end;
 
 end.

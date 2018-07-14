@@ -5,7 +5,7 @@ unit GameWindow;
 interface
 
 uses
-  System.Types,
+  Types,
   PngInterface,
   LemmixHotkeys, SharedGlobals,
   Windows, Classes, Controls, Graphics, MMSystem, Forms, SysUtils, Dialogs, Math, ExtCtrls, StrUtils,

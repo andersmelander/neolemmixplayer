@@ -32,7 +32,6 @@ type
       fSwaps: TColorSwapArray;
 
       procedure SwapColors(F: TColor32; var B: TColor32);
-      procedure RegisterSwap(aSec: TParserSection; const aIteration: Integer; aData: Pointer);
 
     public
       constructor Create;
@@ -100,16 +99,22 @@ begin
   if F <> 0 then B := clBlack32 else B := clWhite32;
 end;
 
-procedure TRecolorImage.RegisterSwap(aSec: TParserSection; const aIteration: Integer; aData: Pointer);
+procedure RegisterSwap(Sender: TObject; aSec: TParserSection; const aIteration: Integer; aData: Pointer);
 var
+  RecImg: TRecolorImage absolute Sender;
   Mode: ^TColorSwapType absolute aData;
   i: Integer;
 begin
-  i := Length(fSwaps);
-  SetLength(fSwaps, i+1);
-  fSwaps[i].Condition := Mode^;
-  fSwaps[i].SrcColor := aSec.LineNumeric['from'];
-  fSwaps[i].DstColor := aSec.LineNumeric['to'];
+  if not (Sender is TRecolorImage) then Exit;
+
+  with RecImg do
+  begin
+    i := Length(fSwaps);
+    SetLength(fSwaps, i+1);
+    fSwaps[i].Condition := Mode^;
+    fSwaps[i].SrcColor := aSec.LineNumeric['from'];
+    fSwaps[i].DstColor := aSec.LineNumeric['to'];
+  end;
 end;
 
 procedure TRecolorImage.LoadSwaps(aName: String);
@@ -128,13 +133,13 @@ begin
       Parser.LoadFromFile(AppPath + SFStyles + aName + SFPiecesLemmings + 'scheme.nxmi');
 
       Mode := rcl_Athlete;
-      Parser.MainSection.Section['recoloring'].DoForEachSection('athlete', RegisterSwap, @Mode);
+      Parser.MainSection.Section['recoloring'].DoForEachSection(self, 'athlete', @RegisterSwap, @Mode);
 
       Mode := rcl_Zombie;
-      Parser.MainSection.Section['recoloring'].DoForEachSection('zombie', RegisterSwap, @Mode);
+      Parser.MainSection.Section['recoloring'].DoForEachSection(self, 'zombie', @RegisterSwap, @Mode);
 
       Mode := rcl_Selected;
-      Parser.MainSection.Section['recoloring'].DoForEachSection('selected', RegisterSwap, @Mode);
+      Parser.MainSection.Section['recoloring'].DoForEachSection(self, 'selected', @RegisterSwap, @Mode);
     end;
   finally
     Parser.Free;

@@ -134,9 +134,6 @@ type
       procedure LoadFromMetaInfo(aPath: String = '');
       procedure LoadFromSearchRec;
 
-      procedure LoadLevel(aLine: TParserLine; const aIteration: Integer);
-      procedure LoadSubGroup(aSection: TParserSection; const aIteration: Integer);
-
       procedure Load;
 
       procedure SetDefaultData;
@@ -157,9 +154,6 @@ type
       function GetPrevGroup: TNeoLevelGroup;
 
       function GetStatus: TNeoLevelStatus;
-
-      procedure LoadSaveGroup(aLine: TParserLine; const aIteration: Integer);
-      procedure LoadSaveLevel(aLine: TParserLine; const aIteration: Integer);
 
       function GetTalismans: TTalismanList;
       function GetCompleteTalismanCount: Integer;
@@ -628,6 +622,35 @@ begin
   inherited;
 end;
 
+procedure LoadTalismanStatus(Sender: TObject; aLine: TParserLine; const aIteration: Integer);
+var
+  Level: TNeoLevelEntry absolute Sender;
+begin
+  if not (Sender is TNeoLevelEntry) then Exit;
+
+  Level.TalismanStatus[aLine.ValueNumeric] := true;
+end;
+
+procedure LoadSaveGroup(Sender: TObject; aLine: TParserLine; const aIteration: Integer);
+var
+  Group: TNeoLevelGroup absolute Sender;
+begin
+  if not (Sender is TNeoLevelGroup) then Exit;
+  if not DirectoryExists(aLine.ValueTrimmed) then Exit;
+
+  Group.fChildGroups.Add(aLine.ValueTrimmed);
+end;
+
+procedure LoadSaveLevel(Sender: TObject; aLine: TParserLine; const aIteration: Integer);
+var
+  Group: TNeoLevelGroup absolute Sender;
+begin
+  if not (Sender is TNeoLevelGroup) then Exit;
+  if not FileExists(aLine.ValueTrimmed) then Exit;
+
+  Group.fLevels.Add.Filename := aLine.ValueTrimmed;
+end;
+
 procedure TNeoLevelGroup.LoadUserData;
 var
   Parser: TParser;
@@ -660,11 +683,7 @@ var
       aLevel.Records.LemmingsRescued := Sec.LineNumeric['lemming_record'];
       aLevel.Records.TimeTaken := Sec.LineNumeric['time_record'];
 
-      Sec.DoForEachLine('talisman',
-                        procedure(aLine: TParserLine; const aIteration: Integer)
-                        begin
-                          aLevel.TalismanStatus[aLine.ValueNumeric] := true;
-                        end);
+      Sec.DoForEachLine(aLevel, 'talisman', @LoadTalismanStatus);
 
       aLevel.ValidateTalismans;
     end;
@@ -682,8 +701,8 @@ begin
 
   if not FileExists(AppPath + SFSaveData + 'userdata.nxsv') then
   begin
-    fChildGroups.Sort(SortAlphabetical);
-    fLevels.Sort(SortAlphabetical);
+    fChildGroups.Sort(@SortAlphabetical);
+    fLevels.Sort(@SortAlphabetical);
     Exit;
   end;
 
@@ -695,30 +714,18 @@ begin
 
     if LoadingSec <> nil then
     begin
-      LoadingSec.DoForEachLine('group', LoadSaveGroup);
-      LoadingSec.DoForEachLine('level', LoadSaveLevel);
+      LoadingSec.DoForEachLine(self, 'group', @LoadSaveGroup);
+      LoadingSec.DoForEachLine(self, 'level', @LoadSaveLevel);
     end;
 
-    fChildGroups.Sort(SortAlphabetical);
-    fLevels.Sort(SortAlphabetical);
+    fChildGroups.Sort(@SortAlphabetical);
+    fLevels.Sort(@SortAlphabetical);
 
     if LevelSec <> nil then
       HandleGroup(self);
   finally
     Parser.Free;
   end;
-end;
-
-procedure TNeoLevelGroup.LoadSaveGroup(aLine: TParserLine; const aIteration: Integer);
-begin
-  if not DirectoryExists(aLine.ValueTrimmed) then Exit;
-  fChildGroups.Add(aLine.ValueTrimmed);
-end;
-
-procedure TNeoLevelGroup.LoadSaveLevel(aLine: TParserLine; const aIteration: Integer);
-begin
-  if not FileExists(aLine.ValueTrimmed) then Exit;
-  fLevels.Add.Filename := aLine.ValueTrimmed;
 end;
 
 procedure TNeoLevelGroup.SaveUserData;
@@ -800,23 +807,35 @@ begin
     LoadUserData;
 end;
 
-procedure TNeoLevelGroup.LoadLevel(aLine: TParserLine; const aIteration: Integer);
+procedure LoadLevel(Sender: TObject; aLine: TParserLine; const aIteration: Integer);
 var
+  Group: TNeoLevelGroup absolute Sender;
   L: TNeoLevelEntry;
 begin
-  L := fLevels.Add;
-  L.Filename := aLine.ValueTrimmed;
+  if not (Sender is TNeoLevelGroup) then Exit;
+
+  with Group do
+  begin
+    L := fLevels.Add;
+    L.Filename := aLine.ValueTrimmed;
+  end;
 end;
 
-procedure TNeoLevelGroup.LoadSubGroup(aSection: TParserSection; const aIteration: Integer);
+procedure LoadSubGroup(Sender: TObject; aSection: TParserSection; const aIteration: Integer);
 var
+  Group: TNeoLevelGroup absolute Sender;
   G: TNeoLevelGroup;
 begin
-  G := fChildGroups.Add(aSection.LineTrimString['folder']);
-  G.Name := aSection.LineTrimString['name'];
+  if not (Sender is TNeoLevelGroup) then Exit;
+
+  with Group do
+  begin
+    G := fChildGroups.Add(aSection.LineTrimString['folder']);
+    G.Name := aSection.LineTrimString['name'];
+  end;
 end;
 
-procedure TNeoLevelGroup.LoadFromMetaInfo;
+procedure TNeoLevelGroup.LoadFromMetaInfo(aPath: String = '');
 var
   Parser: TParser;
   MainSec: TParserSection;
@@ -825,8 +844,8 @@ begin
   try
     Parser.LoadFromFile(Path + 'levels.nxmi');
     MainSec := Parser.MainSection;
-    MainSec.DoForEachSection('rank', LoadSubGroup);
-    MainSec.DoForEachLine('level', LoadLevel);
+    MainSec.DoForEachSection(self, 'rank', @LoadSubGroup);
+    MainSec.DoForEachLine(self, 'level', @LoadLevel);
     fIsBasePack := MainSec.Line['base'] <> nil;
     fIsOrdered := true;
 
@@ -887,8 +906,8 @@ begin
   if Parent <> nil then
   begin
     // It's done after loading extra groups / levels for the base group
-    fChildGroups.Sort(SortAlphabetical);
-    fLevels.Sort(SortAlphabetical);
+    fChildGroups.Sort(@SortAlphabetical);
+    fLevels.Sort(@SortAlphabetical);
   end;
 
   fIsOrdered := false;
@@ -1142,17 +1161,7 @@ begin
     for i := 0 to Levels.Count-1 do
       AddList(Levels[i].Talismans);
 
-    fTalismans.Sort(TComparer<TTalisman>.Construct(
-     function(const L, R: TTalisman): Integer
-     begin
-       if L.Color < R.Color then
-         Result := -1
-       else if L.Color > R.Color then
-         Result := 1
-       else
-         Result := CompareValue(L.ID, R.ID);
-     end
-    ));
+    fTalismans.Sort(@CompareTalismans);
   end;
   Result := fTalismans;
 end;
@@ -1197,7 +1206,7 @@ end;
 
 function TNeoLevelEntries.GetItem(Index: Integer): TNeoLevelEntry;
 begin
-  Result := inherited Get(Index);
+  Result := TNeoLevelEntry(inherited Get(Index));
 end;
 
 { TNeoLevelGroups }
@@ -1219,7 +1228,7 @@ end;
 
 function TNeoLevelGroups.GetItem(Index: Integer): TNeoLevelGroup;
 begin
-  Result := inherited Get(Index);
+  Result := TNeoLevelGroup(inherited Get(Index));
 end;
 
 { TPostviewTexts }
@@ -1240,7 +1249,7 @@ end;
 
 function TPostviewTexts.GetItem(Index: Integer): TPostviewText;
 begin
-  Result := inherited Get(Index);
+  Result := TPostviewText(inherited Get(Index));
 end;
 
 

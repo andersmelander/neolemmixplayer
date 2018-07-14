@@ -14,7 +14,7 @@ unit LemGame;
 interface
 
 uses
-  System.Types,
+  Types,
   SharedGlobals, PngInterface,
   Windows, Classes, Contnrs, SysUtils, Math, Forms, Dialogs,
   Controls, StrUtils, UMisc,
@@ -592,7 +592,7 @@ end;
 function TLemmingGameSavedStateList.GetItem(Index: Integer): TLemmingGameSavedState;
 begin
   // Gets a TLemmingGameSavedState from the list.
-  Result := inherited Get(Index);
+  Result := TLemmingGameSavedState(inherited Get(Index));
 end;
 
 function TLemmingGameSavedStateList.FindNearestState(aTargetIteration: Integer): Integer;
@@ -773,7 +773,7 @@ begin
   Result := fGameCheated or (LemmingsIn >= Level.Info.RescueCount);
 end;
 
-function TLemmingGame.CheckFinishedTest;
+function TLemmingGame.CheckFinishedTest: Boolean;
 var
   i: Integer;
 begin
@@ -824,67 +824,67 @@ begin
   fRenderInterface.SetSelectedSkillPointer(fSelectedSkill);
   fRenderInterface.SelectedLemming := nil;
   fRenderInterface.ReplayLemming := nil;
-  fRenderInterface.SetSimulateLemRoutine(SimulateLem, SimulateTransition);
-  fRenderInterface.SetGetHighlitRoutine(GetHighlitLemming);
-  fRenderInterface.SetIsStartingSecondsRoutine(IsStartingSeconds);
+  fRenderInterface.SetSimulateLemRoutine(@SimulateLem, @SimulateTransition);
+  fRenderInterface.SetGetHighlitRoutine(@GetHighlitLemming);
+  fRenderInterface.SetIsStartingSecondsRoutine(@IsStartingSeconds);
 
-  LemmingMethods[baNone]       := nil;
-  LemmingMethods[baWalking]    := HandleWalking;
-  LemmingMethods[baAscending]    := HandleAscending;
-  LemmingMethods[baDigging]    := HandleDigging;
-  LemmingMethods[baClimbing]   := HandleClimbing;
-  LemmingMethods[baDrowning]   := HandleDrowning;
-  LemmingMethods[baHoisting]   := HandleHoisting;
-  LemmingMethods[baBuilding]   := HandleBuilding;
-  LemmingMethods[baBashing]    := HandleBashing;
-  LemmingMethods[baMining]     := HandleMining;
-  LemmingMethods[baFalling]    := HandleFalling;
-  LemmingMethods[baFloating]   := HandleFloating;
-  LemmingMethods[baSplatting]  := HandleSplatting;
-  LemmingMethods[baExiting]    := HandleExiting;
-  LemmingMethods[baVaporizing] := HandleVaporizing;
-  LemmingMethods[baBlocking]   := HandleBlocking;
-  LemmingMethods[baShrugging]  := HandleShrugging;
-  LemmingMethods[baOhnoing]    := HandleOhNoing;
-  LemmingMethods[baExploding]  := HandleExploding;
-  LemmingMethods[baToWalking]  := HandleWalking; //should never happen anyway
-  LemmingMethods[baPlatforming] := HandlePlatforming;
-  LemmingMethods[baStacking]   := HandleStacking;
-  LemmingMethods[baStoning]    := HandleOhNoing; // same behavior!
-  LemmingMethods[baStoneFinish] := HandleExploding; // same behavior, except applied mask!
-  LemmingMethods[baSwimming]   := HandleSwimming;
-  LemmingMethods[baGliding]    := HandleGliding;
-  LemmingMethods[baFixing]     := HandleDisarming;
-  LemmingMethods[baFencing]    := HandleFencing;
+  LemmingMethods[baNone]        := nil;
+  LemmingMethods[baWalking]     := @HandleWalking;
+  LemmingMethods[baAscending]   := @HandleAscending;
+  LemmingMethods[baDigging]     := @HandleDigging;
+  LemmingMethods[baClimbing]    := @HandleClimbing;
+  LemmingMethods[baDrowning]    := @HandleDrowning;
+  LemmingMethods[baHoisting]    := @HandleHoisting;
+  LemmingMethods[baBuilding]    := @HandleBuilding;
+  LemmingMethods[baBashing]     := @HandleBashing;
+  LemmingMethods[baMining]      := @HandleMining;
+  LemmingMethods[baFalling]     := @HandleFalling;
+  LemmingMethods[baFloating]    := @HandleFloating;
+  LemmingMethods[baSplatting]   := @HandleSplatting;
+  LemmingMethods[baExiting]     := @HandleExiting;
+  LemmingMethods[baVaporizing]  := @HandleVaporizing;
+  LemmingMethods[baBlocking]    := @HandleBlocking;
+  LemmingMethods[baShrugging]   := @HandleShrugging;
+  LemmingMethods[baOhnoing]     := @HandleOhNoing;
+  LemmingMethods[baExploding]   := @HandleExploding;
+  LemmingMethods[baToWalking]   := @HandleWalking; //should never happen anyway
+  LemmingMethods[baPlatforming] := @HandlePlatforming;
+  LemmingMethods[baStacking]    := @HandleStacking;
+  LemmingMethods[baStoning]     := @HandleOhNoing; // same behavior!
+  LemmingMethods[baStoneFinish] := @HandleExploding; // same behavior, except applied mask!
+  LemmingMethods[baSwimming]    := @HandleSwimming;
+  LemmingMethods[baGliding]     := @HandleGliding;
+  LemmingMethods[baFixing]      := @HandleDisarming;
+  LemmingMethods[baFencing]     := @HandleFencing;
 
   NewSkillMethods[baNone]         := nil;
   NewSkillMethods[baWalking]      := nil;
-  NewSkillMethods[baAscending]      := nil;
-  NewSkillMethods[baDigging]      := MayAssignDigger;
-  NewSkillMethods[baClimbing]     := MayAssignClimber;
+  NewSkillMethods[baAscending]    := nil;
+  NewSkillMethods[baDigging]      := @MayAssignDigger;
+  NewSkillMethods[baClimbing]     := @MayAssignClimber;
   NewSkillMethods[baDrowning]     := nil;
   NewSkillMethods[baHoisting]     := nil;
-  NewSkillMethods[baBuilding]     := MayAssignBuilder;
-  NewSkillMethods[baBashing]      := MayAssignBasher;
-  NewSkillMethods[baMining]       := MayAssignMiner;
+  NewSkillMethods[baBuilding]     := @MayAssignBuilder;
+  NewSkillMethods[baBashing]      := @MayAssignBasher;
+  NewSkillMethods[baMining]       := @MayAssignMiner;
   NewSkillMethods[baFalling]      := nil;
-  NewSkillMethods[baFloating]     := MayAssignFloaterGlider;
+  NewSkillMethods[baFloating]     := @MayAssignFloaterGlider;
   NewSkillMethods[baSplatting]    := nil;
   NewSkillMethods[baExiting]      := nil;
   NewSkillMethods[baVaporizing]   := nil;
-  NewSkillMethods[baBlocking]     := MayAssignBlocker;
+  NewSkillMethods[baBlocking]     := @MayAssignBlocker;
   NewSkillMethods[baShrugging]    := nil;
   NewSkillMethods[baOhnoing]      := nil;
-  NewSkillMethods[baExploding]    := MayAssignExploderStoner;
-  NewSkillMethods[baToWalking]    := MayAssignWalker;
-  NewSkillMethods[baPlatforming]  := MayAssignPlatformer;
-  NewSkillMethods[baStacking]     := MayAssignStacker;
-  NewSkillMethods[baStoning]      := MayAssignExploderStoner;
-  NewSkillMethods[baSwimming]     := MayAssignSwimmer;
-  NewSkillMethods[baGliding]      := MayAssignFloaterGlider;
-  NewSkillMethods[baFixing]       := MayAssignDisarmer;
-  NewSkillMethods[baCloning]      := MayAssignCloner;
-  NewSkillMethods[baFencing]      := MayAssignFencer;
+  NewSkillMethods[baExploding]    := @MayAssignExploderStoner;
+  NewSkillMethods[baToWalking]    := @MayAssignWalker;
+  NewSkillMethods[baPlatforming]  := @MayAssignPlatformer;
+  NewSkillMethods[baStacking]     := @MayAssignStacker;
+  NewSkillMethods[baStoning]      := @MayAssignExploderStoner;
+  NewSkillMethods[baSwimming]     := @MayAssignSwimmer;
+  NewSkillMethods[baGliding]      := @MayAssignFloaterGlider;
+  NewSkillMethods[baFixing]       := @MayAssignDisarmer;
+  NewSkillMethods[baCloning]      := @MayAssignCloner;
+  NewSkillMethods[baFencing]      := @MayAssignFencer;
 
   P := AppPath;
 
@@ -947,11 +947,11 @@ begin
 
   if not fMasksLoaded then
   begin
-    LoadMask(BomberMask, 'bomber.png', CombineMaskPixelsNeutral);
-    LoadMask(StonerMask, 'stoner.png', CombineNoOverwriteStoner);
-    LoadMask(BasherMasks, 'basher.png', CombineMaskPixelsNeutral);  // combine routines for Basher, Fencer and Miner are set when used
-    LoadMask(FencerMasks, 'fencer.png', CombineMaskPixelsNeutral);
-    LoadMask(MinerMasks, 'miner.png', CombineMaskPixelsNeutral);
+    LoadMask(BomberMask, 'bomber.png', @CombineMaskPixelsNeutral);
+    LoadMask(StonerMask, 'stoner.png', @CombineNoOverwriteStoner);
+    LoadMask(BasherMasks, 'basher.png', @CombineMaskPixelsNeutral);  // combine routines for Basher, Fencer and Miner are set when used
+    LoadMask(FencerMasks, 'fencer.png', @CombineMaskPixelsNeutral);
+    LoadMask(MinerMasks, 'miner.png', @CombineMaskPixelsNeutral);
     fMasksLoaded := true;
   end;
 
@@ -1869,7 +1869,7 @@ begin
 
   for i := (LemmingList.Count - 1) downto 0 do
   begin
-    L := LemmingList.List[i];
+    L := LemmingList.Items[i];
 
     // Check if we only look for highlighted Lems
     if IsHighlight and not (L = GetHighlitLemming) then Continue;
@@ -2576,10 +2576,10 @@ begin
 
   if L.LemDx = 1 then
   begin
-    BasherMasks.OnPixelCombine := CombineMaskPixelsRight;
+    BasherMasks.OnPixelCombine := @CombineMaskPixelsRight;
     MoveRect(S, 16, MaskFrame * 10);
   end else begin
-    BasherMasks.OnPixelCombine := CombineMaskPixelsLeft;
+    BasherMasks.OnPixelCombine := @CombineMaskPixelsLeft;
     MoveRect(S, 0, MaskFrame * 10);
   end;
 
@@ -2607,10 +2607,10 @@ begin
 
   if L.LemDx = 1 then
   begin
-    FencerMasks.OnPixelCombine := CombineMaskPixelsUpRight;
+    FencerMasks.OnPixelCombine := @CombineMaskPixelsUpRight;
     MoveRect(S, 16, MaskFrame * 10);
   end else begin
-    FencerMasks.OnPixelCombine := CombineMaskPixelsUpLeft;
+    FencerMasks.OnPixelCombine := @CombineMaskPixelsUpLeft;
     MoveRect(S, 0, MaskFrame * 10);
   end;
 
@@ -2645,10 +2645,10 @@ begin
 
   if L.LemDx = 1 then
   begin
-    MinerMasks.OnPixelCombine := CombineMaskPixelsDownRight;
+    MinerMasks.OnPixelCombine := @CombineMaskPixelsDownRight;
     MoveRect(S, 16, MaskFrame * 13);
   end else begin
-    MinerMasks.OnPixelCombine := CombineMaskPixelsDownLeft;
+    MinerMasks.OnPixelCombine := @CombineMaskPixelsDownLeft;
     MoveRect(S, 0, MaskFrame * 13);
   end;
 
@@ -4425,7 +4425,7 @@ begin
     if (LemmingIndex < 0) or (LemmingIndex >= LemmingList.Count) then
       Exit;
 
-    L := LemmingList.List[LemmingIndex];
+    L := LemmingList.Items[LemmingIndex];
 
     if Skill in AssignableSkills then
     begin
@@ -4813,7 +4813,7 @@ begin
 
   for i := 0 to LemmingList.Count - 1 do
   begin
-    L := LemmingList.List[i];
+    L := LemmingList.Items[i];
 
     if L.LemQueueAction = baNone then Continue;
 
@@ -4857,7 +4857,7 @@ begin
 
   for i := 0 to LemmingList.Count - 1 do
   begin
-    CurrentLemming := LemmingList.List[i];
+    CurrentLemming := LemmingList.Items[i];
 
     with CurrentLemming do
     begin
@@ -4896,7 +4896,7 @@ begin
   // Need to do this in separate loop, because the ZombieMap gets only set during HandleLemming!
   for i := 0 to LemmingList.Count - 1 do
   begin
-    CurrentLemming := LemmingList.List[i];
+    CurrentLemming := LemmingList.Items[i];
     with CurrentLemming do
     begin
       // Zombies
@@ -5084,7 +5084,7 @@ begin
       and (((Gadget.CurrentFrame >= Gadget.AnimationFrameCount) and (Gadget.KeyFrame = 0))
         or ((Gadget.CurrentFrame = Gadget.KeyFrame) and (Gadget.KeyFrame <> 0))   ) then
     begin
-      MoveLemToReceivePoint(LemmingList.List[Gadget.TeleLem], i);
+      MoveLemToReceivePoint(LemmingList.Items[Gadget.TeleLem], i);
       Gadget2 := Gadgets[Gadget.ReceiverId];
       Assert(Gadget2.TriggerEffect = DOM_RECEIVER, 'Lemming teleported to non-receiver object.');
       Gadget2.TeleLem := Gadget.TeleLem;
