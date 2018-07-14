@@ -5,7 +5,7 @@ unit LemNeoLevelPack;
 interface
 
 uses
-  System.Generics.Collections, System.Generics.Defaults,
+  FGL,
   GR32, CRC32, PngInterface, LemLVLLoader, LemLevel,
   Dialogs, Classes, SysUtils, StrUtils, Contnrs, Controls, Forms,
   LemTalisman,
@@ -28,7 +28,6 @@ type
   TPostviewText = class // class rather than record so it plays nicely with a TObjectList and can create / destroy a TStringList
     private
       fText: TStringList;
-      procedure LoadLine(aLine: TParserLine; const aIteration: Integer);
       procedure InterpretCondition(aConditionString: String);
     public
       ConditionType: TPostviewCondition;
@@ -53,6 +52,8 @@ type
     TimeTaken: Integer;
   end;
 
+  TLongWordList = specialize TFPGList<LongWord>;
+
   TNeoLevelEntry = class  // This is an entry in a level pack's list, and does NOT contain the level itself
     private
       fGroup: TNeoLevelGroup;
@@ -62,12 +63,12 @@ type
       fTitle: String;
       fAuthor: String;
       fFilename: String;
-      fTalismans: TObjectList<TTalisman>;
+      fTalismans: TTalismanList;
 
       fLevelID: Int64;
 
       fStatus: TNeoLevelStatus;
-      fTalismanList: TList<LongWord>;
+      fTalismanList: TLongWordList;
 
       procedure LoadLevelFileData;
 
@@ -77,7 +78,7 @@ type
       function GetAuthor: String;
       function GetLevelID: Int64;
       function GetGroupIndex: Integer;
-      function GetTalismans: TObjectList<TTalisman>;
+      function GetTalismans: TTalismanList;
 
       procedure SetTalismanStatus(aIndex: LongWord; aStatus: Boolean);
       function GetTalismanStatus(aIndex: LongWord): Boolean;
@@ -97,8 +98,8 @@ type
       property Path: String read GetFullPath;
       property RelativePath: String read GetRelativePath;
       property Status: TNeoLevelStatus read fStatus write fStatus;
-      property UnlockedTalismanList: TList<LongWord> read fTalismanList;
-      property Talismans: TObjectList<TTalisman> read GetTalismans;
+      property UnlockedTalismanList: TLongWordList read fTalismanList;
+      property Talismans: TTalismanList read GetTalismans;
       property TalismanStatus[Index: LongWord]: Boolean read GetTalismanStatus write SetTalismanStatus;
       property GroupIndex: Integer read GetGroupIndex;
   end;
@@ -118,7 +119,7 @@ type
       fIsBasePack: Boolean;
       fIsOrdered: Boolean;
 
-      fTalismans: TObjectList<TTalisman>;
+      fTalismans: TTalismanList;
 
       fMusicList: TStringList;
       fHasOwnMusicList: Boolean;
@@ -140,9 +141,7 @@ type
 
       procedure SetDefaultData;
       procedure LoadMusicData;
-      procedure LoadMusicLine(aLine: TParserLine; const aIteration: Integer);
       procedure LoadPostviewData;
-      procedure LoadPostviewSection(aSection: TParserSection; const aIteration: Integer);
 
       function GetRecursiveLevelCount: Integer;
 
@@ -162,7 +161,7 @@ type
       procedure LoadSaveGroup(aLine: TParserLine; const aIteration: Integer);
       procedure LoadSaveLevel(aLine: TParserLine; const aIteration: Integer);
 
-      function GetTalismans: TObjectList<TTalisman>;
+      function GetTalismans: TTalismanList;
       function GetCompleteTalismanCount: Integer;
 
       function GetParentBasePack: TNeoLevelGroup;
@@ -191,7 +190,7 @@ type
       property MusicList: TStringList read fMusicList;
       property PostviewTexts: TPostviewTexts read fPostviewTexts;
 
-      property Talismans: TObjectList<TTalisman> read GetTalismans;
+      property Talismans: TTalismanList read GetTalismans;
       property TalismansUnlocked: Integer read GetCompleteTalismanCount;
 
       property LevelIndex[aLevel: TNeoLevelEntry]: Integer read GetLevelIndex;
@@ -237,7 +236,7 @@ type
 implementation
 
 uses
-  Math, UITypes;
+  Math{, UITypes};
 
 function SortAlphabetical(Item1, Item2: Pointer): Integer;
 var
@@ -293,11 +292,6 @@ begin
   inherited;
 end;
 
-procedure TPostviewText.LoadLine(aLine: TParserLine; const aIteration: Integer);
-begin
-  Text.Add(aLine.ValueTrimmed);
-end;
-
 procedure TPostviewText.InterpretCondition(aConditionString: String);
 var
   IsRelative: Boolean;
@@ -335,8 +329,8 @@ constructor TNeoLevelEntry.Create(aGroup: TNeoLevelGroup);
 begin
   inherited Create;
   fGroup := aGroup;
-  fTalismans := TObjectList<TTalisman>.Create(true);
-  fTalismanList := TList<LongWord>.Create;
+  fTalismans := TTalismanList.Create(true);
+  fTalismanList := TLongWordList.Create;
 end;
 
 destructor TNeoLevelEntry.Destroy;
@@ -364,6 +358,40 @@ begin
   Result := fAuthor;
 end;
 
+procedure LoadTalismanInfo(Sender: TObject; aSec: TParserSection; const aIteration: Integer = 0);
+var
+  LevelEntry: TNeoLevelEntry absolute Sender;
+  T: TTalisman;
+  Success: Boolean;
+begin
+  if not (Sender is TNeoLevelEntry) then Exit;
+
+  with LevelEntry do
+  begin
+    Success := True;
+    T := TTalisman.Create;
+    try
+      T.LoadFromSection(aSec);
+      T.Data := LevelEntry;
+    except
+      ShowMessage('Error loading a talisman for ' + fTitle);
+      Success := False;
+      T.Free;
+    end;
+    if Success then fTalismans.Add(T);
+  end;
+end;
+
+function CompareTalismans(const L, R: TTalisman): Integer;
+begin
+  if L.Color < R.Color then
+   Result := -1
+  else if L.Color > R.Color then
+   Result := 1
+  else
+   Result := CompareStr(L.Title, R.Title);
+end;
+
 procedure TNeoLevelEntry.LoadLevelFileData;
 var
   Parser: TParser;
@@ -376,37 +404,9 @@ begin
     fAuthor := Parser.MainSection.LineTrimString['author'];
     fLevelID := Parser.MainSection.LineNumeric['id'];
 
-    Parser.MainSection.DoForEachSection('talisman',
-      procedure(aSec: TParserSection; const aIteration: Integer = 0)
-      var
-        T: TTalisman;
-        Success: Boolean;
-      begin
-        Success := True;
-        T := TTalisman.Create;
-        try
-          T.LoadFromSection(aSec);
-          T.Data := Self;
-        except
-          ShowMessage('Error loading a talisman for ' + fTitle);
-          Success := False;
-          T.Free;
-        end;
-        if Success then fTalismans.Add(T);
-      end
-    );
+    Parser.MainSection.DoForEachSection(self, 'talisman', @LoadTalismanInfo);
 
-    fTalismans.Sort(TComparer<TTalisman>.Construct(
-     function(const L, R: TTalisman): Integer
-     begin
-       if L.Color < R.Color then
-         Result := -1
-       else if L.Color > R.Color then
-         Result := 1
-       else
-         Result := CompareStr(L.Title, R.Title);
-     end
-    ));
+    fTalismans.Sort(@CompareTalismans);
 
     fDataLoaded := true;
   finally
@@ -440,7 +440,7 @@ begin
     Result := fGroup.LevelIndex[self];
 end;
 
-function TNeoLevelEntry.GetTalismans: TObjectList<TTalisman>;
+function TNeoLevelEntry.GetTalismans: TTalismanList;
 begin
   LoadLevelFileData;
   Result := fTalismans;
@@ -523,6 +523,37 @@ begin
   LoadPostviewData;
 end;
 
+procedure LoadMusicLine(Sender: TObject; aLine: TParserLine; const aIteration: Integer);
+var
+  Group: TNeoLevelGroup absolute Sender;
+begin
+  if not (Sender is TNeoLevelGroup) then Exit;
+  Group.fMusicList.Add(aLine.ValueTrimmed);
+end;
+
+procedure LoadPostviewLine(Sender: TObject; aLine: TParserLine; const aIteration: Integer);
+var
+  PostText: TPostviewText absolute Sender;
+begin
+  if not (Sender is TPostviewText) then Exit;
+  PostText.Text.Add(aLine.ValueTrimmed);
+end;
+
+procedure LoadPostviewSection(Sender: TObject; aSection: TParserSection; const aIteration: Integer);
+var
+  Group: TNeoLevelGroup absolute Sender;
+  NewText: TPostviewText;
+begin
+  if not (Sender is TNeoLevelGroup) then Exit;
+
+  with Group do
+  begin
+    NewText := fPostviewTexts.Add;
+    NewText.InterpretCondition(aSection.LineTrimString['condition']);
+    aSection.DoForEachLine(NewText, 'line', @LoadPostviewLine);
+  end;
+end;
+
 procedure TNeoLevelGroup.LoadMusicData;
 var
   Parser: TParser;
@@ -545,7 +576,7 @@ begin
       Parser.LoadFromFile(AppPath + SFData + 'music.nxmi');
 
     MainSec := Parser.MainSection;
-    MainSec.DoForEachLine('track', LoadMusicLine);
+    MainSec.DoForEachLine(self, 'track', @LoadMusicLine);
   finally
     Parser.Free;
   end;
@@ -580,24 +611,10 @@ begin
     end;
 
     MainSec := Parser.MainSection;
-    MainSec.DoForEachSection('result', LoadPostviewSection);
+    MainSec.DoForEachSection(self, 'result', @LoadPostviewSection);
   finally
     Parser.Free;
   end;
-end;
-
-procedure TNeoLevelGroup.LoadMusicLine(aLine: TParserLine; const aIteration: Integer);
-begin
-  fMusicList.Add(aLine.ValueTrimmed);
-end;
-
-procedure TNeoLevelGroup.LoadPostviewSection(aSection: TParserSection; const aIteration: Integer);
-var
-  NewText: TPostviewText;
-begin
-  NewText := fPostviewTexts.Add;
-  NewText.InterpretCondition(aSection.LineTrimString['condition']);
-  aSection.DoForEachLine('line', NewText.LoadLine);
 end;
 
 destructor TNeoLevelGroup.Destroy;
@@ -1102,11 +1119,11 @@ begin
     Result := lst_None;
 end;
 
-function TNeoLevelGroup.GetTalismans: TObjectList<TTalisman>;
+function TNeoLevelGroup.GetTalismans: TTalismanList;
 var
   i: Integer;
 
-  procedure AddList(aList: TObjectList<TTalisman>);
+  procedure AddList(aList: TTalismanList);
   var
     i: Integer;
   begin
@@ -1116,7 +1133,7 @@ var
 begin
   if fTalismans = nil then
   begin
-    fTalismans := TObjectList<TTalisman>.Create(false);
+    fTalismans := TTalismanList.Create(false);
 
     if Parent <> nil then
       for i := 0 to Children.Count-1 do

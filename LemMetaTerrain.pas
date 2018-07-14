@@ -256,7 +256,7 @@ end;
 
 function TMetaTerrains.GetItem(Index: Integer): TMetaTerrain;
 begin
-  Result := inherited Get(Index);
+  Result := TMetaTerrain(inherited Get(Index));
 end;
 
 end.

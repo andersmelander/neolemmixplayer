@@ -4,12 +4,13 @@ unit LemTypes;
 interface
 
 uses
-  LemNeoOnline,
+  {LemNeoOnline,}
   Dialogs,
   SharedGlobals,
-  Classes, SysUtils, Contnrs,
+  Contnrs,
   GR32, GR32_LowLevel,
-  Windows;
+  Windows,
+  Classes, SysUtils;
 
 const
   MUSIC_EXT_COUNT = 12;
@@ -196,7 +197,7 @@ end;
 
 function TBitmaps.GetItem(Index: Integer): TBitmap32;
 begin
-  Result := inherited Get(Index);
+  Result := TBitmap32(inherited Get(Index));
 end;
 
 procedure TBitmaps.Insert(Index: Integer; Item: TBitmap32);

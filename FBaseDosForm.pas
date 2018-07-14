@@ -1,9 +1,11 @@
 unit FBaseDosForm;
 
+{$MODE Delphi}
+
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  LCLIntf, LCLType, LMessages, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, Gr32,
   GameControl;
 
@@ -29,7 +31,7 @@ implementation
 uses
   FMain;
 
-{$R *.dfm}
+{$R *.lfm}
 
 { TBaseDosForm }
 

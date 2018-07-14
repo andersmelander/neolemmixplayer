@@ -13,9 +13,7 @@ object MainForm: TMainForm
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   KeyPreview = True
-  OldCreateOrder = False
   OnActivate = FormActivate
-  OnCanResize = FormCanResize
   OnKeyDown = FormKeyDown
   OnKeyUp = FormKeyUp
   OnMouseDown = FormMouseDown
@@ -24,5 +22,4 @@ object MainForm: TMainForm
   OnMouseWheel = FormMouseWheel
   OnResize = FormResize
   PixelsPerInch = 96
-  TextHeight = 13
 end

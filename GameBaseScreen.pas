@@ -1,11 +1,13 @@
 {$include lem_directives.inc}
 unit GameBaseScreen;
 
+{$MODE Delphi}
+
 interface
 
 uses
-  System.Types,
-  Windows, Messages, Classes, Controls, Graphics, MMSystem, Forms, Dialogs, Math,
+  {System.Types,}
+  LCLIntf, LCLType, LMessages, Messages, Classes, Controls, Graphics, MMSystem, Forms, Dialogs, Math,
   GR32, GR32_Image, GR32_Layers, GR32_Resamplers,
   FBaseDosForm,
   GameControl,
@@ -81,7 +83,7 @@ type
 implementation
 
 uses
-  FNeoLemmixConfig, LemNeoLevelPack, FNeoLemmixLevelSelect, UITypes;
+  FNeoLemmixConfig, LemNeoLevelPack, FNeoLemmixLevelSelect{, UITypes};
 
 { TPurpleFont }
 

@@ -2,14 +2,14 @@
 
 program NeoLemmix;
 
+{$MODE Delphi}
+
 
 
 
 
 uses
-  LemRes,
-  Forms,
-  FMain in 'FMain.pas' {MainForm};
+  Forms, Interfaces, FMain;
 
 {$R *.res}
 

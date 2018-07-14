@@ -191,7 +191,7 @@ end;
 
 function TPreplacedLemmingList.GetItem(Index: Integer): TPreplacedLemming;
 begin
-  Result := inherited Get(Index);
+  Result := TPreplacedLemming(inherited Get(Index));
 end;
 
 { TLemming }
@@ -284,7 +284,7 @@ end;
 
 function TLemmingList.GetItem(Index: Integer): TLemming;
 begin
-  Result := inherited Get(Index);
+  Result := TLemming(inherited Get(Index));
 end;
 
 procedure TLemmingList.Insert(Index: Integer; Item: TLemming);

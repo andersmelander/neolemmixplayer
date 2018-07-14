@@ -152,7 +152,7 @@ end;
 
 function TTerrains.GetItem(Index: Integer): TTerrain;
 begin
-  Result := inherited Get(Index);
+  Result := TTerrain(inherited Get(Index));
 end;
 
 

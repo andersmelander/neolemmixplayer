@@ -2,6 +2,8 @@
 
 unit FMain;
 
+{$MODE Delphi}
+
 {-------------------------------------------------------------------------------
   This is the main form which does almost nothing.
 -------------------------------------------------------------------------------}
@@ -10,7 +12,7 @@ interface
 
 uses
   LemSystemMessages,
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  LCLIntf, LCLType, LMessages, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs,  StdCtrls,
   FBaseDosForm,
   LemNeoLevelPack, // compile test
@@ -54,7 +56,7 @@ uses
   Math,
   GameControl, GameBaseScreen;
 
-{$R *.dfm}
+{$R *.lfm}
 
 procedure TMainForm.LMStart(var Msg: TMessage);
 begin

@@ -171,7 +171,6 @@ type
       BMP: TBitmap32;
       Theme: TNeoTheme;
       Piece: String;
-      procedure ApplyMask(aSection: TParserSection; const aIteration: Integer);
   end;
 
 implementation
@@ -217,20 +216,25 @@ begin
     fVariableInfo[i].Image.Clear;
 end;
 
-procedure TMasker.ApplyMask(aSection: TParserSection; const aIteration: Integer);
+procedure ApplyMask(Sender: TObject; aSection: TParserSection; const aIteration: Integer);
 var
+  Masker: TMasker absolute Sender;
   MaskName, MaskColor: String;
 begin
-  if Theme = nil then Exit; // kludge, this situation should never arise in the first place
+  if not (Sender is TMasker) then Exit; // should never actually happen
 
-  MaskColor := aSection.LineTrimString['color'];
-  if (aSection.Line['self'] <> nil) then
-    TPngInterface.MaskImageFromImage(BMP, BMP, Theme.Colors[MaskColor])
-  else begin
-    MaskName := aSection.LineTrimString['name'];
-    TPngInterface.MaskImageFromFile(BMP, Piece + '_mask_' + MaskName + '.png', Theme.Colors[MaskColor]);
+  with Masker do
+  begin
+    if Theme = nil then Exit; // kludge, this situation should never arise in the first place
+
+    MaskColor := aSection.LineTrimString['color'];
+    if (aSection.Line['self'] <> nil) then
+      TPngInterface.MaskImageFromImage(BMP, BMP, Theme.Colors[MaskColor])
+    else begin
+      MaskName := aSection.LineTrimString['name'];
+      TPngInterface.MaskImageFromFile(BMP, Piece + '_mask_' + MaskName + '.png', Theme.Colors[MaskColor]);
+    end;
   end;
- 
 end;
 
 procedure TGadgetMetaInfo.Load(aCollection,aPiece: String; aTheme: TNeoTheme);
@@ -340,7 +344,7 @@ begin
         GadgetAccessor.Resizability := mos_None;
     end;
 
-    fIsMasked := Sec.DoForEachSection('mask', Masker.ApplyMask) <> 0;
+    fIsMasked := Sec.DoForEachSection(self, 'mask', @ApplyMask) <> 0;
 
     GadgetAccessor.Images.Generate(BMP, fFrameCount, DoHorizontal);
 
@@ -431,9 +435,9 @@ const
   var
     BitmapRef: TBitmaps;
   begin
-    BitmapRef := Dst.Image;
+    BitmapRef := Dst^.Image;
     Dst^ := Src^;
-    Dst.Image := BitmapRef;
+    Dst^.Image := BitmapRef;
   end;
 
   procedure Reset;
@@ -493,24 +497,24 @@ begin
       Dst.Rotate90;
 
     // Swap width / height
-    DstRec.Width := SrcRec.Height;
-    DstRec.Height := SrcRec.Width;
+    DstRec^.Width := SrcRec.Height;
+    DstRec^.Height := SrcRec.Width;
 
     // Swap and adjust trigger area coordinates / dimensions
-    DstRec.TriggerLeft := SrcRec.Height - SrcRec.TriggerTop - SrcRec.TriggerHeight;
-    DstRec.TriggerTop := SrcRec.TriggerLeft {- SrcRec.TriggerWidth};
+    DstRec^.TriggerLeft := SrcRec.Height - SrcRec.TriggerTop - SrcRec.TriggerHeight;
+    DstRec^.TriggerTop := SrcRec.TriggerLeft {- SrcRec.TriggerWidth};
     if not (fTriggerEffect in NO_POSITION_ADJUST) then
     begin
-      DstRec.TriggerLeft := DstRec.TriggerLeft + 4;
-      DstRec.TriggerTop := DstRec.TriggerTop + 5;
+      DstRec^.TriggerLeft := DstRec^.TriggerLeft + 4;
+      DstRec^.TriggerTop := DstRec^.TriggerTop + 5;
     end;
-    DstRec.TriggerWidth := SrcRec.TriggerHeight;
-    DstRec.TriggerHeight := SrcRec.TriggerWidth;
+    DstRec^.TriggerWidth := SrcRec.TriggerHeight;
+    DstRec^.TriggerHeight := SrcRec.TriggerWidth;
 
     if SrcRec.Resizability = mos_Horizontal then
-      DstRec.Resizability := mos_Vertical
+      DstRec^.Resizability := mos_Vertical
     else if SrcRec.Resizability = mos_Vertical then
-      DstRec.Resizability := mos_Horizontal;
+      DstRec^.Resizability := mos_Horizontal;
   end;
 
   if Flip then
@@ -520,7 +524,7 @@ begin
       Dst.FlipHorz;
 
     // Flip trigger area X coordinate
-    DstRec.TriggerLeft := DstRec.Width - DstRec.TriggerLeft - DstRec.TriggerWidth;
+    DstRec^.TriggerLeft := DstRec^.Width - DstRec^.TriggerLeft - DstRec^.TriggerWidth;
   end;
 
   if Invert then
@@ -530,9 +534,9 @@ begin
       Dst.FlipVert;
 
     // Flip and adjust trigger area Y coordinate
-    DstRec.TriggerTop := DstRec.Height - DstRec.TriggerTop - DstRec.TriggerHeight;
+    DstRec^.TriggerTop := DstRec^.Height - DstRec^.TriggerTop - DstRec^.TriggerHeight;
     if not (fTriggerEffect in NO_POSITION_ADJUST) then
-      DstRec.TriggerTop := DstRec.TriggerTop + 10;
+      DstRec^.TriggerTop := DstRec^.TriggerTop + 10;
   end;
 end;
 
@@ -727,7 +731,7 @@ end;
 
 function TGadgetMetaInfoList.GetItem(Index: Integer): TGadgetMetaInfo;
 begin
-  Result := inherited Get(Index);
+  Result := TGadgetMetaInfo(inherited Get(Index));
 end;
 
 end.

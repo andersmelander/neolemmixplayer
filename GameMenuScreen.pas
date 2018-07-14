@@ -2,6 +2,8 @@
 
 unit GameMenuScreen;
 
+{$MODE Delphi}
+
 {-------------------------------------------------------------------------------
   The main menu dos screen.
 -------------------------------------------------------------------------------}
@@ -9,10 +11,10 @@ unit GameMenuScreen;
 interface
 
 uses
-  System.Types,
+  {System.Types,}
   Math,
   PngInterface, SharedGlobals,
-  Windows, Classes, Controls, Graphics, MMSystem, Forms, SysUtils, ShellApi,
+  LCLIntf, LCLType, LMessages, Classes, Controls, Graphics, MMSystem, Forms, SysUtils,
   GR32, GR32_Layers, GR32_Resamplers,
   UMisc, Dialogs, LemVersion,
   LemTypes, LemStrings, LemDosStructures, LemGame,
@@ -117,7 +119,7 @@ type
 implementation
 
 uses
-  FNeoLemmixSetup, LemNeoOnline, UITypes;
+  FNeoLemmixSetup{, LemNeoOnline}{, UITypes};
 
 { TGameMenuScreen }
 
@@ -179,7 +181,7 @@ begin
       if MessageDlg('Update available: NeoLemmix V' + MakeVersionString(Format, Core, Feature, Fix) + #13 +
                     'Go to the NeoLemmix website?', mtCustom, [mbYes, mbNo], 0) = mrYes then
       begin
-        ShellExecute(handle,'open',PChar('http://www.neolemmix.com/neolemmix.html'), '','',SW_SHOWNORMAL);
+        OpenURL(PChar('http://www.neolemmix.com/neolemmix.html')); { *Converted from ShellExecute* }
         CloseScreen(gstExit);
       end;
   end;
@@ -543,7 +545,7 @@ begin
 
   Sleep(1);
   Done := False;
-  CurrTime := TimeGetTime;
+  CurrTime := GetTickCount; { *Converted from TimeGetTime* }
   if UserPausing then
     Exit;
 

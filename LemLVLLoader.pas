@@ -49,7 +49,6 @@ type
       fCurrentPos: Integer;
       fThemeChange: TStringList;
       fMatchArray: array of TTranslationItem;
-      procedure LoadEntry(aSec: TParserSection; const aIteration: Integer);
     public
       constructor Create;
       destructor Destroy; override;
@@ -106,38 +105,44 @@ begin
   fThemeChange.Clear;
 end;
 
-procedure TTranslationTable.LoadEntry(aSec: TParserSection; const aIteration: Integer);
+procedure LoadEntry(Sender: TObject; aSec: TParserSection; const aIteration: Integer);
 var
+  Table: TTranslationTable absolute Sender;
   NewItem: TTranslationItem;
 begin
-  if aSec.Keyword = 'object' then NewItem.ItemType := itObject;
-  if aSec.Keyword = 'terrain' then NewItem.ItemType := itTerrain;
-  if aSec.Keyword = 'background' then NewItem.ItemType := itBackground;
+  if not (Sender is TTranslationTable) then Exit;
 
-  NewItem.SrcGS := Lowercase(fCurrentSet);
-  NewItem.SrcName := aSec.LineTrimString['index'];
-  NewItem.DstGS := aSec.LineTrimString['collection'];
-  NewItem.DstName := aSec.LineTrimString['piece'];
+  with Table do
+  begin
+    if aSec.Keyword = 'object' then NewItem.ItemType := itObject;
+    if aSec.Keyword = 'terrain' then NewItem.ItemType := itTerrain;
+    if aSec.Keyword = 'background' then NewItem.ItemType := itBackground;
 
-  if Lowercase(aSec.LineTrimString['special']) = 'lemming' then
-    NewItem.DstName := '*lemming';
+    NewItem.SrcGS := Lowercase(fCurrentSet);
+    NewItem.SrcName := aSec.LineTrimString['index'];
+    NewItem.DstGS := aSec.LineTrimString['collection'];
+    NewItem.DstName := aSec.LineTrimString['piece'];
 
-  NewItem.Width := aSec.LineNumeric['width'];
-  NewItem.Height := aSec.LineNumeric['height'];
+    if Lowercase(aSec.LineTrimString['special']) = 'lemming' then
+      NewItem.DstName := '*lemming';
 
-  NewItem.OffsetL := aSec.LineNumeric['left_offset'];
-  NewItem.OffsetR := aSec.LineNumeric['right_offset'];
-  NewItem.OffsetT := aSec.LineNumeric['top_offset'];
-  NewItem.OffsetB := aSec.LineNumeric['bottom_offset'];
+    NewItem.Width := aSec.LineNumeric['width'];
+    NewItem.Height := aSec.LineNumeric['height'];
 
-  NewItem.Rotate := aSec.Line['rotate'] <> nil;
-  NewItem.Flip := aSec.Line['flip_horizontal'] <> nil;
-  NewItem.Invert := aSec.Line['flip_vertical'] <> nil;
+    NewItem.OffsetL := aSec.LineNumeric['left_offset'];
+    NewItem.OffsetR := aSec.LineNumeric['right_offset'];
+    NewItem.OffsetT := aSec.LineNumeric['top_offset'];
+    NewItem.OffsetB := aSec.LineNumeric['bottom_offset'];
 
-  NewItem.PickupPatch := aSec.Line['pickup_patch'] <> nil;
+    NewItem.Rotate := aSec.Line['rotate'] <> nil;
+    NewItem.Flip := aSec.Line['flip_horizontal'] <> nil;
+    NewItem.Invert := aSec.Line['flip_vertical'] <> nil;
 
-  fMatchArray[fCurrentPos] := NewItem;
-  Inc(fCurrentPos);
+    NewItem.PickupPatch := aSec.Line['pickup_patch'] <> nil;
+
+    fMatchArray[fCurrentPos] := NewItem;
+    Inc(fCurrentPos);
+  end;
 end;
 
 procedure TTranslationTable.LoadForGS(aSet: String);
@@ -157,9 +162,9 @@ begin
     fCurrentPos := TotalEntries;
     SetLength(fMatchArray, Length(fMatchArray) + Parser.MainSection.SectionList.Count);
 
-    TotalEntries := TotalEntries + Parser.MainSection.DoForEachSection('terrain', LoadEntry);
-    TotalEntries := TotalEntries + Parser.MainSection.DoForEachSection('object', LoadEntry);
-    TotalEntries := TotalEntries + Parser.MainSection.DoForEachSection('background', LoadEntry);
+    TotalEntries := TotalEntries + Parser.MainSection.DoForEachSection(self, 'terrain', @LoadEntry);
+    TotalEntries := TotalEntries + Parser.MainSection.DoForEachSection(self, 'object', @LoadEntry);
+    TotalEntries := TotalEntries + Parser.MainSection.DoForEachSection(self, 'background', @LoadEntry);
 
     SetLength(fMatchArray, TotalEntries);
   finally

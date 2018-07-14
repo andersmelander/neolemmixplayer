@@ -107,7 +107,7 @@ end;
 
 function TGadgetModelList.GetItem(Index: Integer): TGadgetModel;
 begin
-  Result := inherited Get(Index);
+  Result := TGadgetModel(inherited Get(Index));
 end;
 
 

@@ -1,5 +1,7 @@
 unit FNeoLemmixLevelSelect;
 
+{$MODE Delphi}
+
 interface
 
 uses
@@ -9,7 +11,7 @@ uses
   LemTypes,
   PngInterface,
   GR32, GR32_Resamplers,
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  LCLIntf, LCLType, LMessages, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ComCtrls, StdCtrls, ExtCtrls, ImgList,
   LemNeoParser, GR32_Image;
 
@@ -46,7 +48,7 @@ implementation
 uses
   LemLevel, LemDosCmp; // used to import DAT level packs
 
-{$R *.dfm}
+{$R *.lfm}
 
 procedure TFLevelSelect.InitializeTreeview;
 

@@ -2,6 +2,8 @@
 
 unit GameControl;
 
+{$MODE Delphi}
+
 {-------------------------------------------------------------------------------
   The gamecontrol class is in fact just a global var which is passed through as
   a parameter to all screens.
@@ -233,7 +235,7 @@ var
 implementation
 
 uses
-  SharedGlobals, Controls, UITypes,
+  SharedGlobals, Controls, {UITypes,}
   GameWindow, //for EXTRA_ZOOM_LEVELS const
   GameSound;
 

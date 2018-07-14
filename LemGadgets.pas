@@ -4,6 +4,7 @@ unit LemGadgets;
 interface
 
 uses
+  FGL,
   Math, Classes,
   Windows, Contnrs, LemTypes, LemCore,
   LemGadgetsMeta, LemGadgetsModel;
@@ -99,16 +100,9 @@ type
 
 type
   // internal list, used by game
-  TGadgetList = class(TObjectList)
-  private
-    function GetItem(Index: Integer): TGadget;
-  protected
-  public
-    function Add(Item: TGadget): Integer;
-    procedure Insert(Index: Integer; Item: TGadget);
-    procedure FindReceiverID;
-    property Items[Index: Integer]: TGadget read GetItem; default;
-  published
+  TGadgetList = class(specialize TFPGObjectList<TGadget>)
+    public
+      procedure FindReceiverID;
   end;
 
 const
@@ -441,21 +435,6 @@ end;
 
 { TGadgetList }
 
-function TGadgetList.Add(Item: TGadget): Integer;
-begin
-  Result := inherited Add(Item);
-end;
-
-function TGadgetList.GetItem(Index: Integer): TGadget;
-begin
-  Result := inherited Get(Index);
-end;
-
-procedure TGadgetList.Insert(Index: Integer; Item: TGadget);
-begin
-  inherited Insert(Index, Item);
-end;
-
 procedure TGadgetList.FindReceiverID;
 var
   i, TestId: Integer;
@@ -473,14 +452,14 @@ begin
 
   for i := 0 to Count - 1 do
   begin
-    Gadget := List[i];
+    Gadget := Items[i];
     if Gadget.TriggerEffect = DOM_TELEPORT then
     begin
       // Find receiver for this teleporter with index i
       TestID := i;
       repeat
         Inc(TestID);
-        TestGadget := List[TestId mod Count];
+        TestGadget := Items[TestId mod Count];
       until ((TestGadget.TriggerEffect = DOM_RECEIVER) and (TestGadget.Obj.Skill = Gadget.Obj.Skill))
             or (TestID = i + Count);
 
@@ -507,7 +486,7 @@ begin
 
   for i := 0 to Count-1 do
   begin
-    Gadget := List[i];
+    Gadget := Items[i];
     if Gadget.TriggerEffect = DOM_RECEIVER then
       if not IsReceiverUsed[i] then
         Gadget.TriggerEffect := DOM_NONE // set to no-effect as a means of disabling if

@@ -2,6 +2,8 @@
 
 unit LemRes;
 
+{$MODE Delphi}
+
 interface
 
   {$resource lemmixresources.res}             // lemmixresources contains the cursor bitmaps

@@ -1,5 +1,7 @@
 unit CustomPopup;
 
+{$MODE Delphi}
+
 // For maximum control, create a TCustomPopup, set Caption and Text properties, then use the AddButton to
 // add buttons to it. Call it via ShowModal, and the return value will be the tag assigned to whichever button
 // was clicked. Due to how ShowModal works, a tag of 0 cannot be used.

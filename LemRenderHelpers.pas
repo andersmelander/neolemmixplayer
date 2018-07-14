@@ -311,12 +311,12 @@ end;
 
 function TRenderInterface.IsStartingSeconds: Boolean;
 begin
-  Result := fIsStartingSecondsRoutine;
+  Result := fIsStartingSecondsRoutine();
 end;
 
 function TRenderInterface.GetHighlitLemming: TLemming;
 begin
-  Result := fGetHighlitLemRoutine;
+  Result := fGetHighlitLemRoutine();
 end;
 
 procedure TRenderInterface.SetSelectedLemming(aValue: TLemming);
@@ -393,7 +393,7 @@ end;
 
 function TDrawList.GetItem(Index: Integer): TDrawItem;
 begin
-  Result := inherited Get(Index);
+  Result := TDrawItem(inherited Get(Index));
 end;
 
 procedure TDrawList.Insert(Index: Integer; Item: TDrawItem);
@@ -416,7 +416,7 @@ begin
     if i in [rlLowShadows, rlHighShadows] then
     begin
       BMP.DrawMode := dmCustom;
-      BMP.OnPixelCombine := CombinePixelsShadow;
+      BMP.OnPixelCombine := @CombinePixelsShadow;
     end else begin
       BMP.DrawMode := dmBlend;
       BMP.CombineMode := cmBlend;
@@ -477,7 +477,7 @@ end;
 
 function TRenderBitmaps.GetItem(Index: TRenderLayer): TBitmap32;
 begin
-  Result := inherited Get(Integer(Index));
+  Result := TBitmap32(inherited Get(Integer(Index)));
 end;
 
 
@@ -513,21 +513,21 @@ begin
     // Delete Only-On-Terrain Objects not on terrain
     if not fIsEmpty[rlOnTerrainGadgets] then
     begin
-      fPhysicsMap.OnPixelCombine := CombinePhysicsMapOnlyOnTerrain;
+      fPhysicsMap.OnPixelCombine := @CombinePhysicsMapOnlyOnTerrain;
       fPhysicsMap.DrawTo(Items[rlOnTerrainGadgets], aRegion, aRegion);
     end;
 
     // Delete One-Way-Arrows not on non-steel terrain
     if not fIsEmpty[rlOneWayArrows] then
     begin
-      fPhysicsMap.OnPixelCombine := CombinePhysicsMapOneWays;
+      fPhysicsMap.OnPixelCombine := @CombinePhysicsMapOneWays;
       fPhysicsMap.DrawTo(Items[rlOneWayArrows], aRegion, aRegion);
     end;
 
     // Delete High Shadows not on non-steel terrain
     if not fIsEmpty[rlHighShadows] then
     begin
-      fPhysicsMap.OnPixelCombine := CombinePhysicsMapOnlyDestructible;
+      fPhysicsMap.OnPixelCombine := @CombinePhysicsMapOnlyDestructible;
       fPhysicsMap.DrawTo(Items[rlHighShadows], aRegion, aRegion);
     end;
   end;

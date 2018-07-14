@@ -4,7 +4,7 @@ unit LemLevel;
 interface
 
 uses
-  System.Generics.Collections,
+  FGL,
   Classes, SysUtils, StrUtils,
   LemCore, LemLemming,
   LemTalisman,
@@ -83,6 +83,8 @@ type
     property LevelID: Int64 read fLevelID write fLevelID;
   end;
 
+  TTalismanList = specialize TFPGObjectList<TTalisman>;
+
   TLevel = class
   private
     fLevelInfo       : TLevelInfo;
@@ -90,19 +92,13 @@ type
     fInteractiveObjects : TGadgetModelList;
     fPreplacedLemmings  : TPreplacedLemmingList;
 
-    fTalismans: TObjectList<TTalisman>;
+    fTalismans: TTalismanList;
     fPreText: TStringList;
     fPostText: TStringList;
 
     // Loading routines
     procedure LoadGeneralInfo(aSection: TParserSection);
     procedure LoadSkillsetSection(aSection: TParserSection);
-    procedure HandleObjectEntry(aSection: TParserSection; const aIteration: Integer);
-    procedure HandleTerrainEntry(aSection: TParserSection; const aIteration: Integer);
-    procedure HandleLemmingEntry(aSection: TParserSection; const aIteration: Integer);
-    procedure HandleTalismanEntry(aSection: TParserSection; const aIteration: Integer);
-    procedure LoadPretextLine(aLine: TParserLine; const aIteration: Integer);
-    procedure LoadPosttextLine(aLine: TParserLine; const aIteration: Integer);
 
     // Saving routines
     procedure SaveGeneralInfo(aSection: TParserSection);
@@ -131,7 +127,7 @@ type
     property InteractiveObjects: TGadgetModelList read fInteractiveObjects;
     property Terrains: TTerrains read fTerrains;
     property PreplacedLemmings: TPreplacedLemmingList read fPreplacedLemmings;
-    property Talismans: TObjectList<TTalisman> read fTalismans;
+    property Talismans: TTalismanList read fTalismans;
     property PreText: TStringList read fPreText;
     property PostText: TStringList read fPostText;
   end;
@@ -195,7 +191,7 @@ begin
   fInteractiveObjects := TGadgetModelList.Create;
   fTerrains := TTerrains.Create;
   fPreplacedLemmings := TPreplacedLemmingList.Create;
-  fTalismans := TObjectList<TTalisman>.Create(true);
+  fTalismans := TTalismanList.Create(true);
   fPreText := TStringList.Create;
   fPostText := TStringList.Create;
 end;
@@ -253,47 +249,6 @@ begin
 end;
 
 // TLevel Loading Routines
-
-procedure TLevel.LoadFromStream(aStream: TStream; aExt: String = '');
-var
-  Parser: TParser;
-  Main: TParserSection;
-begin
-  Clear;
-
-  aExt := Lowercase(aExt);
-  if aExt = '.lvl' then
-    TLVLLoader.LoadLevelFromStream(aStream, Self, lfLemmix)
-  else if aExt = '.ini' then
-    TLVLLoader.LoadLevelFromStream(aStream, Self, lfLemmini)
-  else if aExt = '.lev' then
-    TLVLLoader.LoadLevelFromStream(aStream, Self, lfLemmins)
-  else begin
-    Parser := TParser.Create;
-    try
-      Parser.LoadFromStream(aStream);
-      Main := Parser.MainSection;
-
-      LoadGeneralInfo(Main);
-      LoadSkillsetSection(Main.Section['skillset']);
-
-      Main.DoForEachSection('object', HandleObjectEntry);
-      Main.DoForEachSection('terrain', HandleTerrainEntry);
-      Main.DoForEachSection('lemming', HandleLemmingEntry);
-      Main.DoForEachSection('talisman', HandleTalismanEntry);
-
-      if Main.Section['pretext'] <> nil then
-        Main.Section['pretext'].DoForEachLine('line', LoadPretextLine);
-
-      if Main.Section['posttext'] <> nil then
-        Main.Section['posttext'].DoForEachLine('line', LoadPosttextLine);
-    finally
-      Parser.Free;
-    end;
-  end;
-
-  Sanitize;
-end;
 
 procedure TLevel.LoadGeneralInfo(aSection: TParserSection);
 
@@ -377,8 +332,9 @@ begin
   HandleSkill('cloner', spbCloner);
 end;
 
-procedure TLevel.HandleObjectEntry(aSection: TParserSection; const aIteration: Integer);
+procedure HandleObjectEntry(Sender: TObject; aSection: TParserSection; const aIteration: Integer);
 var
+  Level: TLevel absolute Sender;
   O: TGadgetModel;
 
   procedure Flag(aValue: Integer);
@@ -452,34 +408,40 @@ var
     O.TarLev := aSection.LineNumeric['speed'];
   end;
 begin
-  O := fInteractiveObjects.Add;
+  if not (Sender is TLevel) then Exit;
 
-  O.GS := aSection.LineTrimString['collection'];
-  O.Piece := aSection.LineTrimString['piece'];
-  O.Left := aSection.LineNumeric['x'];
-  O.Top := aSection.LineNumeric['y'];
-  O.Width := aSection.LineNumeric['width'];
-  O.Height := aSection.LineNumeric['height'];
+  with Level do
+  begin
+    O := fInteractiveObjects.Add;
 
-  O.DrawingFlags := 0;
-  if (aSection.Line['rotate'] <> nil) then Flag(odf_Rotate);
-  if (aSection.Line['flip_horizontal'] <> nil) then Flag(odf_FlipLem);
-  if (aSection.Line['flip_vertical'] <> nil) then Flag(odf_UpsideDown);
-  if (aSection.Line['no_overwrite'] <> nil) then Flag(odf_NoOverwrite);
-  if (aSection.Line['only_on_terrain'] <> nil) then Flag(odf_OnlyOnTerrain);
+    O.GS := aSection.LineTrimString['collection'];
+    O.Piece := aSection.LineTrimString['piece'];
+    O.Left := aSection.LineNumeric['x'];
+    O.Top := aSection.LineNumeric['y'];
+    O.Width := aSection.LineNumeric['width'];
+    O.Height := aSection.LineNumeric['height'];
 
-  case PieceManager.Objects[O.Identifier].TriggerEffect of
-    11: GetTeleporterData;
-    12: GetReceiverData;
-    14: GetPickupData;
-    21: GetSplitterData;
-    23: GetWindowData;
-    30: GetMovingBackgroundData;
+    O.DrawingFlags := 0;
+    if (aSection.Line['rotate'] <> nil) then Flag(odf_Rotate);
+    if (aSection.Line['flip_horizontal'] <> nil) then Flag(odf_FlipLem);
+    if (aSection.Line['flip_vertical'] <> nil) then Flag(odf_UpsideDown);
+    if (aSection.Line['no_overwrite'] <> nil) then Flag(odf_NoOverwrite);
+    if (aSection.Line['only_on_terrain'] <> nil) then Flag(odf_OnlyOnTerrain);
+
+    case PieceManager.Objects[O.Identifier].TriggerEffect of
+      11: GetTeleporterData;
+      12: GetReceiverData;
+      14: GetPickupData;
+      21: GetSplitterData;
+      23: GetWindowData;
+      30: GetMovingBackgroundData;
+    end;
   end;
 end;
 
-procedure TLevel.HandleTerrainEntry(aSection: TParserSection; const aIteration: Integer);
+procedure HandleTerrainEntry(Sender: TObject; aSection: TParserSection; const aIteration: Integer);
 var
+  Level: TLevel absolute Sender;
   T: TTerrain;
 
   procedure Flag(aValue: Integer);
@@ -487,71 +449,136 @@ var
     T.DrawingFlags := T.DrawingFlags or aValue;
   end;
 begin
-  T := fTerrains.Add;
+  if not (Sender is TLevel) then Exit;
 
-  T.GS := aSection.LineTrimString['collection'];
-  T.Piece := aSection.LineTrimString['piece'];
-  T.Left := aSection.LineNumeric['x'];
-  T.Top := aSection.LineNumeric['y'];
+  with Level do
+  begin
+    T := fTerrains.Add;
 
-  T.DrawingFlags := tdf_NoOneWay;
-  if (aSection.Line['one_way'] <> nil) then T.DrawingFlags := 0;
-  if (aSection.Line['rotate'] <> nil) then Flag(tdf_Rotate);
-  if (aSection.Line['flip_horizontal'] <> nil) then Flag(tdf_Flip);
-  if (aSection.Line['flip_vertical'] <> nil) then Flag(tdf_Invert);
-  if (aSection.Line['no_overwrite'] <> nil) then Flag(tdf_NoOverwrite);
-  if (aSection.Line['erase'] <> nil) then Flag(tdf_Erase);
+    T.GS := aSection.LineTrimString['collection'];
+    T.Piece := aSection.LineTrimString['piece'];
+    T.Left := aSection.LineNumeric['x'];
+    T.Top := aSection.LineNumeric['y'];
+
+    T.DrawingFlags := tdf_NoOneWay;
+    if (aSection.Line['one_way'] <> nil) then T.DrawingFlags := 0;
+    if (aSection.Line['rotate'] <> nil) then Flag(tdf_Rotate);
+    if (aSection.Line['flip_horizontal'] <> nil) then Flag(tdf_Flip);
+    if (aSection.Line['flip_vertical'] <> nil) then Flag(tdf_Invert);
+    if (aSection.Line['no_overwrite'] <> nil) then Flag(tdf_NoOverwrite);
+    if (aSection.Line['erase'] <> nil) then Flag(tdf_Erase);
+  end;
 end;
 
-procedure TLevel.HandleLemmingEntry(aSection: TParserSection; const aIteration: Integer);
+procedure HandleLemmingEntry(Sender: TObject; aSection: TParserSection; const aIteration: Integer);
 var
+  Level: TLevel absolute Sender;
   L: TPreplacedLemming;
 begin
-  L := fPreplacedLemmings.Add;
+  if not (Sender is TLevel) then Exit;
+  with Level do
+  begin
+    L := fPreplacedLemmings.Add;
 
-  L.X := aSection.LineNumeric['x'];
-  L.Y := aSection.LineNumeric['y'];
+    L.X := aSection.LineNumeric['x'];
+    L.Y := aSection.LineNumeric['y'];
 
-  if Lowercase(LeftStr(aSection.LineTrimString['direction'], 1)) = 'l' then
-    L.Dx := -1
-  else
-    L.Dx := 1; // We use right as a "default", but we're also lenient - we accept just an L rather than the full word "left".
-               // Side effects may include a left-facing lemming if user manually enters "DIRECTION LEMMING FACES IS RIGHT".
+    if Lowercase(LeftStr(aSection.LineTrimString['direction'], 1)) = 'l' then
+      L.Dx := -1
+    else
+      L.Dx := 1; // We use right as a "default", but we're also lenient - we accept just an L rather than the full word "left".
+                 // Side effects may include a left-facing lemming if user manually enters "DIRECTION LEMMING FACES IS RIGHT".
 
-  L.IsClimber  := (aSection.Line['climber']  <> nil);
-  L.IsSwimmer  := (aSection.Line['swimmer']  <> nil);
-  L.IsFloater  := (aSection.Line['floater']  <> nil);
-  L.IsGlider   := (aSection.Line['glider']   <> nil);
-  L.IsDisarmer := (aSection.Line['disarmer'] <> nil);
-  L.IsZombie   := (aSection.Line['zombie']   <> nil);
-  L.IsBlocker  := (aSection.Line['blocker']  <> nil);
+    L.IsClimber  := (aSection.Line['climber']  <> nil);
+    L.IsSwimmer  := (aSection.Line['swimmer']  <> nil);
+    L.IsFloater  := (aSection.Line['floater']  <> nil);
+    L.IsGlider   := (aSection.Line['glider']   <> nil);
+    L.IsDisarmer := (aSection.Line['disarmer'] <> nil);
+    L.IsZombie   := (aSection.Line['zombie']   <> nil);
+    L.IsBlocker  := (aSection.Line['blocker']  <> nil);
+  end;
 end;
 
-procedure TLevel.HandleTalismanEntry(aSection: TParserSection; const aIteration: Integer);
+procedure HandleTalismanEntry(Sender: TObject; aSection: TParserSection; const aIteration: Integer);
 var
+  Level: TLevel absolute Sender;
   T: TTalisman;
   Success: Boolean;
 begin
-  Success := True;
-  T := TTalisman.Create;
-  try
-    T.LoadFromSection(aSection);
-  except
-    ShowMessage('Error loading a talisman for ' + Info.Title);
-    Success := False;
-    T.Free;
+  if not (Sender is TLevel) then Exit;
+
+  with Level do
+  begin
+    Success := True;
+    T := TTalisman.Create;
+    try
+      T.LoadFromSection(aSection);
+    except
+      ShowMessage('Error loading a talisman for ' + Info.Title);
+      Success := False;
+      T.Free;
+    end;
+    if Success then fTalismans.Add(T);
   end;
-  if Success then fTalismans.Add(T);
 end;
 
-procedure TLevel.LoadPretextLine(aLine: TParserLine; const aIteration: Integer);
+procedure LoadPretextLine(Sender: TObject; aLine: TParserLine; const aIteration: Integer);
+var
+  Level: TLevel absolute Sender;
 begin
-  fPreText.Add(aLine.ValueTrimmed);
+  if not (Sender is TLevel) then Exit;
+
+  Level.fPreText.Add(aLine.ValueTrimmed);
 end;
 
-procedure TLevel.LoadPosttextLine(aLine: TParserLine; const aIteration: Integer);
+procedure LoadPosttextLine(Sender: TObject; aLine: TParserLine; const aIteration: Integer);
+var
+  Level: TLevel absolute Sender;
 begin
-  fPostText.Add(aLine.ValueTrimmed);
+  if not (Sender is TLevel) then Exit;
+
+  Level.fPostText.Add(aLine.ValueTrimmed);
+end;
+
+procedure TLevel.LoadFromStream(aStream: TStream; aExt: String = '');
+var
+  Parser: TParser;
+  Main: TParserSection;
+begin
+  Clear;
+
+  aExt := Lowercase(aExt);
+  if aExt = '.lvl' then
+    TLVLLoader.LoadLevelFromStream(aStream, Self, lfLemmix)
+  else if aExt = '.ini' then
+    TLVLLoader.LoadLevelFromStream(aStream, Self, lfLemmini)
+  else if aExt = '.lev' then
+    TLVLLoader.LoadLevelFromStream(aStream, Self, lfLemmins)
+  else begin
+    Parser := TParser.Create;
+    try
+      Parser.LoadFromStream(aStream);
+      Main := Parser.MainSection;
+
+      LoadGeneralInfo(Main);
+      LoadSkillsetSection(Main.Section['skillset']);
+
+      Main.DoForEachSection(self, 'object', @HandleObjectEntry);
+      Main.DoForEachSection(self, 'terrain', @HandleTerrainEntry);
+      Main.DoForEachSection(self, 'lemming', @HandleLemmingEntry);
+      Main.DoForEachSection(self, 'talisman', @HandleTalismanEntry);
+
+      if Main.Section['pretext'] <> nil then
+        Main.Section['pretext'].DoForEachLine(self, 'line', @LoadPretextLine);
+
+      if Main.Section['posttext'] <> nil then
+        Main.Section['posttext'].DoForEachLine(self, 'line', @LoadPosttextLine);
+    finally
+      Parser.Free;
+    end;
+  end;
+
+  Sanitize;
 end;
 
 procedure TLevel.Sanitize;

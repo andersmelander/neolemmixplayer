@@ -1,6 +1,8 @@
 {$include lem_directives.inc}
 unit AppController;
 
+{$MODE Delphi}
+
 interface
 
 uses
@@ -13,7 +15,7 @@ uses
   LemNeoPieceManager, // initial creation
   FBaseDosForm, GameBaseScreen,
   CustomPopup,
-  Classes, SysUtils, StrUtils, UMisc, Windows, Forms, Dialogs, Messages;
+  Classes, SysUtils, StrUtils, UMisc, LCLIntf, LCLType, LMessages, Forms, Dialogs, Messages;
 
 type
   {-------------------------------------------------------------------------------

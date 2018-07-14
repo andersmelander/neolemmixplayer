@@ -96,12 +96,10 @@ type
   TParserSectionList = class;
   TParserLineList = class;
 
-  TForEachLineProcedure1 = reference to procedure(aLine: TParserLine; const aIteration: Integer);
-  TForEachLineProcedure2 = procedure(aLine: TParserLine; const aIteration: Integer) of object; // 1 & 2 is a kludge until I convert all code of this type to using anon methods
-  TForEachSectionProcedure1 = reference to procedure(aSection: TParserSection; const aIteration: Integer);
-  TForEachSectionProcedure2 = procedure(aSection: TParserSection; const aIteration: Integer) of object;
-  TForEachLinePointerProcedure = procedure(aLine: TParserLine; const aIteration: Integer; aData: Pointer) of object;
-  TForEachSectionPointerProcedure = procedure(aSection: TParserSection; const aIteration: Integer; aData: Pointer) of object;
+  TForEachLineProcedure = procedure(Sender: TObject; aLine: TParserLine; const aIteration: Integer);
+  TForEachSectionProcedure = procedure(Sender: TObject; aSection: TParserSection; const aIteration: Integer);
+  TForEachLinePointerProcedure = procedure(Sender: TObject; aLine: TParserLine; const aIteration: Integer; aData: Pointer);
+  TForEachSectionPointerProcedure = procedure(Sender: TObject; aSection: TParserSection; const aIteration: Integer; aData: Pointer);
 
   TParser = class
     private
@@ -145,12 +143,10 @@ type
       constructor Create(aKeyword: String);
       destructor Destroy; override;
 
-      function DoForEachLine(aKeyword: String; aMethod: TForEachLineProcedure1): Integer; overload;
-      function DoForEachLine(aKeyword: String; aMethod: TForEachLineProcedure2): Integer; overload;
-      function DoForEachLine(aKeyword: String; aMethod: TForEachLinePointerProcedure; aData: Pointer): Integer; overload;
-      function DoForEachSection(aKeyword: String; aMethod: TForEachSectionProcedure1): Integer; overload;
-      function DoForEachSection(aKeyword: String; aMethod: TForEachSectionProcedure2): Integer; overload;
-      function DoForEachSection(aKeyword: String; aMethod: TForEachSectionPointerProcedure; aData: Pointer): Integer; overload;
+      function DoForEachLine(Sender: TObject; aKeyword: String; aMethod: TForEachLineProcedure): Integer; overload;
+      function DoForEachLine(Sender: TObject; aKeyword: String; aMethod: TForEachLinePointerProcedure; aData: Pointer): Integer; overload;
+      function DoForEachSection(Sender: TObject; aKeyword: String; aMethod: TForEachSectionProcedure): Integer; overload;
+      function DoForEachSection(Sender: TObject; aKeyword: String; aMethod: TForEachSectionPointerProcedure; aData: Pointer): Integer; overload;
 
       procedure AddLine(aKeyword: String); overload;
       procedure AddLine(aKeyword: String; aValue: String); overload;
@@ -159,13 +155,13 @@ type
       property Keyword: String read GetKeyword write SetKeyword;
       property KeywordDirect: String read fKeyword write SetKeyword;
 
-      property Section[Keyword: String]: TParserSection read GetSection;
-      property Line[Keyword: String]: TParserLine read GetLine;
+      property Section[aKeyword: String]: TParserSection read GetSection;
+      property Line[aKeyword: String]: TParserLine read GetLine;
 
-      property LineString[Keyword: String]: String read GetLineString;
-      property LineTrimString[Keyword: String]: String read GetLineTrimString;
-      property LineNumeric[Keyword: String]: Int64 read GetLineNumeric;
-      property LineNumericDefault[Keyword: String; Default: Int64]: Int64 read GetLineNumericDefault;
+      property LineString[aKeyword: String]: String read GetLineString;
+      property LineTrimString[aKeyword: String]: String read GetLineTrimString;
+      property LineNumeric[aKeyword: String]: Int64 read GetLineNumeric;
+      property LineNumericDefault[aKeyword: String; Default: Int64]: Int64 read GetLineNumericDefault;
 
       property SectionList: TParserSectionList read fSections;
       property LineList: TParserLineList read fLines;
@@ -444,24 +440,24 @@ end;
 
 function TParserSection.GetLineString(aKeyword: String): String;
 var
-  Line: TParserLine;
+  LineLocal: TParserLine;
 begin
-  Line := GetLine(aKeyword);
-  if Line = nil then
+  LineLocal := GetLine(aKeyword);
+  if LineLocal = nil then
     Result := ''
   else
-    Result := Line.Value;
+    Result := LineLocal.Value;
 end;
 
 function TParserSection.GetLineTrimString(aKeyword: String): String;
 var
-  Line: TParserLine;
+  LineLocal: TParserLine;
 begin
-  Line := GetLine(aKeyword);
-  if Line = nil then
+  LineLocal := GetLine(aKeyword);
+  if LineLocal = nil then
     Result := ''
   else
-    Result := Line.ValueTrimmed;
+    Result := LineLocal.ValueTrimmed;
 end;
 
 function TParserSection.GetLineNumeric(aKeyword: string): Int64;
@@ -471,13 +467,13 @@ end;
 
 function TParserSection.GetLineNumericDefault(aKeyword: String; aDefault: Int64): Int64;
 var
-  Line: TParserLine;
+  LineLocal: TParserLine;
 begin
-  Line := GetLine(aKeyword);
-  if Line = nil then
+  LineLocal := GetLine(aKeyword);
+  if LineLocal = nil then
     Result := aDefault
   else
-    Result := Line.ValueNumeric;
+    Result := LineLocal.ValueNumeric;
 end;
 
 procedure TParserSection.AddLine(aKeyword: String);
@@ -543,7 +539,7 @@ begin
 
 end;
 
-function TParserSection.DoForEachLine(aKeyword: String; aMethod: TForEachLineProcedure1): Integer;
+function TParserSection.DoForEachLine(Sender: TObject; aKeyword: String; aMethod: TForEachLineProcedure): Integer;
 var
   i: Integer;
 begin
@@ -551,12 +547,12 @@ begin
   for i := 0 to fLines.Count-1 do
     if fLines[i].Keyword = Lowercase(aKeyword) then
     begin
-      aMethod(fLines[i], Result);
+      aMethod(Sender, fLines[i], Result);
       Inc(Result);
     end;
 end;
 
-function TParserSection.DoForEachLine(aKeyword: String; aMethod: TForEachLineProcedure2): Integer;
+function TParserSection.DoForEachLine(Sender: TObject; aKeyword: String; aMethod: TForEachLinePointerProcedure; aData: Pointer): Integer;
 var
   i: Integer;
 begin
@@ -564,25 +560,12 @@ begin
   for i := 0 to fLines.Count-1 do
     if fLines[i].Keyword = Lowercase(aKeyword) then
     begin
-      aMethod(fLines[i], Result);
+      aMethod(Sender, fLines[i], Result, aData);
       Inc(Result);
     end;
 end;
 
-function TParserSection.DoForEachLine(aKeyword: String; aMethod: TForEachLinePointerProcedure; aData: Pointer): Integer;
-var
-  i: Integer;
-begin
-  Result := 0;
-  for i := 0 to fLines.Count-1 do
-    if fLines[i].Keyword = Lowercase(aKeyword) then
-    begin
-      aMethod(fLines[i], Result, aData);
-      Inc(Result);
-    end;
-end;
-
-function TParserSection.DoForEachSection(aKeyword: String; aMethod: TForEachSectionProcedure1): Integer;
+function TParserSection.DoForEachSection(Sender: TObject; aKeyword: String; aMethod: TForEachSectionProcedure): Integer;
 var
   i: Integer;
 begin
@@ -590,12 +573,12 @@ begin
   for i := 0 to fSections.Count-1 do
     if fSections[i].Keyword = Lowercase(aKeyword) then
     begin
-      aMethod(fSections[i], Result);
+      aMethod(Sender, fSections[i], Result);
       Inc(Result);
     end;
 end;
 
-function TParserSection.DoForEachSection(aKeyword: String; aMethod: TForEachSectionProcedure2): Integer;
+function TParserSection.DoForEachSection(Sender: TObject; aKeyword: String; aMethod: TForEachSectionPointerProcedure; aData: Pointer): Integer;
 var
   i: Integer;
 begin
@@ -603,20 +586,7 @@ begin
   for i := 0 to fSections.Count-1 do
     if fSections[i].Keyword = Lowercase(aKeyword) then
     begin
-      aMethod(fSections[i], Result);
-      Inc(Result);
-    end;
-end;
-
-function TParserSection.DoForEachSection(aKeyword: String; aMethod: TForEachSectionPointerProcedure; aData: Pointer): Integer;
-var
-  i: Integer;
-begin
-  Result := 0;
-  for i := 0 to fSections.Count-1 do
-    if fSections[i].Keyword = Lowercase(aKeyword) then
-    begin
-      aMethod(fSections[i], Result, aData);
+      aMethod(Sender, fSections[i], Result, aData);
       Inc(Result);
     end;
 end;
@@ -649,7 +619,7 @@ end;
 
 function TParserSectionList.GetItem(Index: Integer): TParserSection;
 begin
-  Result := inherited Get(Index);
+  Result := TParserSection(inherited Get(Index));
 end;
 
 { --- TParserLineList --- }
@@ -674,7 +644,7 @@ end;
 
 function TParserLineList.GetItem(Index: Integer): TParserLine;
 begin
-  Result := inherited Get(Index);
+  Result := TParserLine(inherited Get(Index));
 end;
 
 

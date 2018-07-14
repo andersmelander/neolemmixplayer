@@ -81,7 +81,7 @@ end;
 
 function TSteels.GetItem(Index: Integer): TSteel;
 begin
-  Result := inherited Get(Index);
+  Result := TSteel(inherited Get(Index));
 end;
 
 end.
