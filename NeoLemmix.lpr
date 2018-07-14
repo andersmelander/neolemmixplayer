@@ -1,21 +1,21 @@
-{$include lem_directives.inc}
-
 program NeoLemmix;
 
-{$MODE Delphi}
-
-
-
-
+{$mode objfpc}{$H+}
 
 uses
-  Forms, Interfaces, FMain;
+  {$IFDEF UNIX}{$IFDEF UseCThreads}
+  cthreads,
+  {$ENDIF}{$ENDIF}
+  Interfaces, // this includes the LCL widgetset
+  Forms, FMain
+  { you can add units after this };
 
 {$R *.res}
 
 begin
+  RequireDerivedFormResource:=True;
   Application.Initialize;
-  Application.Title := 'NeoLemmix';
   Application.CreateForm(TMainForm, MainForm);
   Application.Run;
 end.
+

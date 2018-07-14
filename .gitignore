@@ -16,3 +16,4 @@ Kernel/gr32png/
 Kernel/JCL/
 NeoLemmix.dproj.local
 *.lps
+lib/
