@@ -16,7 +16,8 @@ uses
   FBaseDosForm, GameBaseScreen,
   CustomPopup,
   Controls,
-  Classes, SysUtils, StrUtils, UMisc, LCLIntf, LCLType, LMessages, Forms, Dialogs, Messages;
+  Classes, SysUtils, StrUtils, UMisc,
+  LCLIntf, LCLType, LMessages, Forms, Dialogs, Messages;
 
 type
   {-------------------------------------------------------------------------------

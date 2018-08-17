@@ -101,13 +101,10 @@
         <CommandLineParams Value="lanc.nxlv"/>
       </local>
     </RunParams>
-    <RequiredPackages Count="2">
+    <RequiredPackages Count="1">
       <Item1>
-        <PackageName Value="LazUtils"/>
-      </Item1>
-      <Item2>
         <PackageName Value="GR32_Lazarus"/>
-      </Item2>
+      </Item1>
     </RequiredPackages>
     <Units Count="1">
       <Unit0>
