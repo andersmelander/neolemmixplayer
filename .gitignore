@@ -15,3 +15,7 @@ Kernel/gr32png/
 0 TODO.txt
 Kernel/JCL/
 NeoLemmix.dproj.local
+
+# Lazarus ignores
+*.lps
+lib/
