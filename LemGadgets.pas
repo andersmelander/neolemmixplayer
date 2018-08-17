@@ -6,7 +6,7 @@ interface
 uses
   FGL,
   Math, Classes,
-  Windows, Contnrs, LemTypes, LemCore,
+  Contnrs, LemTypes, LemCore,
   LemGadgetsMeta, LemGadgetsModel;
 
 type

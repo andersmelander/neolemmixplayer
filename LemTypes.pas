@@ -9,7 +9,7 @@ uses
   SharedGlobals,
   Contnrs,
   GR32, GR32_LowLevel,
-  Windows,
+  {$ifdef WINDOWS}Windows,{$endif}
   Classes, SysUtils;
 
 const
@@ -106,6 +106,7 @@ var
 begin
   Result := false;
 
+  {$ifdef WINDOWS}
   if _UnderWine = 2 then Result := true;
   if _UnderWine > 0 then Exit;
 
@@ -120,6 +121,7 @@ begin
     _UnderWine := 2
   else
     _UnderWine := 1;
+  {$endif}
 end;
 
 procedure MoveRect(var aRect: TRect; const DeltaX, DeltaY: Integer);

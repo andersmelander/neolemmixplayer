@@ -6,7 +6,7 @@ interface
 
 uses
   Types,
-  Math, Windows,
+  Math,
   GR32, GR32_Blend,
   UMisc, Classes, SysUtils, StrUtils,
   PngInterface,

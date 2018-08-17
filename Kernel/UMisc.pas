@@ -8,7 +8,7 @@ unit UMisc;
 interface
 
 uses
-  Windows, Classes, SysUtils, StrUtils;
+  Classes, SysUtils, StrUtils;
 
 const
   CrLf = Chr(13) + Chr(10);
