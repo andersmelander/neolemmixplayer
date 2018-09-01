@@ -4,6 +4,7 @@ interface
 
 uses
   GR32, GR32_Image, GR32_Resamplers,
+  LemMenuFont,
   FBaseScreen,
   Classes, SysUtils;
 
@@ -132,6 +133,11 @@ begin
     fImg32.Invalidate;
     fChanged := false;
   end;
+end;
+
+procedure TBaseMenuScreen.InternalUpdateGame;
+begin
+  // Intentionally blank
 end;
 
 end.

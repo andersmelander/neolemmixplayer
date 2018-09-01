@@ -10,6 +10,7 @@ unit FMain;
 interface
 
 uses
+  FNeoBaseMenuScreen, // compile test
   FBaseScreen,
   GameControl,
   GameSound,

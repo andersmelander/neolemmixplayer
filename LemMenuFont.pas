@@ -19,41 +19,34 @@ const
   PurpleFontCharSet = [#26..#126] - [#32];
 
 type
-  TPurpleFont = class(TComponent)
-  private
-    function GetBitmapOfChar(Ch: Char): TBitmap32;
-    procedure Combine(F: TColor32; var B: TColor32; M: TColor32);
-  protected
-  public
-    fBitmaps: array[0..PURPLEFONTCOUNT - 1] of TBitmap32;
-    constructor Create(aOwner: TComponent); override;
-    destructor Destroy; override;
-    property BitmapOfChar[Ch: Char]: TBitmap32 read GetBitmapOfChar;
-  published
+  TPurpleFont = class
+    private
+      fBitmaps: array[0..PURPLEFONTCOUNT - 1] of TBitmap32;
+      function GetBitmapOfChar(Ch: Char): TBitmap32;
+    public
+      constructor Create;
+      destructor Destroy; override;
+      procedure LoadFontGraphics;
+
+      function CalcTextSize(const S: string): TRect;
+      procedure DrawText(Dst: TBitmap32; const S: string; X, Y: Integer; aRestoreBuffer: TBitmap32 = nil);
+      procedure DrawTextCentered(Dst: TBitmap32; const S: string; Y: Integer; aRestoreBuffer: TBitmap32 = nil; EraseOnly: Boolean = False);
+
+      property BitmapOfChar[Ch: Char]: TBitmap32 read GetBitmapOfChar;
   end;
 
 implementation
 
-procedure TPurpleFont.Combine(F: TColor32; var B: TColor32; M: TColor32);
-// just show transparent
-begin
-  if F <> 0 then B := F;
-end;
-
-constructor TPurpleFont.Create(aOwner: TComponent);
+constructor TPurpleFont.Create;
 var
   i: Integer;
-{-------------------------------------------------------------------------------
-  The purple font has it's own internal pixelcombine.
-  I don't think this ever has to be different.
--------------------------------------------------------------------------------}
 begin
   inherited;
   for i := 0 to PURPLEFONTCOUNT - 1 do
   begin
     fBitmaps[i] := TBitmap32.Create;
-    fBitmaps[i].OnPixelCombine := Combine;
-    fBitmaps[i].DrawMode := dmCustom;
+    fBitmaps[i].DrawMode := dmBlend;
+    fBitmaps[i].CombineMode := cmMerge;
   end;
 end;
 
@@ -73,7 +66,6 @@ var
 begin
   ACh := AnsiChar(Ch);
   // Ignore any character not supported by the purple font
-  //Assert((ACh in [#26..#126]) and (ACh <> ' '), 'Assertion failure on GetBitmapOfChar, character 0x' + IntToHex(Ord(ACh), 2));
   if (not (ACh in [#26..#126])) and (ACh <> ' ') then
     Idx := 0
   else if Ord(ACh) > 32 then
@@ -83,8 +75,53 @@ begin
   Result := fBitmaps[Idx];
 end;
 
-(*
-function TGameBaseScreen.CalcPurpleTextSize(const S: string): TRect;
+procedure TPurpleFont.LoadFontGraphics;
+var
+  TempBMP: TBitmap32;
+  i: Integer;
+begin
+  TempBMP := TBitmap32.Create;
+  try
+    if (not (GameParams.CurrentLevel = nil))
+       and FileExists(GameParams.CurrentLevel.Group.FindFile('menu_font.png')) then
+      TPngInterface.LoadPngFile(GameParams.CurrentLevel.Group.FindFile('menu_font.png'), TempBMP)
+    else if FileExists(AppPath + SFGraphicsMenu + 'menu_font.png') then
+      TPngInterface.LoadPngFile(AppPath + SFGraphicsMenu + 'menu_font.png', TempBMP)
+    else
+      if MessageDlg('Could not find the menu font gfx\menu\menu_font.png. Try to continue?',
+                    mtWarning, [mbYes, mbNo], 0) = mrNo then
+        Application.Terminate();
+
+    for i := 0 to PURPLEFONTCOUNT-7 do
+    begin
+      fBitmaps[i].SetSize(16, 16);
+      fBitmaps[i].Clear(0);
+      TempBMP.DrawTo(fBitmaps[i], 0, 0, Rect(i*16, 0, (i+1)*16, 16));
+    end;
+
+    if (not (GameParams.CurrentLevel = nil))
+       and FileExists(GameParams.CurrentLevel.Group.FindFile('talismans.png')) then
+      TPngInterface.LoadPngFile(GameParams.CurrentLevel.Group.FindFile('talismans.png'), TempBMP)
+    else if FileExists(AppPath + SFGraphicsMenu + 'talismans.png') then
+      TPngInterface.LoadPngFile(AppPath + SFGraphicsMenu + 'talismans.png', TempBMP)
+    else
+    begin
+      if MessageDlg('Could not find the talisman graphics gfx\menu\talismans.png. Try to continue?',
+                    mtWarning, [mbYes, mbNo], 0) = mrNo then Application.Terminate();
+    end;
+
+    for i := 0 to 5 do
+    begin
+      fBitmaps[PURPLEFONTCOUNT-6+i].SetSize(48, 48);
+      fBitmaps[PURPLEFONTCOUNT-6+i].Clear(0);
+      TempBMP.DrawTo(fBitmaps[PURPLEFONTCOUNT-6+i], 0, 0, Rect(48 * (i mod 2), 48 * (i div 2), 48 * ((i mod 2) + 1), 48 * ((i div 2) + 1)));
+    end;
+  finally
+    TempBMP.Free;
+  end;
+end;
+
+function TPurpleFont.CalcTextSize(const S: string): TRect;
 {-------------------------------------------------------------------------------
   Linefeeds increment 16 pixels
   Spaces increment 16 pixels
@@ -121,7 +158,7 @@ begin
   end;
 end;
 
-procedure TGameBaseScreen.DrawPurpleText(Dst: TBitmap32; const S: string; X, Y: Integer; aRestoreBuffer: TBitmap32 = nil);
+procedure TPurpleFont.DrawText(Dst: TBitmap32; const S: string; X, Y: Integer; aRestoreBuffer: TBitmap32 = nil);
 {-------------------------------------------------------------------------------
   Linefeeds increment 16 pixels
   Spaces increment 16 pixels
@@ -135,7 +172,7 @@ begin
 
   if aRestoreBuffer <> nil then
   begin
-    R := CalcPurpleTextSize(S);
+    R := CalcTextSize(S);
     OffsetRect(R, X, Y);
     IntersectRect(R, R, aRestoreBuffer.BoundsRect); // oops, again watch out for sourceretangle!
     aRestoreBuffer.DrawTo(Dst, R, R);
@@ -163,7 +200,7 @@ begin
         end;
       #26..#31, #33..#132:
         begin
-          fPurpleFont.BitmapOfChar[C].DrawTo(Dst, CX, CY);
+          BitmapOfChar[C].DrawTo(Dst, CX, CY);
           Inc(CX, 16);
         end;
     end;
@@ -171,7 +208,7 @@ begin
 
 end;
 
-procedure TGameBaseScreen.DrawPurpleTextCentered(Dst: TBitmap32; const S: string; Y: Integer; aRestoreBuffer: TBitmap32 = nil;
+procedure TPurpleFont.DrawTextCentered(Dst: TBitmap32; const S: string; Y: Integer; aRestoreBuffer: TBitmap32 = nil;
   EraseOnly: Boolean = False);
 {-------------------------------------------------------------------------------
   Linefeeds increment 16 pixels
@@ -182,13 +219,26 @@ var
   R: TRect;
   List: TStringList;
   H: string;
+
+  procedure MakeList;
+  var
+    TempStr: String;
+  begin
+    TempStr := S;
+    TempStr := StringReplace(TempStr, #13#10, #10, [rfReplaceAll]);
+    TempStr := StringReplace(TempStr, #13, #10, [rfReplaceAll]);
+    List.Delimiter := #10;
+    List.StrictDelimiter := true;
+    List.DelimitedText := TempStr;
+  end;
+
 begin
   List := TStringList.Create;
-  MakeList(S, List);
+  MakeList;
 
   if aRestoreBuffer <> nil then
   begin
-    R := CalcPurpleTextSize(S);
+    R := CalcTextSize(S);
     OffsetRect(R, (Dst.Width - (R.Right - R.Left)) div 2, Y);
     IntersectRect(R, R, aRestoreBuffer.BoundsRect); // oops, again watch out for sourceretangle!
     aRestoreBuffer.DrawTo(Dst, R, R);
@@ -200,7 +250,7 @@ begin
       H := List[i]; // <= 40 characters!!!
       X := (Dst.Width - 16 * Length(H)) div 2;
       if (H <> #13) and (H <> #12) then
-        DrawPurpleText(Dst, H, X, Y)
+        DrawText(Dst, H, X, Y)
       else if H = #13 then
         Inc(Y, 16)
       else
@@ -209,62 +259,6 @@ begin
 
   List.Free;
 end;
-*)
-
-(*
-procedure TGameBaseScreen.ExtractPurpleFont;
-var
-  i: Integer;
-  TempBMP: TBitmap32;
-  buttonSelected: Integer;
-begin
-  TempBMP := TBitmap32.Create;
-
-  if (not (GameParams.CurrentLevel = nil))
-     and FileExists(GameParams.CurrentLevel.Group.FindFile('menu_font.png')) then
-    TPngInterface.LoadPngFile(GameParams.CurrentLevel.Group.FindFile('menu_font.png'), TempBMP)
-  else if FileExists(AppPath + SFGraphicsMenu + 'menu_font.png') then
-    TPngInterface.LoadPngFile(AppPath + SFGraphicsMenu + 'menu_font.png', TempBMP)
-  else
-  begin
-    buttonSelected := MessageDlg('Could not find the menu font gfx\menu\menu_font.png. Try to continue?',
-                                 mtWarning, mbOKCancel, 0);
-    if buttonSelected = mrCancel then Application.Terminate();
-  end;
-
-  for i := 0 to PURPLEFONTCOUNT-7 do
-  begin
-    fPurpleFont.fBitmaps[i].SetSize(16, 16);
-    fPurpleFont.fBitmaps[i].Clear(0);
-    TempBMP.DrawTo(fPurpleFont.fBitmaps[i], 0, 0, Rect(i*16, 0, (i+1)*16, 16));
-    fPurpleFont.fBitmaps[i].DrawMode := dmBlend;
-    fPurpleFont.fBitmaps[i].CombineMode := cmMerge;
-  end;
-
-  if (not (GameParams.CurrentLevel = nil))
-     and FileExists(GameParams.CurrentLevel.Group.FindFile('talismans.png')) then
-    TPngInterface.LoadPngFile(GameParams.CurrentLevel.Group.FindFile('talismans.png'), TempBMP)
-  else if FileExists(AppPath + SFGraphicsMenu + 'talismans.png') then
-    TPngInterface.LoadPngFile(AppPath + SFGraphicsMenu + 'talismans.png', TempBMP)
-  else
-  begin
-    buttonSelected := MessageDlg('Could not find the talisman graphics gfx\menu\talismans.png. Try to continue?',
-                                 mtWarning, mbOKCancel, 0);
-    if buttonSelected = mrCancel then Application.Terminate();
-  end;
-
-  for i := 0 to 5 do
-  begin
-    fPurpleFont.fBitmaps[PURPLEFONTCOUNT-6+i].SetSize(48, 48);
-    fPurpleFont.fBitmaps[PURPLEFONTCOUNT-6+i].Clear(0);
-    TempBMP.DrawTo(fPurpleFont.fBitmaps[PURPLEFONTCOUNT-6+i], 0, 0, Rect(48 * (i mod 2), 48 * (i div 2), 48 * ((i mod 2) + 1), 48 * ((i div 2) + 1)));
-    fPurpleFont.fBitmaps[PURPLEFONTCOUNT-6+i].DrawMode := dmBlend;
-    fPurpleFont.fBitmaps[PURPLEFONTCOUNT-6+i].CombineMode := cmMerge;
-  end;
-
-  TempBMP.Free;
-end;
-*)
 
 
 end.
