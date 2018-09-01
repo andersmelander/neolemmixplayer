@@ -195,43 +195,50 @@ end;
 procedure TMainForm.FormKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
-  fActiveScreen.OnKeyChange(Key, true);
+  if not fActiveScreen.BlockAllInput then
+    fActiveScreen.OnKeyChange(Key, true);
 end;
 
 procedure TMainForm.FormKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState
   );
 begin
-  fActiveScreen.OnKeyChange(Key, false);
+  if not fActiveScreen.BlockAllInput then
+    fActiveScreen.OnKeyChange(Key, false);
 end;
 
 procedure TMainForm.FormMouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 begin
-  fActiveScreen.OnMouseButtonChange(Button, true, Point(X, Y));
+  if not fActiveScreen.BlockAllInput then
+    fActiveScreen.OnMouseButtonChange(Button, true, Point(X, Y));
 end;
 
 procedure TMainForm.FormMouseMove(Sender: TObject; Shift: TShiftState; X,
   Y: Integer);
 begin
-  fActiveScreen.OnMouseMove(Point(X, Y));
+  if not fActiveScreen.BlockAllInput then
+    fActiveScreen.OnMouseMove(Point(X, Y));
 end;
 
 procedure TMainForm.FormMouseUp(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 begin
-  fActiveScreen.OnMouseButtonChange(Button, false, Point(X, Y));
+  if not fActiveScreen.BlockAllInput then
+    fActiveScreen.OnMouseButtonChange(Button, false, Point(X, Y));
 end;
 
 procedure TMainForm.FormMouseWheelDown(Sender: TObject; Shift: TShiftState;
   MousePos: TPoint; var Handled: Boolean);
 begin
-  fActiveScreen.OnMouseWheel(MOUSE_WHEEL_DIR_DOWN);
+  if not fActiveScreen.BlockAllInput then
+    fActiveScreen.OnMouseWheel(MOUSE_WHEEL_DIR_DOWN);
 end;
 
 procedure TMainForm.FormMouseWheelUp(Sender: TObject; Shift: TShiftState;
   MousePos: TPoint; var Handled: Boolean);
 begin
-  fActiveScreen.OnMouseWheel(MOUSE_WHEEL_DIR_UP);
+  if not fActiveScreen.BlockAllInput then
+    fActiveScreen.OnMouseWheel(MOUSE_WHEEL_DIR_UP);
 end;
 
 end.

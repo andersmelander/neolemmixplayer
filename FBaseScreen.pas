@@ -16,6 +16,7 @@ type
     private
       fNewScreen: TBaseScreen;
       fDelay: Integer;
+      fBlockAllInput: Boolean;
     protected
       function PrepareImg32(const aLeft, aTop, aWidth, aHeight: Integer): TImage32;
 
@@ -34,6 +35,7 @@ type
 
       property NewScreen: TBaseScreen read fNewScreen write fNewScreen;
       property FrameDelay: Integer read fDelay write fDelay;
+      property BlockAllInput: Boolean read fBlockAllInput write fBlockAllInput;
   end;
 
 const
