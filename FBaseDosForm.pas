@@ -81,7 +81,9 @@ begin
   except
     on E : EAbort do Exit; // should only happen if some level piece is missing
   end;
-  TMainForm(GameParams.MainForm).ChildForm := self;
+
+  // blanked for now
+
   Cursor := crNone;
   Screen.Cursor := crNone;
   Show;

@@ -15,31 +15,33 @@ type
   TBaseScreen = class(TForm)
     private
       fNewScreen: TBaseScreen;
+      fDelay: Integer;
     protected
       function PrepareImg32(const aLeft, aTop, aWidth, aHeight: Integer): TImage32;
 
       procedure Initialize; virtual;
       procedure Finalize; virtual;
-
-      procedure Exit(aNewScreen: TBaseScreen);
     public
       constructor Create(TheOwner: TComponent); override; final;
       destructor Destroy; override; final;
 
-      procedure Update; virtual;
+      procedure UpdateGame; virtual;
 
       procedure OnMouseMove(const aPosition: TPoint); virtual;
       procedure OnMouseButtonChange(const aButton: TMouseButton; const aState: Boolean); virtual;
       procedure OnMouseWheel(const aDirection: Integer); virtual;
       procedure OnKeyChange(const aKey: Word; const aState: Boolean); virtual;
 
-      property NewScreen: TBaseScreen read fNewScreen;
+      property NewScreen: TBaseScreen read fNewScreen write fNewScreen;
+      property FrameDelay: Integer read fDelay write fDelay;
   end;
 
 const
   MOUSE_WHEEL_DIR_UP = -1;
   MOUSE_WHEEL_DIR_NONE = 0; // probably never needed but just in case
   MOUSE_WHEEL_DIR_DOWN = 1;
+
+  DEFAULT_FRAME_DELAY = 60;
 
 implementation
 
@@ -48,7 +50,12 @@ implementation
 constructor TBaseScreen.Create(TheOwner: TComponent);
 begin
   inherited;
+  if TheOwner is TForm then
+    BoundsRect := TForm(TheOwner).BoundsRect
+  else
+    raise Exception.Create(ClassName + ' needs a TForm owner');
   fNewScreen := self;
+  fDelay := DEFAULT_FRAME_DELAY;
   Initialize;
 end;
 
@@ -56,11 +63,6 @@ destructor TBaseScreen.Destroy;
 begin
   Finalize;
   inherited;
-end;
-
-procedure TBaseScreen.Exit(aNewScreen: TBaseScreen);
-begin
-  fNewScreen := aNewScreen;
 end;
 
 function TBaseScreen.PrepareImg32(const aLeft, aTop, aWidth, aHeight: Integer): TImage32;
@@ -83,7 +85,7 @@ begin
   // Intentionally blank
 end;
 
-procedure TBaseScreen.Update;
+procedure TBaseScreen.UpdateGame;
 begin
   // Intentionally blank
 end;

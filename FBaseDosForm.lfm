@@ -1,15 +1,14 @@
 object BaseDosForm: TBaseDosForm
   Left = 797
+  Height = 0
   Top = 189
+  Width = 104
   Caption = 'BaseDosForm'
-  ClientHeight = 0
-  ClientWidth = 104
   Color = clBtnFace
-  Font.Charset = DEFAULT_CHARSET
+  DesignTimePPI = 192
   Font.Color = clWindowText
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
-  Font.Style = []
+  LCLVersion = '1.8.4.0'
   WindowState = wsMaximized
-  PixelsPerInch = 96
 end

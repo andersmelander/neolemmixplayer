@@ -245,9 +245,7 @@ end;
 
 procedure TAppController.FreeScreen;
 begin
-  TMainForm(GameParams.MainForm).ChildForm := nil;
-  fActiveForm.Free;
-  fActiveForm := nil;
+  // blanked for now
 end;
 
 function TAppController.Execute: Boolean;

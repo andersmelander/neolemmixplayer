@@ -2,7 +2,6 @@
 
 unit FMain;
 
-{$MODE Delphi}
 
 {-------------------------------------------------------------------------------
   This is the main form which does almost nothing.
@@ -24,12 +23,17 @@ uses
 type
   TMainForm = class(TBaseDosForm)
       procedure FormActivate(Sender: TObject);
-      procedure FormCanResize(Sender: TObject; var NewWidth, NewHeight: Integer; var Resize: Boolean);
+      procedure FormCanResize(Sender: TObject; var NewWidth, NewHeight: Integer; var DoResize: Boolean);
     private
-      fPreviousActiveScreen: TBaseScreen;
-      fCurrentActiveScreen: TBaseScreen;
+      fActiveScreen: TBaseScreen;
+
+      fLastUpdate: Int64;
+
+      // old stuff
       Started: Boolean;
       AppController: TAppController;
+
+      procedure UpdateGame(Sender: TObject; var Done: Boolean);
     public
       constructor Create(aOwner: TComponent); override;
       destructor Destroy; override;
@@ -61,6 +65,36 @@ begin
   inherited;
 end;
 
+procedure TMainForm.UpdateGame(Sender: TObject; var Done: Boolean);
+var
+  NewTC: Int64;
+  NewScreen: TBaseScreen;
+begin
+  if fActiveScreen = nil then
+    raise Exception.Create('No active screen!');
+
+  Done := false;
+
+  NewTC := GetTickCount64;
+
+  if NewTC - fLastUpdate < fActiveScreen.FrameDelay then
+  begin
+    Sleep(1);
+    Exit;
+  end;
+
+  fActiveScreen.UpdateGame;
+
+  if fActiveScreen.NewScreen <> fActiveScreen then
+  begin
+    NewScreen := fActiveScreen.NewScreen;
+    fActiveScreen.Free;
+    fActiveScreen := NewScreen;
+  end;
+
+  fLastUpdate := NewTC;
+end;
+
 (*
 procedure TMainForm.PlayGame;
 begin
@@ -86,18 +120,21 @@ begin
     Exit;
   if not GameParams.FullScreen then
   begin
-    GameParams.MainForm.Left := (Screen.Width - GameParams.WindowWidth) div 2;
-    GameParams.MainForm.Top := (Screen.Height - GameParams.WindowHeight) div 2;
-    GameParams.MainForm.ClientWidth := GameParams.WindowWidth;
-    GameParams.MainForm.ClientHeight := GameParams.WindowHeight;
+    Left := (Screen.Width - GameParams.WindowWidth) div 2;
+    Top := (Screen.Height - GameParams.WindowHeight) div 2;
+    ClientWidth := GameParams.WindowWidth;
+    ClientHeight := GameParams.WindowHeight;
   end;
   Started := True;
-  MainFormHandle := Handle;
-  PostMessage(Handle, LM_START, 0, 0);
+
+  fLastUpdate := GetTickCount64;
+  Application.OnIdle := @UpdateGame;
+
+  // create main menu subform here
 end;
 
 procedure TMainForm.FormCanResize(Sender: TObject; var NewWidth,
-  NewHeight: Integer; var Resize: Boolean);
+  NewHeight: Integer; var DoResize: Boolean);
 var
   CWDiff, CHDiff: Integer;
   NewCW, NewCH: Integer;
@@ -129,4 +166,4 @@ begin
 end;
 
 end.
-//system
+
