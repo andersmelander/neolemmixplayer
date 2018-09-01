@@ -28,7 +28,7 @@ type
       procedure UpdateGame; virtual;
 
       procedure OnMouseMove(const aPosition: TPoint); virtual;
-      procedure OnMouseButtonChange(const aButton: TMouseButton; const aState: Boolean); virtual;
+      procedure OnMouseButtonChange(const aButton: TMouseButton; const aState: Boolean; const aPosition: TPoint); virtual;
       procedure OnMouseWheel(const aDirection: Integer); virtual;
       procedure OnKeyChange(const aKey: Word; const aState: Boolean); virtual;
 
@@ -95,7 +95,7 @@ begin
   // Intentionally blank
 end;
 
-procedure TBaseScreen.OnMouseButtonChange(const aButton: TMouseButton; const aState: Boolean);
+procedure TBaseScreen.OnMouseButtonChange(const aButton: TMouseButton; const aState: Boolean; const aPosition: TPoint);
 begin
   // Intentionally blank
 end;

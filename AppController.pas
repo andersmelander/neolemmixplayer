@@ -79,23 +79,7 @@ begin
   // Set to true as default; change to false if any failure.
   fLoadSuccess := true;
 
-  SoundManager := TSoundManager.Create;
-  SoundManager.LoadDefaultSounds;  
 
-  GameParams := TDosGameParams.Create;
-  PieceManager := TNeoPieceManager.Create;
-
-  GameParams.Renderer := TRenderer.Create;
-  GameParams.Level := TLevel.Create;
-  GameParams.MainForm := TForm(aOwner);
-
-  GameParams.NextScreen := gstMenu;
-
-  GameParams.SoundOptions := [gsoSound, gsoMusic]; // This was to fix a glitch where an older version disabled them
-                                                    // sometimes. Not sure if this still needs to be here but no harm
-                                                    // in having it.
-
-  GameParams.Load;
 
   IsTestMode := (Lowercase(ParamStr(1)) = 'test') or (Lowercase(ParamStr(1)) = 'convert');
 
@@ -124,11 +108,6 @@ begin
     GameParams.MainForm.ClientWidth := Screen.Width;
     GameParams.MainForm.ClientHeight := Screen.Height;
   end;
-
-  GameParams.MainForm.Caption := 'NeoLemmix';
-  Application.Title := GameParams.MainForm.Caption;
-
-  GameParams.Renderer.BackgroundColor := $000000;
 
   if IsTestMode then
   begin

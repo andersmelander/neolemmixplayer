@@ -8,4 +8,11 @@ inherited MainForm: TMainForm
   Caption = 'NeoLemmix'
   KeyPreview = True
   OnActivate = FormActivate
+  OnKeyDown = FormKeyDown
+  OnKeyUp = FormKeyUp
+  OnMouseDown = FormMouseDown
+  OnMouseMove = FormMouseMove
+  OnMouseUp = FormMouseUp
+  OnMouseWheelDown = FormMouseWheelDown
+  OnMouseWheelUp = FormMouseWheelUp
 end

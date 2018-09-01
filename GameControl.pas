@@ -608,13 +608,24 @@ begin
   LemMusicInResource := True;
 
   fHotkeys := TLemmixHotkeyManager.Create;
+
+  Renderer := TRenderer.Create;
+  Level := TLevel.Create;
+
+  GameParams.NextScreen := gstMenu;
+
+  GameParams.SoundOptions := [gsoSound, gsoMusic]; // This was to fix a glitch where an older version disabled them
+                                                    // sometimes. Not sure if this still needs to be here but no harm
+                                                    // in having it.
 end;
 
 destructor TDosGameParams.Destroy;
 begin
   fHotkeys.Free;
   BaseLevelPack.Free;
-  inherited Destroy;
+  Renderer.Free;
+  Level.Free;
+  inherited;
 end;
 
 function TDosGameParams.GetOptionFlag(aFlag: TMiscOption): Boolean;
