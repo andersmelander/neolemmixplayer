@@ -5,7 +5,7 @@ interface
 
 uses
   {LemNeoOnline,}
-  Dialogs,
+  Dialogs, Controls,
   SharedGlobals,
   Contnrs,
   GR32, GR32_LowLevel,
@@ -68,11 +68,31 @@ procedure MoveRect(var aRect: TRect; const DeltaX, DeltaY: Integer);
 function UnderWine: Boolean;
 function MakeSafeForFilename(const aString: String; DisallowSpaces: Boolean = true): String;
 
+procedure GetGraphic(aName: String; aDst: TBitmap32; aAllowCustom: Boolean = false);
+
 implementation
+
+uses
+  PngInterface,
+  GameControl;
 
 var
   _AppPath: string;
   _UnderWine: Integer;
+
+procedure GetGraphic(aName: String; aDst: TBitmap32; aAllowCustom: Boolean = false);
+begin
+  if aAllowCustom
+     and (not (GameParams.CurrentLevel = nil))
+     and FileExists(GameParams.CurrentLevel.Group.FindFile(ExtractFileName(aName))) then
+    TPngInterface.LoadPngFile(GameParams.CurrentLevel.Group.FindFile(ExtractFileName(aName)), aDst)
+  else if FileExists(AppPath + aName) then
+    TPngInterface.LoadPngFile(AppPath + aName, aDst)
+  else
+    if MessageDlg('Could not find ' + aName + '. Try to continue?',
+                  mtWarning, [mbYes, mbNo], 0) = mrNo then
+      Application.Terminate();
+end;
 
 function AppPath: string;
 begin

@@ -5,6 +5,7 @@ interface
 uses
   GR32, GR32_Image, GR32_Resamplers,
   LemMenuFont,
+  LemTypes,
   FBaseScreen,
   Classes, SysUtils;
 
@@ -33,8 +34,10 @@ type
       property Changed: Boolean read fChanged write fChanged;
 
       procedure BeginFadeout(aNewScreen: TBaseScreen);
+
+      procedure DrawBackground(aDst: TBitmap32; const aRect: TRect);
     public
-      procedure UpdateGame; override;
+      procedure UpdateGame; override; final;
   end;
 
 implementation
@@ -44,7 +47,7 @@ uses
 
 const
   MENU_INTERNAL_WIDTH = 640;
-  MENU_INTERNAL_HEIGHT = 480;
+  MENU_INTERNAL_HEIGHT = 400;
   FADE_DURATION = 1.5;
 
 procedure TBaseMenuScreen.Initialize;
@@ -78,6 +81,41 @@ begin
   fLastFadeTicks := GetTickCount64;
   fFadeToNewScreen := aNewScreen;
   BlockAllInput := true;
+end;
+
+procedure TBaseMenuScreen.DrawBackground(aDst: TBitmap32; const aRect: TRect);
+var
+  BgBmp: TBitmap32;
+  xc, yc: Integer;
+  ix, iy: Integer;
+  SrcRect: TRect;
+begin
+  BgBmp := TBitmap32.Create;
+  try
+    GetGraphic('gfx/menu/background.png', BgBmp);
+
+    xc := ((aRect.Width - 1) div BgBmp.Width) + 1;
+    yc := ((aRect.Height - 1) div BgBmp.Height) + 1;
+
+    SrcRect := BgBmp.BoundsRect;
+
+    for iy := 0 to yc-1 do
+    begin
+      SrcRect.Right := BgBmp.Width;
+      if iy = yc-1 then
+        SrcRect.Bottom := ((aRect.Height - 1) mod BgBmp.Height) + 1;
+
+      for ix := 0 to xc-1 do
+      begin
+        if ix = xc-1 then
+          SrcRect.Right := ((aRect.Width - 1) mod BgBmp.Width) + 1;
+
+        BgBmp.DrawTo(aDst, ix * BgBmp.Width, iy * BgBmp.Height, SrcRect);
+      end;
+    end;
+  finally
+    BgBmp.Free;
+  end;
 end;
 
 procedure TBaseMenuScreen.HandleFade;

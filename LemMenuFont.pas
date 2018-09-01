@@ -15,13 +15,15 @@ uses
   SysUtils;
 
 const
-  PURPLEFONTCOUNT = ord(#132) - ord('!') + 1;
-  PurpleFontCharSet = [#26..#126] - [#32];
+  MENU_FONT_CHAR_SIZE = 16;
+  MENU_FONT_TALISMAN_SIZE = 48;
+  MENU_FONT_CHAR_COUNT = ord(#132) - ord('!') + 1;
+  MENU_FONT_CHAR_SET = [#26..#126] - [#32];
 
 type
   TPurpleFont = class
     private
-      fBitmaps: array[0..PURPLEFONTCOUNT - 1] of TBitmap32;
+      fBitmaps: array[0..MENU_FONT_CHAR_COUNT - 1] of TBitmap32;
       function GetBitmapOfChar(Ch: Char): TBitmap32;
     public
       constructor Create;
@@ -42,7 +44,7 @@ var
   i: Integer;
 begin
   inherited;
-  for i := 0 to PURPLEFONTCOUNT - 1 do
+  for i := 0 to MENU_FONT_CHAR_COUNT - 1 do
   begin
     fBitmaps[i] := TBitmap32.Create;
     fBitmaps[i].DrawMode := dmBlend;
@@ -54,7 +56,7 @@ destructor TPurpleFont.Destroy;
 var
   i: Integer;
 begin
-  for i := 0 to PURPLEFONTCOUNT - 1 do
+  for i := 0 to MENU_FONT_CHAR_COUNT - 1 do
     fBitmaps[i].Free;
   inherited;
 end;
@@ -92,11 +94,11 @@ begin
                     mtWarning, [mbYes, mbNo], 0) = mrNo then
         Application.Terminate();
 
-    for i := 0 to PURPLEFONTCOUNT-7 do
+    for i := 0 to MENU_FONT_CHAR_COUNT-7 do
     begin
-      fBitmaps[i].SetSize(16, 16);
+      fBitmaps[i].SetSize(MENU_FONT_CHAR_SIZE, MENU_FONT_CHAR_SIZE);
       fBitmaps[i].Clear(0);
-      TempBMP.DrawTo(fBitmaps[i], 0, 0, Rect(i*16, 0, (i+1)*16, 16));
+      TempBMP.DrawTo(fBitmaps[i], 0, 0, Rect(i*MENU_FONT_CHAR_SIZE, 0, (i+1)*MENU_FONT_CHAR_SIZE, MENU_FONT_CHAR_SIZE));
     end;
 
     if (not (GameParams.CurrentLevel = nil))
@@ -112,9 +114,12 @@ begin
 
     for i := 0 to 5 do
     begin
-      fBitmaps[PURPLEFONTCOUNT-6+i].SetSize(48, 48);
-      fBitmaps[PURPLEFONTCOUNT-6+i].Clear(0);
-      TempBMP.DrawTo(fBitmaps[PURPLEFONTCOUNT-6+i], 0, 0, Rect(48 * (i mod 2), 48 * (i div 2), 48 * ((i mod 2) + 1), 48 * ((i div 2) + 1)));
+      fBitmaps[MENU_FONT_CHAR_COUNT-6+i].SetSize(MENU_FONT_TALISMAN_SIZE, MENU_FONT_TALISMAN_SIZE);
+      fBitmaps[MENU_FONT_CHAR_COUNT-6+i].Clear(0);
+      TempBMP.DrawTo(fBitmaps[MENU_FONT_CHAR_COUNT-6+i], 0, 0,
+                     Rect(MENU_FONT_TALISMAN_SIZE * (i mod 2), MENU_FONT_TALISMAN_SIZE * (i div 2),
+                          MENU_FONT_TALISMAN_SIZE * ((i mod 2) + 1), MENU_FONT_TALISMAN_SIZE * ((i div 2) + 1))
+                     );
     end;
   finally
     TempBMP.Free;
