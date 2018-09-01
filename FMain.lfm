@@ -1,25 +1,11 @@
-object MainForm: TMainForm
-  Left = 1101
-  Top = 487
+inherited MainForm: TMainForm
+  Left = 445
+  Height = 480
+  Top = 453
+  Width = 574
   Anchors = []
   BorderIcons = []
   Caption = 'NeoLemmix'
-  ClientHeight = 272
-  ClientWidth = 428
-  Color = clBtnFace
-  Font.Charset = DEFAULT_CHARSET
-  Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
-  Font.Style = []
   KeyPreview = True
   OnActivate = FormActivate
-  OnKeyDown = FormKeyDown
-  OnKeyUp = FormKeyUp
-  OnMouseDown = FormMouseDown
-  OnMouseMove = FormMouseMove
-  OnMouseUp = FormMouseUp
-  OnMouseWheel = FormMouseWheel
-  OnResize = FormResize
-  PixelsPerInch = 96
 end

@@ -8,8 +8,7 @@ uses
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
   Forms, FMain,
-  LemRes
-  { you can add units after this };
+  LemRes;
 
 {$R *.res}
 

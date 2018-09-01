@@ -11,6 +11,8 @@ unit FMain;
 interface
 
 uses
+  FBaseScreen,
+
   LemSystemMessages,
   LCLIntf, LCLType, LMessages, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs,  StdCtrls,
@@ -21,29 +23,16 @@ uses
 
 type
   TMainForm = class(TBaseDosForm)
-    procedure FormActivate(Sender: TObject);
-    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure FormKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure FormMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure FormMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure FormMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
-    procedure FormResize(Sender: TObject);
-    procedure FormCanResize(Sender: TObject; var NewWidth, NewHeight: Integer;
-      var Resize: Boolean);
-    procedure FormMouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer;
-      MousePos: TPoint; var Handled: Boolean);
-  private
-    Started: Boolean;
-    AppController: TAppController;
-    fChildForm: TForm;
-    procedure LMStart(var Msg: TMessage); message LM_START;
-    procedure LMNext(var Msg: TMessage); message LM_NEXT;
-    procedure LMExit(var Msg: TMessage); message LM_EXIT;
-    procedure PlayGame;
-  public
-    constructor Create(aOwner: TComponent); override;
-    destructor Destroy; override;
-    property ChildForm: TForm read fChildForm write fChildForm;
+      procedure FormActivate(Sender: TObject);
+      procedure FormCanResize(Sender: TObject; var NewWidth, NewHeight: Integer; var Resize: Boolean);
+    private
+      fPreviousActiveScreen: TBaseScreen;
+      fCurrentActiveScreen: TBaseScreen;
+      Started: Boolean;
+      AppController: TAppController;
+    public
+      constructor Create(aOwner: TComponent); override;
+      destructor Destroy; override;
   end;
 
 var
@@ -57,23 +46,6 @@ uses
   GameControl, GameBaseScreen;
 
 {$R *.lfm}
-
-procedure TMainForm.LMStart(var Msg: TMessage);
-begin
-  PlayGame;
-end;
-
-procedure TMainForm.LMNext(var Msg: TMessage);
-begin
-  AppController.FreeScreen;
-  PlayGame;
-end;
-
-procedure TMainForm.LMExit(var Msg: TMessage);
-begin
-  AppController.FreeScreen;
-  Close;
-end;
 
 constructor TMainForm.Create(aOwner: TComponent);
 begin
@@ -89,6 +61,7 @@ begin
   inherited;
 end;
 
+(*
 procedure TMainForm.PlayGame;
 begin
   try
@@ -105,6 +78,7 @@ begin
     end;
   end;
 end;
+*)
 
 procedure TMainForm.FormActivate(Sender: TObject);
 begin
@@ -120,57 +94,6 @@ begin
   Started := True;
   MainFormHandle := Handle;
   PostMessage(Handle, LM_START, 0, 0);
-end;
-
-procedure TMainForm.FormKeyDown(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
-begin
-  if fChildForm = nil then Exit;
-  if not Assigned(fChildForm.OnKeyDown) then Exit;
-  fChildForm.OnKeyDown(Sender, Key, Shift);
-end;
-
-procedure TMainForm.FormKeyUp(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
-begin
-  if fChildForm = nil then Exit;
-  if not Assigned(fChildForm.OnKeyUp) then Exit;
-  fChildForm.OnKeyUp(Sender, Key, Shift);
-end;
-
-procedure TMainForm.FormMouseDown(Sender: TObject; Button: TMouseButton;
-  Shift: TShiftState; X, Y: Integer);
-begin
-  if fChildForm = nil then Exit;
-  if not Assigned(fChildForm.OnMouseDown) then Exit;
-  fChildForm.OnMouseDown(Sender, Button, Shift, X, Y);
-end;
-
-procedure TMainForm.FormMouseUp(Sender: TObject; Button: TMouseButton;
-  Shift: TShiftState; X, Y: Integer);
-begin
-  if fChildForm = nil then Exit;
-  if not Assigned(fChildForm.OnMouseUp) then Exit;
-  fChildForm.OnMouseUp(Sender, Button, Shift, X, Y);
-end;
-
-procedure TMainForm.FormMouseMove(Sender: TObject; Shift: TShiftState; X,
-  Y: Integer);
-begin
-  if fChildForm = nil then Exit;
-  if not Assigned(fChildForm.OnMouseMove) then Exit;
-  fChildForm.OnMouseMove(Sender, Shift, X, Y);
-end;
-
-procedure TMainForm.FormResize(Sender: TObject);
-begin
-  if not (fChildForm is TGameBaseScreen) then Exit;
-  TGameBaseScreen(fChildForm).MainFormResized;
-  GameParams.WindowWidth := ClientWidth;
-  GameParams.WindowHeight := ClientHeight;
-  // Seems pointless? Yes. But apparently, changing between maximized and not maximized
-  // causes the handle to change, which was causing the fullscreen-windowed change glitch.
-  MainFormHandle := Handle;
 end;
 
 procedure TMainForm.FormCanResize(Sender: TObject; var NewWidth,
@@ -203,13 +126,6 @@ begin
 
   NewWidth := NewCW + CWDiff;
   NewHeight := NewCH + CHDiff;
-end;
-
-procedure TMainForm.FormMouseWheel(Sender: TObject; Shift: TShiftState;
-  WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
-begin
-  if Assigned(fChildForm.OnMouseWheel) then
-    fChildForm.OnMouseWheel(Sender, Shift, WheelDelta, MousePos, Handled);
 end;
 
 end.

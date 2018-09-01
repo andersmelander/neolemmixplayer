@@ -1,0 +1,15 @@
+object BaseScreen: TBaseScreen
+  Left = 518
+  Height = 240
+  Top = 968
+  Width = 320
+  HorzScrollBar.Visible = False
+  VertScrollBar.Visible = False
+  Anchors = [akTop, akLeft, akRight, akBottom]
+  BorderIcons = []
+  BorderStyle = bsNone
+  Color = clBlack
+  DesignTimePPI = 192
+  Position = poMainFormCenter
+  LCLVersion = '1.8.4.0'
+end
