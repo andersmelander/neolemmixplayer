@@ -920,7 +920,7 @@ begin
   if Parent <> nil then
     raise Exception.Create('TNeoLevelGroup.LoadUserData called for group other than base group');
 
-  if not FileExists(AppPath + SFSaveData + 'userdata.nxsv') then
+  if not FileExists(AppPath + SFSaveData + UserName + '\userdata.nxsv') then
   begin
     fChildGroups.Sort(SortAlphabetical);
     fLevels.Sort(SortAlphabetical);
@@ -929,7 +929,7 @@ begin
 
   Parser := TParser.Create;
   try
-    Parser.LoadFromFile(AppPath + SFSaveData + 'userdata.nxsv');
+    Parser.LoadFromFile(AppPath + SFSaveData + UserName + '\userdata.nxsv');
     LevelSec := Parser.MainSection.Section['levels'];
     LoadingSec := Parser.MainSection.Section['load'];
 
@@ -1002,7 +1002,7 @@ var
   end;
 
 begin
-  if not fEnableSave then
+  if (not fEnableSave) or NoSaveSettings then
     Exit;
 
   if Parent <> nil then
@@ -1022,8 +1022,8 @@ begin
       if Pos(':', fLevels[i].Filename) <> 0 then
         LoadingSec.AddLine('level', fLevels[i].Filename);
 
-    ForceDirectories(AppPath + SFSaveData);
-    Parser.SaveToFile(AppPath + SFSaveData + 'userdata.nxsv');
+    ForceDirectories(AppPath + SFSaveData + UserName);
+    Parser.SaveToFile(AppPath + SFSaveData + UserName + '\userdata.nxsv');
   finally
     Parser.Free;
   end;

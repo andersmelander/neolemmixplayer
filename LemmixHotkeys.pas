@@ -78,6 +78,9 @@ type
 
 implementation
 
+uses
+  GameControl; // for UserName
+
 constructor TLemmixHotkeyManager.Create;
 begin
   inherited;
@@ -308,10 +311,8 @@ var
 begin
   StringList := TStringList.Create;
   try
-    if FileExists(AppPath + SFSaveData + 'hotkeys.ini') then
-      StringList.LoadFromFile(AppPath + SFSaveData + 'hotkeys.ini')
-    else if FileExists(AppPath + 'NeoLemmixHotkeys.ini') then
-      StringList.LoadFromFile(AppPath + 'NeoLemmixHotkeys.ini')
+    if FileExists(AppPath + SFSaveData + UserName + '\hotkeys.ini') then
+      StringList.LoadFromFile(AppPath + SFSaveData + UserName + '\hotkeys.ini')
     else begin
       SetDefaults;
       Exit;
@@ -494,6 +495,9 @@ var
     end;
   end;
 begin
+  if NoSaveSettings then
+    Exit;
+
   StringList := TStringList.Create;
   StringList.Add('Version=' + IntToStr(KEYSET_VERSION));
   for i := 0 to MAX_KEY do
@@ -505,8 +509,8 @@ begin
     StringList.Add(IntToHex(i, MAX_KEY_LEN) + '=' + s);
   end;
   try
-    ForceDirectories(AppPath + SFSaveData);
-    StringList.SaveToFile(AppPath + SFSaveData + 'hotkeys.ini')
+    ForceDirectories(AppPath + SFSaveData + UserName);
+    StringList.SaveToFile(AppPath + SFSaveData + UserName + '\hotkeys.ini')
   finally
     StringList.Free;
   end;

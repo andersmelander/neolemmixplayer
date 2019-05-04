@@ -24,7 +24,10 @@ uses
 var
   IsHalting: Boolean; // ONLY used during AppController's init routines. Don't use this anywhere else.
                       // Shouldn't even be used there really, but a kludgy fix is okay since that's gonna
-                      // be replaced once proper level select menus are introduced. 
+                      // be replaced once proper level select menus are introduced.
+
+  UserName: String;
+  NoSaveSettings: Boolean;
 
 type
   TGameResultsRec = record
@@ -299,15 +302,15 @@ var
       SL.Add(SL2[i]);
   end;
 begin
-  //if fTestMode then Exit;
+  if NoSaveSettings then
+    Exit;
+
   SL := TStringList.Create;
   SL2 := TStringList.Create;
 
-  ForceDirectories(AppPath + SFSaveData);
-  if FileExists(AppPath + SFSaveData + 'settings.ini') then
-    SL2.LoadFromFile(AppPath + SFSaveData + 'settings.ini')
-  else if FileExists(AppPath + 'NeoLemmix147Settings.ini') then
-    SL2.LoadFromFile(AppPath + 'NeoLemmix147Settings.ini');
+  ForceDirectories(AppPath + SFSaveData + UserName);
+  if FileExists(AppPath + SFSaveData + UserName + '\settings.ini') then
+    SL2.LoadFromFile(AppPath + SFSaveData + UserName + '\settings.ini');
 
   SL.Add('LastVersion=' + IntToStr(CurrentVersionID));
 
@@ -357,7 +360,7 @@ begin
 
   AddUnknowns;
 
-  SL.SaveToFile(AppPath + SFSaveData + 'settings.ini');
+  SL.SaveToFile(AppPath + SFSaveData + UserName + '\settings.ini');
 
   SL.Free;
 end;
@@ -423,13 +426,9 @@ var
 begin
   SL := TStringList.Create;
 
-  if FileExists(AppPath + SFSaveData + 'settings.ini') then
+  if FileExists(AppPath + SFSaveData + UserName + '\settings.ini') then
   begin
-    SL.LoadFromFile(AppPath + SFSaveData + 'settings.ini');
-    LoadedConfig := true;
-  end else if FileExists(AppPath + 'NeoLemmix147Settings.ini') then
-  begin
-    SL.LoadFromFile(AppPath + 'NeoLemmix147Settings.ini');
+    SL.LoadFromFile(AppPath + SFSaveData + UserName + '\settings.ini');
     LoadedConfig := true;
   end else if UnderWine then
   begin
