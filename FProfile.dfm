@@ -5,7 +5,7 @@ object ProfileForm: TProfileForm
   BorderIcons = []
   BorderStyle = bsToolWindow
   Caption = 'NeoLemmix'
-  ClientHeight = 100
+  ClientHeight = 114
   ClientWidth = 240
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -42,10 +42,11 @@ object ProfileForm: TProfileForm
     Height = 17
     Caption = 'Always start as this user'
     TabOrder = 1
+    OnClick = cbAutoStartClick
   end
   object btnStart: TButton
     Left = 61
-    Top = 62
+    Top = 81
     Width = 75
     Height = 25
     Caption = 'Start'
@@ -55,11 +56,21 @@ object ProfileForm: TProfileForm
   end
   object btnQuit: TButton
     Left = 142
-    Top = 62
+    Top = 81
     Width = 75
     Height = 25
     Caption = 'Quit'
     TabOrder = 3
     OnClick = btnQuitClick
+  end
+  object cbTestStart: TCheckBox
+    Left = 16
+    Top = 58
+    Width = 185
+    Height = 17
+    Caption = 'Start testplay mode as this user'
+    Checked = True
+    State = cbChecked
+    TabOrder = 4
   end
 end

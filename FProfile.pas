@@ -20,11 +20,13 @@ type
     cbAutoStart: TCheckBox;
     btnStart: TButton;
     btnQuit: TButton;
+    cbTestStart: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure cbNameChange(Sender: TObject);
     procedure btnStartClick(Sender: TObject);
     procedure btnQuitClick(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure cbAutoStartClick(Sender: TObject);
   private
     fStartName: String;
     fNoSave: Boolean;
@@ -49,9 +51,13 @@ begin
   fStartName := MakeSafeForFilename(cbName.Text, false);
   fNoSave := (cbName.ItemIndex >= 0) and (cbName.Items.Objects[cbName.ItemIndex] <> nil);
 
-  // If not in guest mode, ensure folder, import pre-profile data and set up autostart if applicable.
-  if not fNoSave then
+
+  if fNoSave then
   begin
+    // If in guest mode, use a safe name.
+    fStartName := 'Anonymous';
+  end else begin
+    // If not in guest mode, ensure folder, import pre-profile data and set up autostart if applicable.
     ForceDirectories(AppPath + 'settings\' + fStartName);
 
     if FileExists(AppPath + 'settings\settings.ini') then
@@ -71,10 +77,29 @@ begin
       finally
         SL.Free;
       end;
+    end else if cbTestStart.Checked then
+    begin
+      SL := TStringList.Create;
+      try
+        SL.Add(fStartName);
+        SL.SaveToFile(AppPath + 'settings\teststart.ini');
+      finally
+        SL.Free;
+      end;
     end;
   end;
 
   ModalResult := mrOK;
+end;
+
+procedure TProfileForm.cbAutoStartClick(Sender: TObject);
+begin
+  if cbAutoStart.Checked then
+  begin
+    cbTestStart.Checked := true;
+    cbTestStart.Enabled := false;
+  end else
+    cbTestStart.Enabled := true;
 end;
 
 procedure TProfileForm.cbNameChange(Sender: TObject);
@@ -83,8 +108,13 @@ begin
   begin
     cbAutoStart.Enabled := false;
     cbAutoStart.Checked := false;
-  end else
+
+    cbTestStart.Enabled := false;
+    cbTestStart.Checked := false;
+  end else begin
     cbAutoStart.Enabled := true;
+    cbTestStart.Enabled := not cbAutoStart.Checked;
+  end;
 end;
 
 procedure TProfileForm.FormCreate(Sender: TObject);
@@ -119,7 +149,7 @@ begin
   if BestTimeStampName = '' then
   begin
     cbName.ItemIndex := 0;
-    cbAutoStart.Enabled := cbName.Items.Count > 1;
+    cbNameChange(self);
   end else
     cbName.Text := BestTimeStampName;
 end;
