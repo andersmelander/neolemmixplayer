@@ -38,6 +38,7 @@ const
   DOM_TRAPONCE         = 31;
   //DOM_BGIMAGE          = 32;
   DOM_ONEWAYUP         = 33;
+  DOM_CAPEXIT          = 34;
 
 implementation
 
