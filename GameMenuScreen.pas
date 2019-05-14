@@ -293,12 +293,14 @@ begin
     {$ifdef exp}if COMMIT_ID <> '' then S := S + ':' + Uppercase(COMMIT_ID);{$endif}
     if GameParams.CurrentLevel <> nil then
       S2 := GameParams.CurrentLevel.Group.PackTitle + #13 +
-            GameParams.CurrentLevel.Group.PackAuthor + #13 +
             'NeoLemmix Player V' + S
     else if GameParams.BaseLevelPack <> nil then
       S2 := 'No Levels Found' + #13 + 'NeoLemmix Player V' + S
     else
       S2 := 'No Pack' + #13 + 'NeoLemmix Player V' + S;
+
+    S2 := S2 + #13 + '(All Exp. Features Build)';
+
     DrawPurpleTextCentered(ScreenImg.Bitmap, S2, YPos_ProgramText);
 
     // scroller text
