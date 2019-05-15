@@ -1346,13 +1346,13 @@ var
 
     Y := Y - 2; // to center
 
-    DigitsWidth := (Length(aDigitString) * 4) + Length(aDigitString);
+    DigitsWidth := Length(aDigitString) * 5;
     if aAlignment < 0 then
       CurX := X
     else if aAlignment > 0 then
       CurX := X - DigitsWidth + 1
     else
-      CurX := X - (DigitsWidth div 2);
+      CurX := X - (DigitsWidth div 2) + 1;
 
     for n := 1 to Length(aDigitString) do
     begin
