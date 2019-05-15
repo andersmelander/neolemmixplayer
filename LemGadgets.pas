@@ -21,8 +21,10 @@ type
       fState: TGadgetAnimationState;
       fVisible: Boolean;
       fPrimary: Boolean;
+      fDisableTriggers: Boolean;
 
       function GetBitmap: TBitmap32;
+      function GetDisableTriggers: Boolean;
     public
       constructor Create(aGadget: TGadget; aAnimation: TGadgetAnimation);
       function UpdateOneFrame: Boolean; // if returns false, the object PERMANENTLY removes the animation. Futureproofing.
@@ -37,15 +39,20 @@ type
       property Frame: Integer read fFrame write fFrame;
       property Visible: Boolean read fVisible;
       property State: TGadgetAnimationState read fState;
+      property DisableTriggers: Boolean read GetDisableTriggers write fDisableTriggers;
   end;
 
   TGadgetAnimationInstances = class(TObjectList<TGadgetAnimationInstance>)
     private
       fPrimaryAnimation: TGadgetAnimationInstance;
+      fPrimaryAnimationFrameCount: Integer;
       function GetPrimaryAnimation: TGadgetAnimationInstance;
+      procedure SetPrimaryAnimation(const aValue: TGadgetAnimationInstance);
     public
       procedure Clone(aSrc: TGadgetAnimationInstances; newObj: TGadget);
-      property PrimaryAnimation: TGadgetAnimationInstance read GetPrimaryAnimation;
+      procedure ChangePrimaryAnimation(aNewPrimaryName: String; aSetFrame: Integer = -1); // this discards the old primary!
+      property PrimaryAnimation: TGadgetAnimationInstance read GetPrimaryAnimation write SetPrimaryAnimation;
+      property PrimaryAnimationFrameCount: Integer read fPrimaryAnimationFrameCount;
   end;
 
   // internal object used by game
@@ -389,21 +396,23 @@ end;
 
 function TGadget.GetAnimationFrameCount: Integer;
 begin
-  Result := MetaObj.FrameCount;
+  Result := Animations.PrimaryAnimationFrameCount;
 end;
 
 function TGadget.GetAnimFlagState(aFlag: TGadgetAnimationTriggerCondition): Boolean;
 const
   READY_OBJECT_TYPES = // Any object not listed here, always returns *TRUE* (not false like the others)
-    [DOM_TRAP, DOM_TELEPORT, DOM_RECEIVER, DOM_PICKUP, DOM_LOCKEXIT, DOM_BUTTON, DOM_WINDOW, DOM_TRAPONCE, DOM_CAPEXIT];
+    [DOM_TRAP, DOM_TELEPORT, DOM_RECEIVER, DOM_PICKUP, DOM_LOCKEXIT, DOM_BUTTON, DOM_WINDOW, DOM_TRAPONCE];
   BUSY_OBJECT_TYPES = // Any object not listed here, always returns false
-    [DOM_TRAP, DOM_TELEPORT, DOM_RECEIVER, DOM_LOCKEXIT, DOM_WINDOW, DOM_TRAPONCE, DOM_CAPEXIT];
+    [DOM_TRAP, DOM_TELEPORT, DOM_RECEIVER, DOM_LOCKEXIT, DOM_WINDOW, DOM_TRAPONCE];
   DISABLED_OBJECT_TYPES = // Any object not listed here, always returns false
-    [DOM_TRAP, DOM_PICKUP, DOM_LOCKEXIT, DOM_BUTTON, DOM_WINDOW, DOM_TRAPONCE, DOM_CAPEXIT];
+    [DOM_TRAP, DOM_PICKUP, DOM_LOCKEXIT, DOM_BUTTON, DOM_WINDOW, DOM_TRAPONCE];
   DISARMED_OBJECT_TYPES = // Any object not listed here, always returns false
     [DOM_TRAP, DOM_TRAPONCE];
   DIRECTION_OBJECT_TYPES = // Any object not listed here, always returns false. This is used for both gatcLeft and gatcRight.
     [DOM_FLIPPER, DOM_WINDOW];
+  EXHAUSTED_OBJECT_TYPES = // Any object not listed here, always returns false
+    [DOM_EXIT, DOM_LOCKEXIT, DOM_WINDOW];
 
   function CheckReadyFlag: Boolean;
   begin
@@ -416,7 +425,7 @@ const
       else
         case TriggerEffectBase of
           DOM_TRAP, DOM_LOCKEXIT, DOM_TELEPORT: Result := (CurrentFrame = 0);
-          DOM_BUTTON, DOM_TRAPONCE, DOM_CAPEXIT: Result := CurrentFrame = 1;
+          DOM_BUTTON, DOM_TRAPONCE: Result := CurrentFrame = 1;
           DOM_PICKUP: Result := CurrentFrame <> 0;
           DOM_RECEIVER: Result := (CurrentFrame = 0) and (not HoldActive);
           DOM_WINDOW: Result := (CurrentFrame = 0); // may make this do more in the future
@@ -434,7 +443,7 @@ const
       else
         case TriggerEffectBase of
           DOM_TRAP, DOM_TELEPORT: Result := CurrentFrame > 0;
-          DOM_TRAPONCE, DOM_LOCKEXIT, DOM_WINDOW, DOM_CAPEXIT: Result := CurrentFrame > 1;
+          DOM_TRAPONCE, DOM_LOCKEXIT, DOM_WINDOW: Result := CurrentFrame > 1;
           DOM_RECEIVER: Result := (CurrentFrame > 0) or HoldActive;
         end;
     end;
@@ -450,7 +459,7 @@ const
       else
         case TriggerEffectBase of
           // DOM_TRAP: Only condition is handled by the above TriggerEffect check
-          DOM_PICKUP, DOM_BUTTON, DOM_TRAPONCE, DOM_CAPEXIT: Result := CurrentFrame = 0;
+          DOM_PICKUP, DOM_BUTTON, DOM_TRAPONCE: Result := CurrentFrame = 0;
           DOM_LOCKEXIT: Result := CurrentFrame = 1;
           DOM_WINDOW: Result := false; // may make this do more in the future
         end;
@@ -479,6 +488,13 @@ const
         Result := not Result;
     end;
   end;
+
+  function CheckExhaustedFlag: Boolean;
+  begin
+    Result := false;
+    if TriggerEffectBase in EXHAUSTED_OBJECT_TYPES then
+      Result := RemainingLemmingsCount = 0;
+  end;
 begin
   case aFlag of
     gatcUnconditional: Result := true;
@@ -488,6 +504,7 @@ begin
     gatcDisarmed: Result := CheckDisarmedFlag;
     gatcLeft: Result := CheckDirectionFlag(false);
     gatcRight: Result := CheckDirectionFlag(true);
+    gatcExhausted: Result := CheckExhaustedFlag;
     else raise Exception.Create('TGadget.GetAnimFlagState passed an invalid param.');
   end;
 end;
@@ -760,7 +777,7 @@ begin
     if MetaObj.TriggerEffect = DOM_PICKUP then
       fFrame := aGadget.Obj.Skill + 1;
 
-    if MetaObj.TriggerEffect in [DOM_LOCKEXIT, DOM_BUTTON, DOM_WINDOW, DOM_TRAPONCE, DOM_CAPEXIT] then
+    if MetaObj.TriggerEffect in [DOM_LOCKEXIT, DOM_BUTTON, DOM_WINDOW, DOM_TRAPONCE] then
       fFrame := 1;
   end else
     fPrimary := false;
@@ -769,6 +786,11 @@ end;
 function TGadgetAnimationInstance.GetBitmap: TBitmap32;
 begin
   Result := fAnimation.GetFrameBitmap(fFrame);
+end;
+
+function TGadgetAnimationInstance.GetDisableTriggers: Boolean;
+begin
+  Result := fDisableTriggers or fPrimary;
 end;
 
 function TGadgetAnimationInstance.UpdateOneFrame: Boolean;
@@ -799,6 +821,8 @@ var
   i: Integer;
   ThisTrigger: TGadgetAnimationTrigger;
 begin
+  if DisableTriggers then Exit;
+
   for i := fAnimation.Triggers.Count-1 downto 0 do
   begin
     ThisTrigger := fAnimation.Triggers[i];
@@ -813,6 +837,30 @@ begin
 end;
 
 { TGadgetAnimationInstances }
+
+procedure TGadgetAnimationInstances.ChangePrimaryAnimation(aNewPrimaryName: String; aSetFrame: Integer = -1);
+var
+  i: Integer;
+  NewPrimary: TGadgetAnimationInstance;
+begin
+  aNewPrimaryName := Trim(Uppercase(aNewPrimaryName));
+  for i := 0 to Count-1 do
+    if Items[i].fAnimation.Name = aNewPrimaryName then
+    begin
+      NewPrimary := Items[i];
+      Remove(fPrimaryAnimation);
+
+      PrimaryAnimation := NewPrimary;
+      NewPrimary.fPrimary := true;
+      NewPrimary.fState := gasPause;
+      NewPrimary.fVisible := true;
+
+      if (aSetFrame >= 0) then
+        NewPrimary.fFrame := aSetFrame; // Futureproofing, in case we ever have a situation where we *don't* need
+                                        // to set the frame, but can allow INITIAL_FRAME to take effect.
+      Exit;
+    end;
+end;
 
 procedure TGadgetAnimationInstances.Clone(aSrc: TGadgetAnimationInstances; newObj: TGadget);
 var
@@ -839,11 +887,21 @@ begin
     for i := 0 to Count-1 do
       if Items[i].Primary then
       begin
-        fPrimaryAnimation := Items[i];
+        PrimaryAnimation := Items[i];
         Break;
       end;
 
   Result := fPrimaryAnimation;
+end;
+
+procedure TGadgetAnimationInstances.SetPrimaryAnimation(const aValue: TGadgetAnimationInstance);
+begin
+  fPrimaryAnimation := aValue;
+
+  if aValue = nil then
+    fPrimaryAnimationFrameCount := 0
+  else
+    fPrimaryAnimationFrameCount := aValue.fAnimation.FrameCount;
 end;
 
 end.
