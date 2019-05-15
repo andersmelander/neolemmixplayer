@@ -4758,6 +4758,9 @@ begin
             Gadgets[ix].RemainingLemmingsCount := Gadgets[ix].RemainingLemmingsCount - 1;
                 // TLevel.PrepareForUse handles enforcing the limits. This only needs to be updated
                 // for display purposes.
+
+          if Gadgets[ix].IsPreassignedNeutral then
+            LemIsNeutral := true;
         end;
         Dec(LemmingsToRelease);
         Inc(LemmingsOut);
