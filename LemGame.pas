@@ -1900,8 +1900,8 @@ begin
     if IsHighlight and not (L = GetHighlitLemming) then Continue;
     // Does Lemming exist
     if L.LemRemoved or L.LemTeleporting then Continue;
-    // Is the Lemming a Zombie (remove unless we haven't yet had any lem under the cursor)
-    if L.LemIsZombie and Assigned(PriorityLem) then Continue;
+    // Is the Lemming unable to receive skills, because zombie or neutral? (remove unless we haven't yet had any lem under the cursor)
+    if L.CannotReceiveSkills and Assigned(PriorityLem) then Continue;
     // Is Lemming inside cursor (only check if we are not using Hightlightning!)
     if (not LemIsInCursor(L, MousePos)) and (not IsHighlight) then Continue;
     // Directional select
@@ -1909,8 +1909,8 @@ begin
     // Select only walkers
     if IsSelectWalkerHotkey and (L.LemAction <> baWalking) then Continue;
 
-    // Increase number of lemmings in cursor (if not a zombie)
-    if not L.LemIsZombie then Inc(NumLemInCursor);
+    // Increase number of lemmings in cursor (if not a zombie or neutral)
+    if not L.CannotReceiveSkills then Inc(NumLemInCursor);
 
     // Determine priority class of current lemming
     if IsSelectUnassignedHotkey or IsSelectWalkerHotkey then
@@ -1928,7 +1928,7 @@ begin
     if not NewSkillMethods[NewSkill](L) then CurPriorityBox := 8;
 
     // Deprioritize zombie even when just counting lemmings
-    if L.LemIsZombie then CurPriorityBox := 9;
+    if L.CannotReceiveSkills then CurPriorityBox := 9;
 
     if     (CurPriorityBox < CurValue)
        or ((CurPriorityBox = CurValue) and IsCloserToCursorCenter(PriorityLem, L, MousePos)) then
@@ -2381,6 +2381,7 @@ begin
     // trigger trap
     Gadget.Triggered := True;
     Gadget.ZombieMode := L.LemIsZombie;
+    Gadget.NeutralMode := L.LemIsNeutral;
     // Make sure to remove the blocker field!
     L.LemHasBlockerField := False;
     SetBlockerMap;
@@ -2419,6 +2420,7 @@ begin
 
   Gadget.Triggered := True;
   Gadget.ZombieMode := L.LemIsZombie;
+  Gadget.NeutralMode := L.LemIsNeutral;
   CueSoundEffect(Gadget.SoundEffect, L.Position);
   L.LemTeleporting := True;
   Gadget.TeleLem := L.LemIndex;
@@ -5006,7 +5008,7 @@ begin
 
     if L.LemQueueAction = baNone then Continue;
 
-    if L.LemRemoved or L.LemIsZombie or L.LemTeleporting then
+    if L.LemRemoved or L.CannotReceiveSkills or L.LemTeleporting then // CannotReceiveSkills covers neutral and zombie
     begin
       // delete queued action first
       L.LemQueueAction := baNone;
@@ -5284,6 +5286,7 @@ begin
         Gadget2.TeleLem := Gadget.TeleLem;
         Gadget2.Triggered := True;
         Gadget2.ZombieMode := Gadget.ZombieMode;
+        Gadget2.NeutralMode := Gadget.NeutralMode;
         // Reset TeleLem for Teleporter
         Gadget.TeleLem := -1;
       end;
@@ -5297,6 +5300,7 @@ begin
       Gadget.Triggered := False;
       Gadget.HoldActive := False;
       Gadget.ZombieMode := False;
+      Gadget.NeutralMode := False;
     end;
 
     for i2 := Gadget.Animations.Count-1 downto 0 do

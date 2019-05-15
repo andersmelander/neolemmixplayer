@@ -448,6 +448,7 @@ var
     if (aSection.Line['glider'] <> nil) then O.TarLev := O.TarLev or 8;
     if (aSection.Line['disarmer'] <> nil) then O.TarLev := O.TarLev or 16;
     if (aSection.Line['zombie'] <> nil) then O.TarLev := O.TarLev or 64;
+    if (aSection.Line['neutral'] <> nil) then O.TarLev := O.TarLev or 128;
 
     O.LemmingCap := aSection.LineNumeric['lemmings'];
   end;
@@ -534,6 +535,7 @@ begin
   L.IsGlider   := (aSection.Line['glider']   <> nil);
   L.IsDisarmer := (aSection.Line['disarmer'] <> nil);
   L.IsZombie   := (aSection.Line['zombie']   <> nil);
+  L.IsNeutral  := (aSection.Line['neutral']  <> nil);
   L.IsBlocker  := (aSection.Line['blocker']  <> nil);
 end;
 

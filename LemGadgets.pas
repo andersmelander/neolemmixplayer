@@ -71,6 +71,7 @@ type
     sReceiverId     : Integer;
     sPairingId      : Integer;
     sZombieMode     : Boolean;
+    sNeutralMode    : Boolean;
     sSecondariesTreatAsBusy: Boolean;
 
     sRemainingLemmingsCount: Integer;
@@ -83,7 +84,6 @@ type
     function GetTriggerRect: TRect;
     procedure SetLeft(Value: Integer);
     procedure SetTop(Value: Integer);
-    procedure SetZombieMode(Value: Boolean);
     function GetSkillType: TSkillPanelButton;
     function GetSoundEffect: String;
     function GetIsOnlyOnTerrain: Boolean;
@@ -144,7 +144,8 @@ type
     property IsRotate: Boolean read GetIsRotate;                // ... and 128
     property AnimationFrameCount: Integer read GetAnimationFrameCount;
     property SoundEffect: String read GetSoundEffect;
-    property ZombieMode: Boolean read sZombieMode write SetZombieMode;
+    property ZombieMode: Boolean read sZombieMode write sZombieMode;
+    property NeutralMode: Boolean read sNeutralMode write sNeutralMode;
     property KeyFrame: Integer read GetKeyFrame;
     property CanDrawToBackground: Boolean read GetCanDrawToBackground; // moving backgrounds: if only one frame and zero speed, this returns true
     property Speed: Integer read GetSpeed;
@@ -155,6 +156,7 @@ type
     property IsPreassignedGlider: Boolean index 8 read GetPreassignedSkill;
     property IsPreassignedDisarmer: Boolean index 16 read GetPreassignedSkill;
     property IsPreassignedZombie: Boolean index 64 read GetPreassignedSkill;
+    property IsPreassignedNeutral: Boolean index 128 read GetPreassignedSkill;
     property HasPreassignedSkills: Boolean read GetHasPreassignedSkills;
     property TriggerEffectBase: Integer read GetTriggerEffectBase;
     property SecondariesTreatAsBusy: Boolean read sSecondariesTreatAsBusy write sSecondariesTreatAsBusy;
@@ -341,12 +343,6 @@ procedure TGadget.SetTop(Value: Integer);
 begin
   sTop := Value;
   Obj.Top := Value;
-end;
-
-procedure TGadget.SetZombieMode(Value: Boolean);
-begin
-  sZombieMode := Value;
-  Obj.DrawAsZombie := Value;
 end;
 
 function TGadget.GetSkillType: TSkillPanelButton;
