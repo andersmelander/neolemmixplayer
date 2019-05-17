@@ -43,6 +43,7 @@ type
     procedure ClearImages;
 
     procedure Load(aCollection, aPiece: String); virtual;
+    procedure LoadFromImage(aImage: TBitmap32; aCollection, aPiece: String; aSteel: Boolean);
 
     property Identifier : String read GetIdentifier;
     property GraphicImage[Flip, Invert, Rotate: Boolean]: TBitmap32 read GetGraphicImage;
@@ -116,6 +117,23 @@ begin
 
     TPngInterface.LoadPngFile(aPiece + '.png', fGraphicImages[0]);
     fGeneratedGraphicImage[0] := true;
+
+    fWidth := fGraphicImages[0].Width;
+    fHeight := fGraphicImages[0].Height;
+end;
+
+procedure TMetaTerrain.LoadFromImage(aImage: TBitmap32; aCollection, aPiece: String; aSteel: Boolean);
+begin
+  ClearImages;
+  fGraphicImages[0].Assign(aImage);
+  fGeneratedGraphicImage[0] := true;
+
+  fGS := Lowercase(aCollection);
+  fPiece := Lowercase(aPiece);
+  fIsSteel := aSteel;
+
+  fWidth := aImage.Width;
+  fHeight := aImage.Height;
 end;
 
 procedure TMetaTerrain.ClearImages;
