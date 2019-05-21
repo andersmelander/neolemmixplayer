@@ -1363,7 +1363,6 @@ begin
     if fUsefulOnly then
     begin
       TempBitmap.DrawMode := dmCustom;
-      fFixedDrawColor := $FFFFFF00;
       TempBitmap.OnPixelCombine := CombineFixedColor;
     end;
 
