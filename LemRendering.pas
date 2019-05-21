@@ -1658,6 +1658,7 @@ begin
     if FileExists(AppPath + SFGraphicsHelpers + HelperImageFilenames[i]) then
       TPngInterface.LoadPngFile(AppPath + SFGraphicsHelpers + HelperImageFilenames[i], fHelperImages[i]);
     fHelperImages[i].DrawMode := dmBlend;
+    fHelperImages[i].CombineMode := cmMerge;
   end;
 
   FillChar(fParticles, SizeOf(TParticleTable), $80);
