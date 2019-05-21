@@ -117,8 +117,7 @@ uses
   UITypes, ShellApi, MMSystem,
   PngInterface, SharedGlobals,
   FNeoLemmixSetup, LemNeoOnline,
-  LemTypes, LemStrings, LemDosStructures, LemGame, LemVersion,
-  LemNeoLevelPack;
+  LemTypes, LemStrings, LemDosStructures, LemGame, LemVersion;
 
 { TGameMenuScreen }
 
@@ -148,12 +147,9 @@ var
 begin
   BasePack := GameParams.CurrentLevel.Group.ParentBasePack;
   BasePack.DumpImages(AppPath + 'Dump\' + MakeSafeForFilename(BasePack.Name) + '\');
-<<<<<<< HEAD
   {$ifdef exp}
   BasePack.DumpNeoLemmixWebsiteMetaInfo(AppPath + 'Dump\' + MakeSafeForFilename(BasePack.Name) + '\');
   {$endif}
-=======
->>>>>>> Nepster/new-master
 end;
 
 procedure TGameMenuScreen.PerformUpdateCheck;
