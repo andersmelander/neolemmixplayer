@@ -18,7 +18,7 @@ type
   TGadgetAnimationState = (gasPlay, gasPause, gasLoopToZero, gasStop, gasMatchPrimary);
 
   TGadgetAnimationTriggerCondition = (gatcUnconditional, gatcReady, gatcBusy, gatcDisabled,
-                                      gatcDisarmed, gatcLeft, gatcRight);
+                                      gatcLeft, gatcRight, gatcExhausted);
   TGadgetAnimationTriggerState = (gatsDontCare, gatsTrue, gatsFalse);
   TGadgetAnimationTriggerConditionArray = array[TGadgetAnimationTriggerCondition] of TGadgetAnimationTriggerState;
 
@@ -382,7 +382,10 @@ begin
   else
     fZIndex := aSegment.LineNumeric['z_index'];
 
-  fStartFrameIndex := aSegment.LineNumeric['initial_frame'];
+  if Uppercase(aSegment.LineTrimString['initial_frame']) = 'RANDOM' then
+    fStartFrameIndex := -1
+  else
+    fStartFrameIndex := aSegment.LineNumeric['initial_frame'];
 
   if fHorizontalStrip then
   begin
@@ -420,7 +423,7 @@ begin
   else if (S = 'match_primary_frame') then
     BaseTrigger.fState := gasMatchPrimary
   else if (aSegment.Line['hide'] <> nil) then
-    BaseTrigger.fState := gasStop
+    BaseTrigger.fState := gasPause
   else
     BaseTrigger.fState := gasPlay;
 
@@ -781,15 +784,15 @@ begin
   if      S = 'READY' then fCondition := gatcReady
   else if S = 'BUSY' then fCondition := gatcBusy
   else if S = 'DISABLED' then fCondition := gatcDisabled
-  else if S = 'DISARMED' then fCondition := gatcDisarmed
   else if S = 'LEFT' then fCondition := gatcLeft
   else if S = 'RIGHT' then fCondition := gatcRight
+  else if S = 'EXHAUSTED' then fCondition := gatcExhausted
   else fCondition := gatcUnconditional;
 
   fVisible := aSegment.Line['hide'] = nil;
 
   if (not fVisible) and (aSegment.Line['state'] = nil) then
-    fState := gasStop
+    fState := gasPause
   else begin
     S := Uppercase(aSegment.LineTrimString['state']);
 
