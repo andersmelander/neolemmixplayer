@@ -99,19 +99,6 @@ type
   DOM_TRAPONCE    | True when the trap has been disabled (most likely by a disarmer) or used
   All others      | Always false
 
-
-  OBJECT TYPE     | gatcDisarmed
-  ----------------|-----------------------------------
-  GENERAL RULE    | The condition will be true if a Disarmer has deactivated the object. Exists as a separate condition
-                  | from Disabled for the purpose of single-use traps, which may want to differentiate between disarmed
-                  | and used.
-  DOM_TRAP        | True if the trap has been disarmed
-  DOM_TRAPONCE    | True if the trap has been disarmed
-  All others      | Always false
-
-     ** gatcDisabled and gatcDisarmed will, at present, always be equal for DOM_TRAP
-
-
   OBJECT TYPE     | gatcLeft
   ----------------|-----------------------------------
   GENERAL RULE    | True if a direction-sensitive object is currently facing left.
@@ -125,6 +112,14 @@ type
   GENERAL RULE    | True if a direction-sensitive object is currently facing left.
   DOM_FLIPPER     | True if the splitter will turn the next lemming to the left
   DOM_WINDOW      | True if the window releases lemmings facing left
+
+
+  OBJECT TYPE     | gatcExhausted
+  ----------------|-----------------------------------
+  GENERAL RULE    | True if an object with limited uses has been used up.
+  DOM_PICKUP      | True if the skill has been picked up
+  DOM_BUTTON      | True when the button has been pressed
+  DOM_TRAPONCE    | True when the trap has been used
   All others      | Always false
 
   }
