@@ -402,13 +402,9 @@ const
   BUSY_OBJECT_TYPES = // Any object not listed here, always returns false
     [DOM_TRAP, DOM_TELEPORT, DOM_RECEIVER, DOM_LOCKEXIT, DOM_WINDOW, DOM_TRAPONCE];
   DISABLED_OBJECT_TYPES = // Any object not listed here, always returns false
-    [DOM_TRAP, DOM_PICKUP, DOM_LOCKEXIT, DOM_BUTTON, DOM_WINDOW, DOM_TRAPONCE];
-  DISARMED_OBJECT_TYPES = // Any object not listed here, always returns false
-    [DOM_TRAP, DOM_TRAPONCE];
-  DIRECTION_OBJECT_TYPES = // Any object not listed here, always returns false. This is used for both gatcLeft and gatcRight.
-    [DOM_FLIPPER, DOM_WINDOW];
+    [DOM_EXIT, DOM_TRAP, DOM_PICKUP, DOM_LOCKEXIT, DOM_BUTTON, DOM_WINDOW, DOM_TRAPONCE];
   EXHAUSTED_OBJECT_TYPES = // Any object not listed here, always returns false
-    [DOM_EXIT, DOM_LOCKEXIT, DOM_WINDOW];
+    [DOM_EXIT, DOM_PICKUP, DOM_LOCKEXIT, DOM_BUTTON, DOM_WINDOW, DOM_TRAPONCE];
 
   function CheckReadyFlag: Boolean;
   begin
@@ -454,26 +450,23 @@ const
         Result := true
       else
         case TriggerEffectBase of
+          DOM_EXIT: Result := RemainingLemmingsCount = 0;
           // DOM_TRAP: Only condition is handled by the above TriggerEffect check
           DOM_PICKUP, DOM_BUTTON, DOM_TRAPONCE: Result := CurrentFrame = 0;
-          DOM_LOCKEXIT: Result := CurrentFrame = 1;
-          DOM_WINDOW: Result := false; // may make this do more in the future
+          DOM_LOCKEXIT: Result := (CurrentFrame = 1) or (RemainingLemmingsCount = 0);
+          DOM_WINDOW: Result := RemainingLemmingsCount = 0; // todo: when all lemmings are released even on infinite windows
         end;
     end;
-  end;
-
-  function CheckDisarmedFlag: Boolean;
-  begin
-    Result := false;
-    if TriggerEffectBase in DISARMED_OBJECT_TYPES then
-      Result := TriggerEffectBase = DOM_NONE;
   end;
 
   function CheckExhaustedFlag: Boolean;
   begin
     Result := false;
     if TriggerEffectBase in EXHAUSTED_OBJECT_TYPES then
-      Result := RemainingLemmingsCount = 0;
+      case TriggerEffectBase of
+        DOM_BUTTON, DOM_PICKUP, DOM_TRAPONCE: Result := CurrentFrame = 0;
+        DOM_EXIT, DOM_LOCKEXIT, DOM_WINDOW: Result := RemainingLemmingsCount = 0;
+      end;
   end;
 begin
   case aFlag of
@@ -481,7 +474,6 @@ begin
     gatcReady: Result := CheckReadyFlag;
     gatcBusy: Result := CheckBusyFlag;
     gatcDisabled: Result := CheckDisabledFlag;
-    gatcDisarmed: Result := CheckDisarmedFlag;
     gatcExhausted: Result := CheckExhaustedFlag;
     else raise Exception.Create('TGadget.GetAnimFlagState passed an invalid param.');
   end;

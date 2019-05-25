@@ -18,7 +18,8 @@ type
   TGadgetAnimationState = (gasPlay, gasPause, gasLoopToZero, gasStop, gasMatchPrimary);
 
   TGadgetAnimationTriggerCondition = (gatcUnconditional, gatcReady, gatcBusy, gatcDisabled,
-                                      gatcDisarmed, gatcExhausted);
+                                      gatcExhausted);
+
   TGadgetAnimationTriggerState = (gatsDontCare, gatsTrue, gatsFalse);
   TGadgetAnimationTriggerConditionArray = array[TGadgetAnimationTriggerCondition] of TGadgetAnimationTriggerState;
 
@@ -91,46 +92,25 @@ type
   DOM_PICKUP      | True if the skill has been picked up
   DOM_LOCKEXIT    | True while the exit is in a locked state
   DOM_BUTTON      | True when the button has been pressed
+<<<<<<< HEAD
   DOM_WINDOW      | Always false (? - maybe should change, "true when no more lemmings are to be released")
+=======
+  DOM_WINDOW      | Always false (? - maybe, "true when no more lemmings are to be released")
+>>>>>>> feature/limit-count-entrance-exit
   DOM_TRAPONCE    | True when the trap has been disabled (most likely by a disarmer) or used
-  All others      | Always false
-
-
-  OBJECT TYPE     | gatcDisarmed
-  ----------------|-----------------------------------
-  GENERAL RULE    | The condition will be true if a Disarmer has deactivated the object. Exists as a separate condition
-                  | from Disabled for the purpose of single-use traps, which may want to differentiate between disarmed
-                  | and used.
-  DOM_TRAP        | True if the trap has been disarmed
-  DOM_TRAPONCE    | True if the trap has been disarmed
-  All others      | Always false
-
-     ** gatcDisabled and gatcDisarmed will, at present, always be equal for DOM_TRAP
-
-
-  OBJECT TYPE     | gatcLeft
-  ----------------|-----------------------------------
-  GENERAL RULE    | True if a direction-sensitive object is currently facing left.
-  DOM_FLIPPER     | True if the splitter will turn the next lemming to the left
-  DOM_WINDOW      | True if the window releases lemmings facing left
-  All others      | Always false
-
-
-  OBJECT TYPE     | gatcRight
-  ----------------|-----------------------------------
-  GENERAL RULE    | True if a direction-sensitive object is currently facing left.
-  DOM_FLIPPER     | True if the splitter will turn the next lemming to the left
-  DOM_WINDOW      | True if the window releases lemmings facing left
   All others      | Always false
 
 
   OBJECT TYPE     | gatcExhausted
   ----------------|-----------------------------------
-  GENERAL RULE    | True if an object with a variable use limit (eg. capped exits)
-                  | has been completely used up.
+  GENERAL RULE    | True if an object with limited uses has been used up.
   DOM_EXIT        | True if the exit is limited-use and has zero remaining uses
+  DOM_PICKUP      | True if the skill has been picked up
   DOM_LOCKEXIT    | True if the exit is limited-use and has zero remaining uses
+  DOM_BUTTON      | True when the button has been pressed
   DOM_WINDOW      | True if the window is limited-use and has released all lemmings
+  DOM_TRAPONCE    | True when the trap has been used
+  All others      | Always false
 
   }
 
@@ -789,7 +769,6 @@ begin
   if      S = 'READY' then fCondition := gatcReady
   else if S = 'BUSY' then fCondition := gatcBusy
   else if S = 'DISABLED' then fCondition := gatcDisabled
-  else if S = 'DISARMED' then fCondition := gatcDisarmed
   else if S = 'EXHAUSTED' then fCondition := gatcExhausted
   else fCondition := gatcUnconditional;
 
