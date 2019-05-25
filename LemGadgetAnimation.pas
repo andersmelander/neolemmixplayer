@@ -387,7 +387,10 @@ begin
   else
     fZIndex := aSegment.LineNumeric['z_index'];
 
-  fStartFrameIndex := aSegment.LineNumeric['initial_frame'];
+  if Uppercase(aSegment.LineTrimString['initial_frame']) = 'RANDOM' then
+    fStartFrameIndex := -1
+  else
+    fStartFrameIndex := aSegment.LineNumeric['initial_frame'];
 
   if fHorizontalStrip then
   begin
@@ -425,7 +428,7 @@ begin
   else if (S = 'match_primary_frame') then
     BaseTrigger.fState := gasMatchPrimary
   else if (aSegment.Line['hide'] <> nil) then
-    BaseTrigger.fState := gasStop
+    BaseTrigger.fState := gasPause
   else
     BaseTrigger.fState := gasPlay;
 
@@ -793,7 +796,7 @@ begin
   fVisible := aSegment.Line['hide'] = nil;
 
   if (not fVisible) and (aSegment.Line['state'] = nil) then
-    fState := gasStop
+    fState := gasPause
   else begin
     S := Uppercase(aSegment.LineTrimString['state']);
 
