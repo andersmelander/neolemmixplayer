@@ -1389,6 +1389,8 @@ begin
   if Gadget.IsPreassignedGlider then Inc(numHelpers);
   if Gadget.IsPreassignedDisarmer then Inc(numHelpers);
   if Gadget.IsPreassignedZombie then Inc(numHelpers);
+  if Gadget.IsPreassignedNeutral then Inc(numHelpers);
+  
   if DrawOtherHelper then Inc(numHelpers);
 
   // Set base drawing position; helper icons will be drawn 10 pixels apart
@@ -1408,6 +1410,11 @@ begin
   if Gadget.IsPreassignedZombie then
   begin
     fHelperImages[hpi_Skill_Zombie].DrawTo(Dst, DrawX + indexHelper * 10, DrawY);
+    Inc(indexHelper);
+  end;
+  if Gadget.IsPreassignedNeutral then
+  begin
+    fHelperImages[hpi_Skill_Neutral].DrawTo(Dst, DrawX + indexHelper * 10, DrawY);
     Inc(indexHelper);
   end;
   if Gadget.IsPreassignedClimber then
