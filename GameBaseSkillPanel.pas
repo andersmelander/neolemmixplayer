@@ -21,6 +21,8 @@ type
     fGame                 : TLemmingGame;
     fIconBmp              : TBitmap32;   // for temporary storage
 
+    fSetInitialZoom       : Boolean;
+
     fRectColor            : TColor32;
     fSelectDx             : Integer;
     fIsBlinkFrame         : Boolean;
@@ -1274,7 +1276,7 @@ end;
 procedure TBaseSkillPanel.SetZoom(NewZoom: Integer);
 begin
   NewZoom := Max(Min(MaxZoom, NewZoom), 1);
-  if NewZoom = Trunc(fImage.Scale) then Exit;
+  if (NewZoom = Trunc(fImage.Scale)) and fSetInitialZoom then Exit;
 
   Width := GameParams.MainForm.ClientWidth;    // for the whole skill panel
   Height := GameParams.MainForm.ClientHeight;  // for the whole skill panel
@@ -1289,6 +1291,8 @@ begin
   fMinimapImage.Left := MinimapRect.Left * NewZoom + Image.Left;
   fMinimapImage.Top := MinimapRect.Top * NewZoom;
   fMinimapImage.Scale := NewZoom;
+
+  fSetInitialZoom := true;
 end;
 
 function TBaseSkillPanel.GetZoom: Integer;

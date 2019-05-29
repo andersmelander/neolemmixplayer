@@ -123,7 +123,6 @@ begin
   end;
 
   TPngInterface.LoadPngFile(aPiece + '.png', fVariableInfo[0].GraphicImage);
-  GenerateStandardPhysicsImage;
   fGeneratedVariableInfo[0] := true;
 end;
 
