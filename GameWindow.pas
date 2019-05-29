@@ -835,9 +835,9 @@ begin
     if GameParams.MinimapHighQuality or (GameSpeed = gspPause) then
       DrawRect := Img.Bitmap.BoundsRect
     else begin
-      DrawWidth := ClientWidth div fInternalZoom;
-      DrawHeight := ClientHeight div fInternalZoom;
-      DrawRect := Rect(fRenderInterface.ScreenPos.X, fRenderInterface.ScreenPos.Y, fRenderInterface.ScreenPos.X + DrawWidth, fRenderInterface.ScreenPos.Y + DrawHeight);
+      DrawWidth := (ClientWidth div fInternalZoom) + 2; // a padding pixel on each side
+      DrawHeight := (ClientHeight div fInternalZoom) + 2;
+      DrawRect := Rect(fRenderInterface.ScreenPos.X - 1, fRenderInterface.ScreenPos.Y - 1, fRenderInterface.ScreenPos.X + DrawWidth, fRenderInterface.ScreenPos.Y + DrawHeight);
     end;
     fRenderer.DrawLevel(GameParams.TargetBitmap, DrawRect, fClearPhysics);
     RenderMinimap;
@@ -1909,7 +1909,7 @@ end;
 
 function TGameWindow.GetDisplayWidth: Integer;
 begin
-  Result := Img.Width div fInternalZoom;
+  Result := (Img.Width div fInternalZoom);
 end;
 
 function TGameWindow.GetDisplayHeight: Integer;
