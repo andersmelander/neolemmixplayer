@@ -104,7 +104,7 @@ type
     procedure AddSaveState;
     procedure CheckAdjustSpawnInterval;
     procedure SetAdjustedGameCursorPoint(BitmapPoint: TPoint);
-    procedure StartReplay2(const aFileName: string);
+    procedure StartReplay(const aFileName: string);
     procedure InitializeCursor;
     procedure CheckShifts(Shift: TShiftState);
     procedure CheckUserHelpers;
@@ -1699,7 +1699,7 @@ begin
   Game.CheckAdjustSpawnInterval;
 end;
 
-procedure TGameWindow.StartReplay2(const aFileName: string);
+procedure TGameWindow.StartReplay(const aFileName: string);
 var
   ext: String;
 
@@ -1808,7 +1808,7 @@ begin
   end;
   if s <> '' then
   begin
-    StartReplay2(s);
+    StartReplay(s);
     exit;
   end;
   CanPlay := OldCanPlay;
