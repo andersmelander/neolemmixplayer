@@ -1,0 +1,29 @@
+Features:
+- Mass image-dumping an entire pack is back; press F6 on title screen
+- New locked exit in the Marble style (compatible with older releases)
+- Slightly nicer alpha blending
+- Small arrows pointing left or right are now drawn on the cursor when directional select is active
+- Two new terrain pieces in the Brick style (compatible with older releases)
+
+Changes:
+- Cursor graphics are now stored in external PNG files
+- Direction indicator for entrances are always drawn above the skill indicators
+- Functional hotkey layout uses RMB to scroll by default
+- Lemmings and objects in Clear Physics Mode are now drawn in a solid color (which changes gradually), instead of retaining their normal appearance
+- Sound effects are limited to one occurance per physics frame, to avoid the intense sounds with large crowds effect
+
+Fixed bugs:
+- Crashes instead of exiting gracefully after performing certain command line functions
+- Duplicate "by" in level select screen
+- Incorrect postview screen messages displayed for levels with 0 or 1 lemming(s)
+- Lemming position dot in clear physics mode is not drawn if the level has no objects with visible-in-CPM trigger areas
+- Lots of junk pieces had slipped into the Marble set
+- Outlines on panel icons like pause, nuke, etc don't disappear when they should if level has empty skillset
+- Missing sound effects for the Wasteland landmine trap, the Honeycomb bee trap, and the Machine crusher trap
+- Mouse remains trapped in gameplay area when saving / loading replays or using the replay editor
+- Part-pixels at the edge of the window / screen are sometimes not rendered
+- Pressing F12 on the main menu does weird stuff (it now does nothing)
+- "RESIZE_BOTH" is not recognized in object data files
+- Skill panel invisible until window resized if initial zoom would be 1x
+- Unmatched teleporters / receivers can cause game crashes when in clear physics mode
+- Window direction indicator's display on preview screen is inconsistent
