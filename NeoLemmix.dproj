@@ -3,7 +3,7 @@
         <ProjectGuid>{EA531DB2-6C15-4E5E-93B1-7AA1776E0F35}</ProjectGuid>
         <MainSource>NeoLemmix.dpr</MainSource>
         <Base>True</Base>
-        <Config Condition="'$(Config)'==''">Debug</Config>
+        <Config Condition="'$(Config)'==''">Release</Config>
         <TargetedPlatforms>1</TargetedPlatforms>
         <AppType>Application</AppType>
         <FrameworkType>VCL</FrameworkType>
@@ -282,51 +282,35 @@ $(PreBuildEvent)]]></PreBuildEvent>
     <Import Project="$(BDS)\Bin\CodeGear.Delphi.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Delphi.Targets')"/>
     <Import Project="$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj" Condition="Exists('$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj')"/>
     <PropertyGroup Condition="'$(Config)'=='Release' And '$(Platform)'=='Win32'">
-        <PreBuildEvent>rmdir bin /s /q
-&amp;&amp;mkdir bin
-&amp;&amp;GetCommitID LemVersionCID COMMIT_ID
-</PreBuildEvent>
+        <PreBuildEvent>rmdir bin /s /q&amp;&amp;mkdir bin&amp;&amp;GetCommitID LemVersionCID COMMIT_ID</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
-        <PostBuildEvent>xcopy data\external\* bin\ /q /s
-</PostBuildEvent>
+        <PostBuildEvent>xcopy data\external\* bin\ /q /s</PostBuildEvent>
         <PostBuildEventIgnoreExitCode>False</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Release' And '$(Platform)'=='Win64'">
-        <PreBuildEvent>rmdir bin /s /q
-&amp;&amp;mkdir bin
-&amp;&amp;GetCommitID LemVersionCID COMMIT_ID
-</PreBuildEvent>
+        <PreBuildEvent>rmdir bin /s /q&amp;&amp;mkdir bin&amp;&amp;GetCommitID LemVersionCID COMMIT_ID</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
-        <PostBuildEvent>xcopy data\external\* bin\ /q /s
-</PostBuildEvent>
+        <PostBuildEvent>xcopy data\external\* bin\ /q /s</PostBuildEvent>
         <PostBuildEventIgnoreExitCode>False</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Experimental Release' And '$(Platform)'=='Win32'">
-        <PreBuildEvent>rmdir bin /s /q
-&amp;&amp;mkdir bin
-&amp;&amp;GetCommitID LemVersionCID COMMIT_ID
-</PreBuildEvent>
+        <PreBuildEvent>rmdir bin /s /q&amp;&amp;mkdir bin&amp;&amp;GetCommitID LemVersionCID COMMIT_ID</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
-        <PostBuildEvent>xcopy data\external\* bin\ /q /s
-</PostBuildEvent>
+        <PostBuildEvent>xcopy data\external\* bin\ /q /s</PostBuildEvent>
         <PostBuildEventIgnoreExitCode>False</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Experimental Release' And '$(Platform)'=='Win64'">
-        <PreBuildEvent>rmdir bin /s /q
-&amp;&amp;mkdir bin
-&amp;&amp;GetCommitID LemVersionCID COMMIT_ID
-</PreBuildEvent>
+        <PreBuildEvent>rmdir bin /s /q&amp;&amp;mkdir bin&amp;&amp;GetCommitID LemVersionCID COMMIT_ID</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
-        <PostBuildEvent>xcopy data\external\* bin\ /q /s
-</PostBuildEvent>
+        <PostBuildEvent>xcopy data\external\* bin\ /q /s</PostBuildEvent>
         <PostBuildEventIgnoreExitCode>False</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Exp Release Without Data' And '$(Platform)'=='Win32'">
@@ -338,20 +322,15 @@ $(PreBuildEvent)]]></PreBuildEvent>
         <PostBuildEventIgnoreExitCode>False</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Exp Release Without Data' And '$(Platform)'=='Win64'">
-        <PreBuildEvent>rmdir bin /s /q
-&amp;&amp;mkdir bin
-&amp;&amp;GetCommitID LemVersionCID COMMIT_ID
-</PreBuildEvent>
+        <PreBuildEvent>rmdir bin /s /q&amp;&amp;mkdir bin&amp;&amp;GetCommitID LemVersionCID COMMIT_ID</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
-        <PostBuildEvent>xcopy data\external\* bin\ /q /s
-</PostBuildEvent>
+        <PostBuildEvent>xcopy data\external\* bin\ /q /s</PostBuildEvent>
         <PostBuildEventIgnoreExitCode>False</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Debug' And '$(Platform)'=='Win32'">
-        <PreBuildEvent>GetCommitID LemVersionCID COMMIT_ID
-</PreBuildEvent>
+        <PreBuildEvent>GetCommitID LemVersionCID COMMIT_ID</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
@@ -359,8 +338,7 @@ $(PreBuildEvent)]]></PreBuildEvent>
         <PostBuildEventIgnoreExitCode>False</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Debug' And '$(Platform)'=='Win64'">
-        <PreBuildEvent>GetCommitID LemVersionCID COMMIT_ID
-</PreBuildEvent>
+        <PreBuildEvent>GetCommitID LemVersionCID COMMIT_ID</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
