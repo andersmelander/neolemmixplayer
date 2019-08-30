@@ -275,10 +275,10 @@ begin
   begin
     fNeedRemask := false;
 
-    if aTheme.Colors[fColor] and $FFFFFF = fMaskColor and $FFFFFF then
+    if aTheme.Colors[fColor] and $FFFFFF = fMaskColor then
       Exit;
 
-    fMaskColor := aTheme.Colors[fColor];
+    fMaskColor := aTheme.Colors[fColor] and $FFFFFF;
   end;
 
   fSourceImageMasked.Assign(fSourceImage);
