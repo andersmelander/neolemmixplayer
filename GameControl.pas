@@ -463,6 +463,8 @@ begin
     end;
 
     UserName := SL.Values['UserName'];
+    if UserName = '' then UserName := 'Anonymous';
+    
 
     AutoSaveReplay := LoadBoolean('AutoSaveReplay', AutoSaveReplay);
     ReplayAutoName := LoadBoolean('AutoReplayNames', ReplayAutoName);
