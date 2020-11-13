@@ -5,6 +5,7 @@ unit GameWindow;
 interface
 
 uses
+  CountBMP32,
   System.Types, Generics.Collections,
   PngInterface,
   LemmixHotkeys, SharedGlobals,
@@ -1202,7 +1203,7 @@ begin
 
   fReplayKilled := false;
 
-  fMinimapBuffer := TBitmap32.Create;
+  fMinimapBuffer := TCountBitmap32.Create;
   TLinearResampler.Create(fMinimapBuffer);
 
   DoubleBuffered := true;
@@ -1651,8 +1652,8 @@ begin
 
   LocalMaxZoom := Min(Screen.Width div 320, (Screen.Height - (40 * ResMod * SkillPanel.MaxZoom)) div 160) + EXTRA_ZOOM_LEVELS;
 
-  TempBMP := TBitmap32.Create;
-  TempBMP2 := TBitmap32.Create;
+  TempBMP := TCountBitmap32.Create;
+  TempBMP2 := TCountBitmap32.Create;
   SL := TStringList.Create;
   try
     SL.Delimiter := '|';
@@ -2005,7 +2006,7 @@ begin
     if Dlg.Execute then
     begin
       SaveName := Dlg.FileName;
-      BMP := TBitmap32.Create;
+      BMP := TCountBitmap32.Create;
       BMP.SetSize(GameParams.Level.Info.Width * ResMod, GameParams.Level.Info.Height * ResMod);
 
       fRenderer.DrawAllGadgets(fRenderInterface.Gadgets, true, fClearPhysics);

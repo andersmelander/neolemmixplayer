@@ -3,6 +3,7 @@ unit GameBaseMenuScreen;
 interface
 
 uses
+  CountBMP32,
   Types, UMisc,
   LemCursor,
   LemMenuFont,
@@ -207,7 +208,7 @@ var
   BMP: TBitmap32;
   i: Integer;
 begin
-  BMP := TBitmap32.Create;
+  BMP := TCountBitmap32.Create;
   try
     if GameParams.HighResolution then
       TPngInterface.LoadPngFile(AppPath + 'gfx/cursor-hr/standard.png', BMP)
@@ -261,9 +262,9 @@ begin
   if aHover = nil then aHover := aNormal;
   if aClick = nil then aClick := aHover;
 
-  tmpNormal := TBitmap32.Create;
-  tmpHover := TBitmap32.Create;
-  tmpClick := TBitmap32.Create;
+  tmpNormal := TCountBitmap32.Create;
+  tmpHover := TCountBitmap32.Create;
+  tmpClick := TCountBitmap32.Create;
   try
     tmpNormal.SetSize(aNormal.Width, aNormal.Height);
     tmpNormal.Clear(0);
@@ -304,10 +305,10 @@ begin
   if aMargin < 0 then
     aMargin := DEFAULT_MARGIN;
 
-  Temp := TBitmap32.Create;
-  tmpNormal := TBitmap32.Create;
-  tmpHover := TBitmap32.Create;
-  tmpClick := TBitmap32.Create;
+  Temp := TCountBitmap32.Create;
+  tmpNormal := TCountBitmap32.Create;
+  tmpHover := TCountBitmap32.Create;
+  tmpClick := TCountBitmap32.Create;
   try
     Temp.SetSize(aNormal.Width + aMargin * 2, aNormal.Height + aMargin * 2);
     Temp.Clear(0);
@@ -398,9 +399,9 @@ begin
   ClickShift.HShift := HUE_SHIFT_HOVER;
   ClickShift.VShift := VALUE_SHIFT_CLICK;
 
-  tmpNormal := TBitmap32.Create;
-  tmpHover := TBitmap32.Create;
-  tmpClick := TBitmap32.Create;
+  tmpNormal := TCountBitmap32.Create;
+  tmpHover := TCountBitmap32.Create;
+  tmpClick := TCountBitmap32.Create;
   try
     ScreenRect := MenuFont.GetTextSize(aText);
     Types.OffsetRect(ScreenRect, aTextCenter.X - ScreenRect.Width div 2, aTextCenter.Y - ScreenRect.Height div 2);
@@ -716,7 +717,7 @@ var
   SrcRect: TRect;
 begin
   Dst := ScreenImg.Bitmap;
-  BgImage := TBitmap32.Create;
+  BgImage := TCountBitmap32.Create;
 
   try
     if not GetGraphic('background_' + GetBackgroundSuffix + '.png', BgImage, true) then
@@ -914,7 +915,7 @@ begin
 
   fShortcutKeys := TList<Word>.Create;
 
-  fBitmaps := TBitmap32.Create(aNormal.Width * 3, aNormal.Height);
+  fBitmaps := TCountBitmap32.Create(aNormal.Width * 3, aNormal.Height);
 
   fBounds := SizedRect(aCenter.X - aNormal.Width div 2, aCenter.Y - aNormal.Height div 2, aNormal.Width, aNormal.Height);
   fClickArea := SizedRect(fBounds.Left + aClickRect.Left, fBounds.Top + aClickRect.Top, aClickRect.Width, aClickRect.Height);

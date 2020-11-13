@@ -3,6 +3,7 @@ unit LemNeoLevelPack;
 interface
 
 uses
+  CountBMP32,
   System.Generics.Collections, System.Generics.Defaults,
   GR32, CRC32, PngInterface, LemLevel,
   Windows, Dialogs, Classes, SysUtils, StrUtils, Contnrs, Controls, Forms,
@@ -788,7 +789,7 @@ begin
   if (Children.Count > 0) or IsBasePack then
     aPrefix := '00' + aPrefix;
 
-  Output := TBitmap32.Create;
+  Output := TCountBitmap32.Create;
   try
     for i := 0 to Levels.Count-1 do
     begin

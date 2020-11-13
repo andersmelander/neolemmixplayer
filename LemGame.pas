@@ -14,6 +14,7 @@ unit LemGame;
 interface
 
 uses
+  CountBMP32,
   System.Types, Generics.Collections,
   SharedGlobals, PngInterface,
   Windows, Classes, Contnrs, SysUtils, Math, Forms, Dialogs,
@@ -561,8 +562,8 @@ begin
   inherited;
   LemmingList := TLemmingList.Create(true);
   Gadgets := TGadgetList.Create(true);
-  TerrainLayer := TBitmap32.Create;
-  PhysicsMap := TBitmap32.Create;
+  TerrainLayer := TCountBitmap32.Create;
+  PhysicsMap := TCountBitmap32.Create;
   ZombieMap := TByteMap.Create;
 end;
 
@@ -849,14 +850,14 @@ begin
 
   LemmingList    := TLemmingList.Create;
 
-  BomberMask     := TBitmap32.Create;
-  StonerMask     := TBitmap32.Create;
-  BasherMasks    := TBitmap32.Create;
-  FencerMasks    := TBitmap32.Create;
-  MinerMasks     := TBitmap32.Create;
+  BomberMask     := TCountBitmap32.Create;
+  StonerMask     := TCountBitmap32.Create;
+  BasherMasks    := TCountBitmap32.Create;
+  FencerMasks    := TCountBitmap32.Create;
+  MinerMasks     := TCountBitmap32.Create;
 
   Gadgets        := TGadgetList.Create;
-  BlockerMap     := TBitmap32.Create;
+  BlockerMap     := TCountBitmap32.Create;
   ZombieMap      := TByteMap.Create;
   fReplayManager := TReplay.Create;
 
@@ -3625,7 +3626,7 @@ var
     CopyL.LemIsPhysicsSimulation := true;
 
     // Make a deep copy of the PhysicsMap
-    SavePhysicsMap := TBitmap32.Create;
+    SavePhysicsMap := TCountBitmap32.Create;
     SavePhysicsMap.Assign(PhysicsMap);
 
     Result := False;
@@ -3845,7 +3846,7 @@ var
     CopyL.LemIsPhysicsSimulation := true;
 
     // Make a deep copy of the PhysicsMap
-    SavePhysicsMap := TBitmap32.Create;
+    SavePhysicsMap := TCountBitmap32.Create;
     SavePhysicsMap.Assign(PhysicsMap);
 
     SteelContinue := False;
@@ -5763,7 +5764,7 @@ procedure TLemmingGame.SaveGameplayImage(Filename: String);
 var
   BMP: TBitmap32;
 begin
-  BMP := TBitmap32.Create;
+  BMP := TCountBitmap32.Create;
   try
     fRenderer.DrawLevel(BMP);
     TPngInterface.SavePngFile(Filename, BMP, true);

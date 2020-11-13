@@ -7,6 +7,7 @@ unit LemRendering;
 interface
 
 uses
+  CountBMP32,
   Dialogs,
   System.Types,
   Classes, Math, Windows,
@@ -744,7 +745,7 @@ begin
   LemPosArray := nil;
 
   // Make a deep copy of the PhysicsMap
-  SavePhysicsMap := TBitmap32.Create;
+  SavePhysicsMap := TCountBitmap32.Create;
   SavePhysicsMap.Assign(PhysicsMap);
 
   // We simulate as long as the lemming exists, unless we time out
@@ -882,7 +883,7 @@ begin
   DoneThisCycle := false;
 
   // Make a deep copy of the PhysicsMap
-  SavePhysicsMap := TBitmap32.Create;
+  SavePhysicsMap := TCountBitmap32.Create;
   SavePhysicsMap.Assign(PhysicsMap);
 
   while Assigned(L) and (L.LemAction = baBuilding) do
@@ -913,7 +914,7 @@ begin
   fLayers.fIsEmpty[rlLowShadows] := False;
 
   // Make a deep copy of the PhysicsMap
-  SavePhysicsMap := TBitmap32.Create;
+  SavePhysicsMap := TCountBitmap32.Create;
   SavePhysicsMap.Assign(PhysicsMap);
 
   while Assigned(L) and (L.LemAction = baPlatforming) do
@@ -940,7 +941,7 @@ begin
   fLayers.fIsEmpty[rlLowShadows] := False;
 
   // Make a deep copy of the PhysicsMap
-  SavePhysicsMap := TBitmap32.Create;
+  SavePhysicsMap := TCountBitmap32.Create;
   SavePhysicsMap.Assign(PhysicsMap);
 
   // Set correct Y-position for first brick
@@ -986,7 +987,7 @@ begin
   fLayers.fIsEmpty[rlHighShadows] := False;
 
   // Make a deep copy of the PhysicsMap
-  SavePhysicsMap := TBitmap32.Create;
+  SavePhysicsMap := TCountBitmap32.Create;
   SavePhysicsMap.Assign(PhysicsMap);
 
   BashPosDx := L.LemDx;
@@ -1038,7 +1039,7 @@ begin
   fLayers.fIsEmpty[rlHighShadows] := False;
 
   // Make a deep copy of the PhysicsMap
-  SavePhysicsMap := TBitmap32.Create;
+  SavePhysicsMap := TCountBitmap32.Create;
   SavePhysicsMap.Assign(PhysicsMap);
 
   FencePosDx := L.LemDx;
@@ -1098,7 +1099,7 @@ begin
   fLayers.fIsEmpty[rlHighShadows] := False;
 
   // Make a deep copy of the PhysicsMap
-  SavePhysicsMap := TBitmap32.Create;
+  SavePhysicsMap := TCountBitmap32.Create;
   SavePhysicsMap.Assign(PhysicsMap);
 
   MinePosDx := L.LemDx;
@@ -1139,7 +1140,7 @@ begin
   fLayers.fIsEmpty[rlHighShadows] := False;
 
   // Make a deep copy of the PhysicsMap
-  SavePhysicsMap := TBitmap32.Create;
+  SavePhysicsMap := TCountBitmap32.Create;
   SavePhysicsMap.Assign(PhysicsMap);
 
   DigPosX := L.LemX;
@@ -1617,7 +1618,7 @@ procedure TRenderer.PrepareCompositePieceBitmaps(aTerrains: TTerrains; aLowRes: 
     if SrcRect.Width < MIN_TERRAIN_GROUP_WIDTH then SrcRect.Right := SrcRect.Left + MIN_TERRAIN_GROUP_WIDTH;
     if SrcRect.Height < MIN_TERRAIN_GROUP_HEIGHT then SrcRect.Bottom := SrcRect.Top + MIN_TERRAIN_GROUP_HEIGHT;
 
-    Temp := TBitmap32.Create;
+    Temp := TCountBitmap32.Create;
     try
       Temp.Assign(aLowRes);
       aLowRes.SetSize(SrcRect.Width, SrcRect.Height);
@@ -2175,7 +2176,7 @@ begin
     if fHelperImages[i] <> nil then
       fHelperImages[i].Free;
 
-    fHelperImages[i] := TBitmap32.Create;
+    fHelperImages[i] := TCountBitmap32.Create;
 
     if GameParams.HighResolution and FileExists(AppPath + SFGraphicsHelpersHighRes + HelperImageFilenames[i]) then
       TPngInterface.LoadPngFile(AppPath + SFGraphicsHelpersHighRes + HelperImageFilenames[i], fHelperImages[i])
@@ -2460,10 +2461,10 @@ var
 begin
   inherited Create;
 
-  TempBitmap := TBitmap32.Create;
+  TempBitmap := TCountBitmap32.Create;
   fTheme := TNeoTheme.Create;
   fLayers := TRenderBitmaps.Create;
-  fPhysicsMap := TBitmap32.Create;
+  fPhysicsMap := TCountBitmap32.Create;
   fBgColor := $00000000;
   fAni := TBaseAnimationSet.Create;
   fPreviewGadgets := TGadgetList.Create;
@@ -2660,7 +2661,7 @@ var
 
 begin
   if Dst = nil then Dst := fPhysicsMap; // should it ever not be to here? Maybe during debugging we need it elsewhere
-  TempWorld := TBitmap32.Create;
+  TempWorld := TCountBitmap32.Create;
 
   T := TTerrain.Create;
   try
@@ -2779,7 +2780,7 @@ begin
 
   if DoBackground and (RenderInfoRec.Level.Info.Background <> '') and (RenderInfoRec.Level.Info.Background <> ':') then
   begin
-    BgImg := TBitmap32.Create;
+    BgImg := TCountBitmap32.Create;
     try
       LoadBackgroundImage;
       for y := 0 to RenderInfoRec.Level.Info.Height * ResMod div BgImg.Height do

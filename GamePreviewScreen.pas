@@ -3,6 +3,7 @@ unit GamePreviewScreen;
 interface
 
 uses
+  CountBMP32,
   System.Types,
   StrUtils,
   Generics.Collections,
@@ -68,6 +69,8 @@ const
 
 constructor TGamePreviewScreen.Create(aOwner: TComponent);
 begin
+  Log('PREVIEW FOR: ' + GameParams.Level.Info.Title);
+  LogImages('Creating preview');
   inherited;
   fTalRects := TList<TRect>.Create;
   fTalismanImage := nil;
@@ -81,6 +84,7 @@ begin
     fTalismanImage.Free;
 
   inherited;
+  LogImages('Destroying preview');
 end;
 
 procedure TGamePreviewScreen.CloseScreen(NextScreen: TGameScreenType);
@@ -200,7 +204,7 @@ begin
       end;
     end;
 
-    W := TBitmap32.Create;
+    W := TCountBitmap32.Create;
     try
       ScreenImg.Bitmap.FillRect(0, 0, 864, 160, $FF000000);
 
@@ -274,7 +278,7 @@ begin
 
   if SaveName = '' then Exit;
 
-  TempBitmap := TBitmap32.Create;
+  TempBitmap := TCountBitmap32.Create;
   TempBitmap.SetSize(GameParams.Level.Info.Width * ResMod, GameParams.Level.Info.Height * ResMod);
   GameParams.Renderer.RenderWorld(TempBitmap, not GameParams.NoBackgrounds);
   TPngInterface.SavePngFile(SaveName, TempBitmap, true);
@@ -395,9 +399,9 @@ begin
   KeepTalismans := false;
 
   if fTalismanImage = nil then
-    fTalismanImage := TBitmap32.Create;
+    fTalismanImage := TCountBitmap32.Create;
 
-  Temp := TBitmap32.Create;
+  Temp := TCountBitmap32.Create;
   try
     LoadPath := GameParams.CurrentLevel.Group.FindFile('talismans.png');
     if LoadPath = '' then

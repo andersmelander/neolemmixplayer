@@ -3,6 +3,7 @@ unit LemMenuFont;
 interface
 
 uses
+  CountBMP32,
   Types, UITypes,
   LemTypes, LemStrings,
   Dialogs, Controls, Forms,
@@ -61,7 +62,7 @@ begin
   inherited;
   for i := 0 to MENU_FONT_COUNT - 1 do
   begin
-    fBitmaps[i] := TBitmap32.Create;
+    fBitmaps[i] := TCountBitmap32.Create;
     fBitmaps[i].OnPixelCombine := Combine;
     fBitmaps[i].DrawMode := dmCustom;
   end;
@@ -253,7 +254,7 @@ var
   TempBMP: TBitmap32;
   buttonSelected: Integer;
 begin
-  TempBMP := TBitmap32.Create;
+  TempBMP := TCountBitmap32.Create;
 
   if (not (GameParams.CurrentLevel = nil))
      and FileExists(GameParams.CurrentLevel.Group.FindFile('menu_font.png')) then

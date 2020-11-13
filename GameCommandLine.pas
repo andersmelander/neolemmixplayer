@@ -6,6 +6,7 @@ unit GameCommandLine;
 interface
 
 uses
+  CountBMP32,
   GR32, PngInterface,
   GameControl,
   LemNeoPieceManager,
@@ -266,7 +267,7 @@ begin
 
   SL := TStringList.Create;
   LineValues := TStringList.Create;
-  Dst := TBitmap32.Create;
+  Dst := TCountBitmap32.Create;
   try
     LineValues.Delimiter := '|';
     LineValues.StrictDelimiter := true;
@@ -324,8 +325,8 @@ var
   Settings: TUpscaleSettings;
 begin
   n := 2;
-  BMPIn := TBitmap32.Create;
-  BMPOut := TBitmap32.Create;
+  BMPIn := TCountBitmap32.Create;
+  BMPOut := TCountBitmap32.Create;
   SL := TStringList.Create;
   try
     SL.Delimiter := '*';

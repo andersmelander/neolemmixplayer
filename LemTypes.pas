@@ -4,6 +4,7 @@ unit LemTypes;
 interface
 
 uses
+  CountBMP32,
   Generics.Collections,
   UMisc,
   LemNeoOnline,
@@ -370,12 +371,12 @@ var
 begin
   if Dst = nil then
   begin
-    LocalDst := TBitmap32.Create;
+    LocalDst := TCountBitmap32.Create;
     Dst := LocalDst;
   end else
     LocalDst := nil;
 
-  TempBMP := TBitmap32.Create;
+  TempBMP := TCountBitmap32.Create;
   OldMode := Src.DrawMode;
 
   try
@@ -567,7 +568,7 @@ var
       end;
     end;
   begin
-    ResBMP := TBitmap32.Create;
+    ResBMP := TCountBitmap32.Create;
     try
       MakeResBMP;
       MakeDstFromRes;
@@ -589,8 +590,8 @@ var
     FillChar(PixelArtSettings, SizeOf(TUpscaleSettings), 0);
     PixelArtSettings.Mode := umPixelArt;
 
-    ShapeBMP := TBitmap32.Create;
-    ColorBMP := TBitmap32.Create;
+    ShapeBMP := TCountBitmap32.Create;
+    ColorBMP := TCountBitmap32.Create;
     try
       ShapeBMP.SetSize(Src.Width, Src.Height);
       ColorBMP.SetSize(Src.Width * 2, Src.Height * 2);
@@ -686,7 +687,7 @@ begin
     if Dst = nil then
       Dst := Src;
 
-    Src := TBitmap32.Create;
+    Src := TCountBitmap32.Create;
     Src.SetSize(OrigSrc.Width + 2, OrigSrc.Height + 2);
     Src.Clear(0);
 
@@ -759,7 +760,7 @@ begin
   sy := 0;
   for i := 0 to Frames-1 do
   begin
-    BMP := TBitmap32.Create;
+    BMP := TCountBitmap32.Create;
     Add(BMP);
     BMP.SetSize(w, h);
     BMP.Clear(0);

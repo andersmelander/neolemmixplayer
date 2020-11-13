@@ -3,6 +3,7 @@ unit GameMenuScreen;
 interface
 
 uses
+  CountBMP32,
   StrUtils, Classes, SysUtils, Dialogs, Controls, ExtCtrls, Forms, Windows, ShellApi,
   Types, UMisc, Math,
   GameBaseMenuScreen,
@@ -117,15 +118,15 @@ constructor TGameMenuScreen.Create(aOwner: TComponent);
 begin
   inherited;
 
-  ScrollerEraseBuffer := TBitmap32.Create;
+  ScrollerEraseBuffer := TCountBitmap32.Create;
 
-  ScrollerLemmings := TBitmap32.Create;
-  ScrollerReel := TBitmap32.Create;
-  ScrollerText := TBitmap32.Create;
+  ScrollerLemmings := TCountBitmap32.Create;
+  ScrollerReel := TCountBitmap32.Create;
+  ScrollerText := TCountBitmap32.Create;
 
   fVersionInfo := TStringList.Create;
 
-  fGroupGraphic := TBitmap32.Create;
+  fGroupGraphic := TCountBitmap32.Create;
 
   fScrollerTextList := TStringList.Create;
 end;
@@ -279,7 +280,7 @@ const
   LOGO_CENTER_X = 432;
   LOGO_CENTER_Y = 72;
 begin
-  LogoBMP := TBitmap32.Create;
+  LogoBMP := TCountBitmap32.Create;
   try
     GetGraphic('logo.png', LogoBMP);
     LogoBMP.DrawTo(ScreenImg.Bitmap, LOGO_CENTER_X - LogoBMP.Width div 2, LOGO_CENTER_Y - LogoBMP.Height div 2);
@@ -310,7 +311,7 @@ var
   NewRegion: TClickableRegion;
   BMP: TBitmap32;
 begin
-  BMP := TBitmap32.Create;
+  BMP := TCountBitmap32.Create;
   try
     // Play
     GetGraphic('sign_play.png', BMP);
@@ -404,7 +405,7 @@ var
   x: Integer;
   EraseSrcRect: TRect;
 begin
-  BMP := TBitmap32.Create;
+  BMP := TCountBitmap32.Create;
   try
     GetGraphic('scroller_lemmings.png', ScrollerLemmings);
     GetGraphic('scroller_segment.png', BMP);
@@ -662,7 +663,7 @@ begin
   if not GetGraphic('group_graphic.png', fGroupGraphic, true) then
     if not GetGraphic('rank_graphic.png', fGroupGraphic, true) then
     begin
-      TempBmp := TBitmap32.Create;
+      TempBmp := TCountBitmap32.Create;
       try
         MakeAutoSectionGraphic(TempBmp);
 

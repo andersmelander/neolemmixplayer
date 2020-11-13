@@ -3,6 +3,7 @@ unit LemGadgetAnimation;
 interface
 
 uses
+  CountBMP32,
   LemNeoTheme,
   LemAnimationSet, LemMetaAnimation,
   LemCore,
@@ -259,15 +260,15 @@ uses
 constructor TGadgetAnimation.Create(aMainObjectWidth: Integer; aMainObjectHeight: Integer);
 begin
   inherited Create;
-  fSourceImage := TBitmap32.Create;
-  fSourceImageMasked := TBitmap32.Create;
+  fSourceImage := TCountBitmap32.Create;
+  fSourceImageMasked := TCountBitmap32.Create;
   fTriggers := TGadgetAnimationTriggers.Create;
 
   fMainObjectWidth := aMainObjectWidth;
   fMainObjectHeight := aMainObjectHeight;
 
   if (fTempBitmapUsageCount = 0) then
-    fTempBitmap := TBitmap32.Create;
+    fTempBitmap := TCountBitmap32.Create;
   Inc(fTempBitmapUsageCount);
 
   fNeedRemask := true;
@@ -342,7 +343,7 @@ end;
 function TGadgetAnimation.GetFrameBitmap(aFrame: Integer; aPersistent: Boolean = false): TBitmap32;
 begin
   if aPersistent then
-    Result := TBitmap32.Create
+    Result := TCountBitmap32.Create
   else
     Result := fTempBitmap;
 
@@ -426,7 +427,7 @@ begin
 
   for i := 0 to (fFrameCount div 2) - 1 do
   begin
-    NewBmp := TBitmap32.Create;
+    NewBmp := TCountBitmap32.Create;
     NewBmp.SetSize(PICKUP_AUTO_GFX_SIZE * ResMod, PICKUP_AUTO_GFX_SIZE * ResMod);
     NewBmp.Clear(0);
     SkillIcons.Add(NewBmp);
@@ -490,7 +491,7 @@ begin
   // Now we need to duplicate each frame then apply the respective erasers
   for i := 0 to (fFrameCount div 2) - 1 do
   begin
-    NewBmp := TBitmap32.Create;
+    NewBmp := TCountBitmap32.Create;
     NewBmp.Assign(SkillIcons[i * 2]);
     SkillIcons.Insert(i * 2, NewBmp);
 
@@ -821,9 +822,9 @@ begin
   for i := 0 to fFrameCount-1 do
   begin
     if aForceLowRes then
-      TempBMP := TBitmap32.Create(fWidth, fHeight)
+      TempBMP := TCountBitmap32.Create(fWidth, fHeight)
     else
-      TempBMP := TBitmap32.Create(fWidth * ResMod, fHeight * ResMod);
+      TempBMP := TCountBitmap32.Create(fWidth * ResMod, fHeight * ResMod);
 
     TempBMP.Clear(0);
 

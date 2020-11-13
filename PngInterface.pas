@@ -21,6 +21,7 @@ unit PngInterface;
 interface
 
 uses
+  CountBMP32,
   Classes, SysUtils, Graphics, GR32, GR32_PNG, GR32_PortableNetworkGraphic;
 
 type
@@ -65,7 +66,7 @@ var
   TempBmp: TBitmap32;
 begin
   if not FileExists(fn) then Exit;
-  TempBmp := TBitmap32.Create;
+  TempBmp := TCountBitmap32.Create;
   LoadPngFile(fn, TempBmp);
   MaskImageFromImage(Bmp, TempBmp, C);
   TempBmp.Free;
@@ -82,7 +83,7 @@ begin
   McR := RedComponent(C);
   McG := GreenComponent(C);
   McB := BlueComponent(C);
-  MaskBMP := TBitmap32.Create;
+  MaskBMP := TCountBitmap32.Create;
   MaskBMP.Assign(Mask);
   for y := 0 to MaskBMP.Height-1 do
     for x := 0 to MaskBMP.Width-1 do
@@ -145,7 +146,7 @@ begin
   if not NoAlpha then
     SaveBitmap32ToPng(Bmp, aStream)
   else begin
-    TempBmp := TBitmap32.Create;
+    TempBmp := TCountBitmap32.Create;
     try
       TempBmp.Assign(Bmp);
       RemoveAlpha(Bmp);

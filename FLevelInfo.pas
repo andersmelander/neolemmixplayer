@@ -3,6 +3,7 @@ unit FLevelInfo;
 interface
 
 uses
+  CountBMP32,
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.Themes,
   LemLevel, LemTalisman, LemNeoLevelPack,
@@ -92,17 +93,17 @@ constructor TLevelInfoPanel.Create(aOwner: TComponent; aIconBMP: TBitmap32; fTal
 begin
   inherited Create(aOwner);
 
-  fLevelImage := TBitmap32.Create;
+  fLevelImage := TCountBitmap32.Create;
 
   if aIconBMP = nil then
   begin
-    fIcons := TBitmap32.Create;
+    fIcons := TCountBitmap32.Create;
     TPNGInterface.LoadPngFile(AppPath + SFGraphicsMenu + 'levelinfo_icons.png', fIcons);
     fIcons.DrawMode := dmBlend;
     fOwnIcons := true;
   end else if fTalismanOverrideBMP <> nil then
   begin
-    fIcons := TBitmap32.Create;
+    fIcons := TCountBitmap32.Create;
     fIcons.Assign(aIconBMP);
     fIcons.DrawMode := dmBlend;
     fOwnIcons := true;
@@ -140,7 +141,7 @@ const
      ICON_SILVER_TALISMAN + ICON_TALISMAN_UNOBTAINED_OFFSET, ICON_SILVER_TALISMAN,
      ICON_GOLD_TALISMAN + ICON_TALISMAN_UNOBTAINED_OFFSET, ICON_GOLD_TALISMAN);
 begin
-  BMP := TBitmap32.Create;
+  BMP := TCountBitmap32.Create;
   try
     BMP.Assign(aTalismanBMP);
     BMP.DrawMode := dmOpaque;

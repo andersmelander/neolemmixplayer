@@ -7,6 +7,7 @@ unit LemRenderHelpers;
 interface
 
 uses
+  CountBMP32,
   LemTypes, LemGadgets, LemLemming, LemCore,
   GR32, GR32_Blend,
   Contnrs, Classes;
@@ -423,7 +424,7 @@ begin
   inherited Create(true);
   for i := Low(TRenderLayer) to High(TRenderLayer) do
   begin
-    BMP := TBitmap32.Create;
+    BMP := TCountBitmap32.Create;
     if i in [rlLowShadows, rlHighShadows] then
     begin
       BMP.DrawMode := dmCustom;

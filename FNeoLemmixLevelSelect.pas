@@ -3,6 +3,7 @@ unit FNeoLemmixLevelSelect;
 interface
 
 uses
+  CountBMP32,
   GameControl,
   LemNeoLevelPack,
   LemStrings,
@@ -202,8 +203,8 @@ procedure TFLevelSelect.InitializeTreeview;
       tvLevelSelect.Images.Add(ImgBMP, MaskBMP);
     end;
   begin
-    BMP32 := TBitmap32.Create;
-    TempBMP := TBitmap32.Create;
+    BMP32 := TCountBitmap32.Create;
+    TempBMP := TCountBitmap32.Create;
     ImgBMP := TBitmap.Create;
     MaskBMP := TBitmap.Create;
     try
@@ -239,7 +240,7 @@ procedure TFLevelSelect.FormCreate(Sender: TObject);
 begin
   fTalismanButtons := TObjectList<TSpeedButton>.Create;
 
-  fIconBMP := TBitmap32.Create;
+  fIconBMP := TCountBitmap32.Create;
   TPNGInterface.LoadPngFile(AppPath + SFGraphicsMenu + 'levelinfo_icons.png', fIconBMP);
   fIconBMP.DrawMode := dmBlend;
 
@@ -826,7 +827,7 @@ procedure TFLevelSelect.DrawSpeedButton(aButton: TSpeedButton; aIconIndex,
 var
   BMP: TBitmap32;
 begin
-  BMP := TBitmap32.Create;
+  BMP := TCountBitmap32.Create;
   try
     DrawIcon(aIconIndex, BMP, clBtnFace);
     if aOverlayIndex >= 0 then
@@ -921,7 +922,7 @@ begin
     ShowMessage('Level images saved to "Dump\' + PathString + '"');
   end else if Obj is TNeoLevelEntry then
   begin
-    BMP := TBitmap32.Create;
+    BMP := TCountBitmap32.Create;
     SaveDlg := TSaveDialog.Create(self);
     try
       SaveDlg.Options := [ofOverwritePrompt];

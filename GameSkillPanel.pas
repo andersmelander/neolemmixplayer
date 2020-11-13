@@ -4,6 +4,7 @@ unit GameSkillPanel;
 interface
 
 uses
+  CountBMP32,
   LemTypes,
   Classes, GR32,
   GameWindowInterface, GameBaseSkillPanel;
@@ -135,7 +136,7 @@ procedure TSkillPanelStandard.ResizeMinimapRegion(MinimapRegion: TBitmap32);
 var
   TempBmp: TBitmap32;
 begin
-  TempBmp := TBitmap32.Create;
+  TempBmp := TCountBitmap32.Create;
   TempBmp.Assign(MinimapRegion);
 
   if (MinimapRegion.Width <> 111 * ResMod) or (MinimapRegion.Height <> 38 * ResMod) then
@@ -226,7 +227,7 @@ procedure TSkillPanelCompact.ResizeMinimapRegion(MinimapRegion: TBitmap32);
 var
   TempBmp: TBitmap32;
 begin
-  TempBmp := TBitmap32.Create;
+  TempBmp := TCountBitmap32.Create;
   TempBmp.Assign(MinimapRegion);
 
   if (MinimapRegion.Width <> 95 * ResMod) or (MinimapRegion.Height <> 24 * ResMod) then

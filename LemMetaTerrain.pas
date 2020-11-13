@@ -4,6 +4,7 @@ unit LemMetaTerrain;
 interface
 
 uses
+  CountBMP32,
   Dialogs,
   Classes, SysUtils, GR32,
   LemRenderHelpers,
@@ -84,10 +85,10 @@ uses
 constructor TMetaTerrain.Create;
 begin
   inherited;
-  fVariableInfo[0].GraphicImage := TBitmap32.Create;
+  fVariableInfo[0].GraphicImage := TCountBitmap32.Create;
 
   if GameParams.HighResolution then
-    fVariableInfo[0].GraphicImageHighRes := TBitmap32.Create;
+    fVariableInfo[0].GraphicImageHighRes := TCountBitmap32.Create;
 end;
 
 destructor TMetaTerrain.Destroy;
@@ -263,7 +264,7 @@ begin
   i := GetImageIndex(Flip, Invert, Rotate);
   CloneFromStandard;
 
-  if fVariableInfo[i].GraphicImage = nil then fVariableInfo[i].GraphicImage := TBitmap32.Create;
+  if fVariableInfo[i].GraphicImage = nil then fVariableInfo[i].GraphicImage := TCountBitmap32.Create;
   BMP := fVariableInfo[i].GraphicImage;
   BMP.Assign(fVariableInfo[0].GraphicImage);
   if Rotate then BMP.Rotate90;
@@ -272,7 +273,7 @@ begin
 
   if GameParams.HighResolution then
   begin
-    if fVariableInfo[i].GraphicImageHighRes = nil then fVariableInfo[i].GraphicImageHighRes := TBitmap32.Create;
+    if fVariableInfo[i].GraphicImageHighRes = nil then fVariableInfo[i].GraphicImageHighRes := TCountBitmap32.Create;
     BMP := fVariableInfo[i].GraphicImageHighRes;
     BMP.Assign(fVariableInfo[0].GraphicImageHighRes);
     if Rotate then BMP.Rotate90;

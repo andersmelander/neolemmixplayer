@@ -4,6 +4,7 @@ unit LemAnimationSet;
 interface
 
 uses
+  CountBMP32,
   Classes, SysUtils, GR32,
   StrUtils,
   PngInterface,
@@ -303,7 +304,7 @@ var
 
   Info: TUpscaleInfo;
 begin
-  TempBitmap := TBitmap32.Create;
+  TempBitmap := TCountBitmap32.Create;
   ColorDict := TColorDict.Create;
   ShadeDict := TShadeDict.Create;
 
@@ -354,7 +355,7 @@ begin
       else
         X := MLA.Width;
 
-      Bmp := TBitmap32.Create;
+      Bmp := TCountBitmap32.Create;
       Bmp.SetSize(MLA.Width, MLA.Height * MLA.FrameCount);
       TempBitmap.DrawTo(Bmp, 0, 0, Rect(X, 0, X + MLA.Width, MLA.Height * MLA.FrameCount));
 
@@ -371,7 +372,7 @@ begin
 
     HandleRecoloring(ColorDict, ShadeDict);
 
-    fLemmingAnimations.Add(TBitmap32.Create); // for the Stoner
+    fLemmingAnimations.Add(TCountBitmap32.Create); // for the Stoner
 
     // // // // // // // // // // // //
     // Extract masks / Digits / etc. //
@@ -421,8 +422,8 @@ begin
   fMetaLemmingAnimations := TMetaLemmingAnimations.Create(TMetaLemmingAnimation);
   fLemmingAnimations := TBitmaps.Create;
   fRecolorer := TRecolorImage.Create;
-  fCountDownDigitsBitmap := TBitmap32.Create;
-  fHighlightBitmap := TBitmap32.Create;
+  fCountDownDigitsBitmap := TCountBitmap32.Create;
+  fHighlightBitmap := TCountBitmap32.Create;
 end;
 
 destructor TBaseAnimationSet.Destroy;
@@ -444,7 +445,7 @@ begin
   if fTheme = nil then Exit;
   if aColorDict = nil then Exit; // this one shouldn't happen but just in case
 
-  Template := TBitmap32.Create;
+  Template := TCountBitmap32.Create;
   try
     Template.DrawMode := dmTransparent;
 

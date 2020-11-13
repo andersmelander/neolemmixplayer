@@ -7,6 +7,7 @@ unit LemNeoPieceManager;
 interface
 
 uses
+  CountBMP32,
   Dialogs,
   PngInterface, LemNeoTheme, LemAnimationSet,
   LemMetaTerrain, LemTerrainGroup, LemGadgetsMeta, LemGadgetsConstants, LemTypes, GR32, LemStrings,
@@ -337,11 +338,11 @@ var
   end;
 begin
   if GameParams.HighResolution then
-    HrBMP := TBitmap32.Create
+    HrBMP := TCountBitmap32.Create
   else
     HrBMP := nil;
 
-  BMP := TBitmap32.Create;
+  BMP := TCountBitmap32.Create;
   try
     GameParams.Renderer.PrepareCompositePieceBitmaps(aGroup.Terrains, BMP, HrBMP);
 

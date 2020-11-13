@@ -5,6 +5,7 @@ unit LemCursor;
 interface
 
 uses
+  CountBMP32,
   GameControl,
   Windows,
   GR32,
@@ -76,7 +77,7 @@ var
 begin
   BaseScale := GameParams.CursorResize;
 
-  TempBitmap32 := TBitmap32.Create();
+  TempBitmap32 := TCountBitmap32.Create();
   TempBitmapImage := TBitmap.Create();
   TempBitmapMask := TBitmap.Create();
   try

@@ -3,6 +3,7 @@ unit GameBaseSkillPanel;
 interface
 
 uses
+  CountBMP32,
   System.Types,
   Classes, Controls, GR32, GR32_Image, GR32_Layers, GR32_Resamplers,
   GameWindowInterface,
@@ -241,14 +242,14 @@ begin
   fMinimapImage.ScaleMode := smScale;
   fMinimapImage.BitmapAlign := baCustom;
 
-  fIconBmp := TBitmap32.Create;
+  fIconBmp := TCountBitmap32.Create;
   fIconBmp.DrawMode := dmBlend;
   fIconBmp.CombineMode := cmMerge;
 
-  fMinimapTemp := TBitmap32.Create;
-  fMinimap := TBitmap32.Create;
+  fMinimapTemp := TCountBitmap32.Create;
+  fMinimap := TCountBitmap32.Create;
 
-  fOriginal := TBitmap32.Create;
+  fOriginal := TCountBitmap32.Create;
 
   // Initialize event handlers
   fImage.OnMouseDown := ImgMouseDown;
@@ -263,12 +264,12 @@ begin
   SetLength(fInfoFont, NUM_FONT_CHARS);
   for i := 0 to NUM_FONT_CHARS - 1 do
   begin
-    fInfoFont[i] := TBitmap32.Create;
+    fInfoFont[i] := TCountBitmap32.Create;
   end;
 
   for Button := Low(TSkillPanelButton) to LAST_SKILL_BUTTON do
   begin
-    fSkillIcons[Button] := TBitmap32.Create;
+    fSkillIcons[Button] := TCountBitmap32.Create;
     fSkillIcons[Button].DrawMode := dmBlend;
     fSkillIcons[Button].CombineMode := cmMerge;
   end;
@@ -276,20 +277,20 @@ begin
   for c := '0' to '9' do
     for i := 0 to 1 do
     begin
-      fSkillFont[c, i] := TBitmap32.Create;
+      fSkillFont[c, i] := TCountBitmap32.Create;
       fSkillFont[c, i].DrawMode := dmBlend;
       fSkillFont[c, i].CombineMode := cmMerge;
     end;
 
-  fSkillInfinite := TBitmap32.Create;
+  fSkillInfinite := TCountBitmap32.Create;
   fSkillInfinite.DrawMode := dmBlend;
   fSkillInfinite.CombineMode := cmMerge;
 
-  fSkillCountErase := TBitmap32.Create;
+  fSkillCountErase := TCountBitmap32.Create;
   fSkillCountErase.DrawMode := dmBlend;
   fSkillCountErase.CombineMode := cmMerge;
 
-  fSkillLock := TBitmap32.Create;
+  fSkillLock := TCountBitmap32.Create;
   fSkillLock.DrawMode := dmBlend;
   fSkillLock.CombineMode := cmMerge;
 
@@ -303,7 +304,7 @@ begin
   fLastHighlitSkill := spbNone;
 
   for i := 100 to MAXIMUM_SI do                    
-    fSkillOvercount[i] := TBitmap32.Create;
+    fSkillOvercount[i] := TCountBitmap32.Create;
 end;
 
 destructor TBaseSkillPanel.Destroy;
@@ -460,7 +461,7 @@ var
   SrcRect, DstRect: TRect;
   SrcWidth: Integer;
 begin
-  BlankPanel := TBitmap32.Create;
+  BlankPanel := TCountBitmap32.Create;
   BlankPanel.DrawMode := dmBlend;
   BlankPanel.CombineMode := cmMerge;
   GetGraphic('skill_panels.png', BlankPanel);
@@ -635,7 +636,7 @@ begin
 
   //for Button := Low(TSkillPanelButton) to LAST_SKILL_BUTTON do
   //  GetGraphic('icon_' + SKILL_NAMES[Button] + '.png', fSkillIcons[Button]);
-  TempBmp := TBitmap32.Create; // freely useable as long as Outline isn't called while it's being used
+  TempBmp := TCountBitmap32.Create; // freely useable as long as Outline isn't called while it's being used
   try
     // Some preparation
     TempBmp.DrawMode := dmBlend;
@@ -771,7 +772,7 @@ begin
   fSkillLock.SetSize(8 * ResMod, 8 * ResMod);
   fIconBmp.DrawTo(fSkillLock, 0, 0, SrcRect);
 
-  TempBmp := TBitmap32.Create;
+  TempBmp := TCountBitmap32.Create;
   TKernelResampler.Create(TempBmp);
   TKernelResampler(TempBmp.Resampler).Kernel := TCubicKernel.Create;
   try
@@ -835,7 +836,7 @@ begin
     AddButtonImage(BUTTON_TO_STRING[ButtonList[i]], i);
 
   // Draw minimap region
-  MinimapRegion := TBitmap32.Create;
+  MinimapRegion := TCountBitmap32.Create;
   GetGraphic('minimap_region.png', MinimapRegion);
   ResizeMinimapRegion(MinimapRegion);
   MinimapRegion.DrawTo(fOriginal, MinimapRect.Left - (3 * ResMod), MinimapRect.Top - (2 * ResMod));
@@ -891,7 +892,7 @@ begin
 
   if ButtonIndex <= LastSkillButtonIndex then
   begin
-    EmptySlot := TBitmap32.Create;
+    EmptySlot := TCountBitmap32.Create;
     try
       GetGraphic('empty_slot.png', EmptySlot);
       EmptySlot.DrawMode := dmBlend;
