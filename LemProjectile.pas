@@ -325,7 +325,8 @@ procedure TProjectile.Relink(aPhysicsMap: TBitmap32; aList: TLemmingList);
 begin
   fLemming := aList[fLemmingIndex];
   fPhysicsMap := aPhysicsMap;
-  SetPositionFromLemming;
+  if not fFired then
+    SetPositionFromLemming;
 end;
 
 procedure TProjectile.SetPositionFromLemming;

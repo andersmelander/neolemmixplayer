@@ -1440,7 +1440,7 @@ begin
     L.LemFallen := 1;
     if L.LemAction in [baWalking, baBashing] then L.LemFallen := 3
     else if L.LemAction in [baMining, baDigging] then L.LemFallen := 0
-    else if L.LemAction in [baBlocking, baJumping, baLasering] then L.LemFallen := -1;
+    else if L.LemAction in [baBlocking, baJumping, baLasering, baSpearing, baGrenading] then L.LemFallen := -1;
     L.LemTrueFallen := L.LemFallen;
   end;
 
@@ -5060,7 +5060,9 @@ begin
 
     0, 2, 3: L.LemFrame := 0;
 
-    9: Transition(L, baShrugging);
+    6..8: if not HasPixelAt(L.LemX, L.LemY) then Transition(L, baFalling);
+
+    9: if not HasPixelAt(L.LemX, L.LemY) then Transition(L, baFalling) else Transition(L, baShrugging);
   end;
 
   Result := true;
