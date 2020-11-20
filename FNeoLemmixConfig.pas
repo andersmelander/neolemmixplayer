@@ -265,19 +265,8 @@ begin
 end;
 
 procedure TFormNXConfig.btnStylesClick(Sender: TObject);
-var
-  F: TFManageStyles;
-  OldEnableOnline: Boolean;
 begin
-  OldEnableOnline := GameParams.EnableOnline;
-  GameParams.EnableOnline := cbEnableOnline.Checked; // Behave as checkbox indicates; but don't break the Cancel button.
-  F := TFManageStyles.Create(self);
-  try
-    F.ShowModal;
-  finally
-    F.Free;
-    GameParams.EnableOnline := OldEnableOnline;
-  end;
+  ShowMessage('New skills experimental does not support custom styles.');
 end;
 
 procedure TFormNXConfig.OptionChanged(Sender: TObject);

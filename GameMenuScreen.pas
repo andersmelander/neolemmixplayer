@@ -823,7 +823,6 @@ var
   n: Integer;
   NewestID: Int64;
   URL: String;
-  F: TFManageStyles;
 begin
   NewVersionStr := fVersionInfo.Values['game'];
   if LeftStr(NewVersionStr, 1) = 'V' then
@@ -859,7 +858,7 @@ begin
              end;
            // 2: do nothing;
         end;
-      end else if CheckStyleUpdates then
+      {end else if CheckStyleUpdates then
       begin
         // Add cursor stuff here
 
@@ -874,7 +873,7 @@ begin
                end;
              end;
           // 2: do nothing;
-        end;
+        end;}
       end;
 
     except

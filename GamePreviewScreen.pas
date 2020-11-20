@@ -84,37 +84,12 @@ begin
 end;
 
 procedure TGamePreviewScreen.CloseScreen(NextScreen: TGameScreenType);
-var
-  F: TFManageStyles;
 begin
   if NextScreen = gstPlay then
   begin
     if GameParams.Level.HasAnyFallbacks then
     begin
-      if GameParams.EnableOnline then
-      begin
-        case RunCustomPopup(self, 'Missing styles',
-          'Some pieces used by this level are missing. Do you want to attempt to download missing styles?',
-          'Yes|No|Open Style Manager') of
-          1:
-            begin
-              DownloadMissingStyles;
-              inherited CloseScreen(gstPreview);
-            end;
-          3:
-            begin
-              F := TFManageStyles.Create(self);
-              try
-                F.ShowModal;
-              finally
-                F.Free;
-                inherited CloseScreen(gstPreview);
-              end;
-            end;
-        end;
-      end else
-        ShowMessage('Some pieces used by this level are missing. You will not be able to play this level. ' +
-                    'Download the missing styles manually, or enable online features in NeoLemmix config to try to auto-download them.');
+      ShowMessage('Some pieces used by this level are missing. You will not be able to play this level.');
     end else begin
       GameParams.NextScreen2 := gstPlay;
       inherited CloseScreen(gstText);
