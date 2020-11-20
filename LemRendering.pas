@@ -559,10 +559,15 @@ begin
 
     if GameParams.HighResolution then
     begin
+      Src.Left := Src.Left * 2;
+      Src.Top := Src.Top * 2;
+      Src.Right := Src.Right * 2;
+      Src.Bottom := Src.Bottom * 2;
+
       Dst.Left := Dst.Left * 2;
       Dst.Top := Dst.Top * 2;
-      Dst.Right := Dst.Right * 2 + 1;
-      Dst.Bottom := Dst.Bottom * 2 + 1;
+      Dst.Right := Dst.Right * 2;
+      Dst.Bottom := Dst.Bottom * 2;
     end;
 
     CIndex := aLemming.LemPhysicsFrame mod 3;
@@ -574,7 +579,7 @@ begin
         fLaserGraphic.DrawTo(fLayers[rlLemmings], Dst, Src);
       end;
 
-      MoveRect(Src, -13, 0);
+      MoveRect(Src, -13 * ResMod, 0);
 
       repeat
         CIndex := (CIndex + 1) mod 3;
@@ -2469,6 +2474,12 @@ begin
   fHelperImages[hpi_Exit_Lock].DrawMode := dmCustom;
   fHelperImages[hpi_Exit_Lock].OnPixelCombine := CombineFixedColor;
 
+  // And laserer!
+  if GameParams.HighResolution then
+    TPngInterface.LoadPngFile(AppPath + SFGraphicsMasks + 'laser-hr.png', fLaserGraphic)
+  else
+    TPngInterface.LoadPngFile(AppPath + SFGraphicsMasks + 'laser.png', fLaserGraphic);
+
   fGraphicsAreHighRes := GameParams.HighResolution;
 end;
 
@@ -2765,7 +2776,6 @@ begin
   fTempLemmingList := TLemmingList.Create(false);
 
   fLaserGraphic := TBitmap32.Create;
-  TPngInterface.LoadPngFile(AppPath + SFGraphicsMasks + 'laser.png', fLaserGraphic);
   fLaserGraphic.DrawMode := dmCustom;
   fLaserGraphic.OnPixelCombine := CombineFixedColor;
 
