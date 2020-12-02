@@ -648,8 +648,15 @@ end;
 procedure TGameBaseMenuScreen.SaveReplay;
 var
   S: String;
+  OldAutoName: Boolean;
 begin
-  S := GlobalGame.ReplayManager.GetSaveFileName(self, GlobalGame.Level);
+  OldAutoName := GameParams.ReplayAutoName;
+  try
+    GameParams.ReplayAutoName := false;
+    S := GlobalGame.ReplayManager.GetSaveFileName(self, GlobalGame.Level);
+  finally
+    GameParams.ReplayAutoName := OldAutoName;
+  end;
   if S = '' then Exit;
   GlobalGame.EnsureCorrectReplayDetails;
   GlobalGame.ReplayManager.SaveToFile(S);
