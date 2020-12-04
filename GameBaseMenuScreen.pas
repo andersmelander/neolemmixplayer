@@ -197,7 +197,7 @@ begin
   ScreenImg.OnMouseMove := Img_MouseMove;
 
   {$ifdef exp}{$ifndef rc}
-  MakeHiddenOption(lka_SaveImage, SaveScreenImage);
+  //MakeHiddenOption(lka_SaveImage, SaveScreenImage);
   {$endif}{$endif}
 end;
 
