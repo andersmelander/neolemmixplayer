@@ -2206,7 +2206,7 @@ end;
 function TLemmingGame.MayAssignThrowingSkill(L: TLemming): Boolean;
 const
   ActionSet = [baWalking, baShrugging, baPlatforming, baBuilding, baStacking,
-               baBashing, baFencing, baMining, baDigging];
+               baBashing, baFencing, baMining, baDigging, baLasering];
 begin
   Result := (L.LemAction in ActionSet);
 end;
