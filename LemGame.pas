@@ -3577,6 +3577,7 @@ begin
           Result := false;
           Transition(L, baDrowning, true);
         end;
+        Break;
       end else if HasPixelAt(L.LemX - L.LemDX, L.LemY) then
       begin
         Dec(L.LemX, L.LemDX);
@@ -3637,11 +3638,12 @@ begin
         Result := false;
         Transition(L, baDrowning, true);
       end;
+      Break;
     end else if HasPixelAt(L.LemX - L.LemDX, L.LemY) then
     begin
       Dec(L.LemX, L.LemDX);
       Transition(L, baWalking, true);
-      Exit;
+      Break;
     end;
   end;
 end;
