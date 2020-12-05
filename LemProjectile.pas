@@ -372,6 +372,8 @@ var
   PosCount: Integer;
 
   procedure AddPos(dX, dY: Integer);
+  var
+    n: Integer;
   begin
     if not fHit then
     begin
@@ -388,6 +390,21 @@ var
 
       if fIsSpear and ((fPhysicsMap.PixelS[fX, fY + 1] and PM_SOLID) <> 0) then
         fHit := true;
+
+      if (fX = fLemming.LemX) and (dX <> 0) then
+        for n := fY + 1 to fLemming.LemY - 5 do
+          if (fPhysicsMap.PixelS[fX, n] and PM_SOLID) <> 0 then
+          begin
+            fHit := true;
+            Break;
+          end;
+
+      if fHit then
+      begin
+        if ((fDX < 0) and (fX > fLemming.LemX)) or
+           ((fDX > 0) and (fX < fLemming.LemX)) then
+          fHit := false;
+      end;
     end;
   end;
 
@@ -398,11 +415,12 @@ begin
   if fHit then
     raise Exception.Create('TProjectile.Update called for a projectile after it collides with terrain');
 
+  SetLength(Result, PROJECTILE_HORIZONTAL_MOMENTUM * 2); // it'll be expanded if need be
+  Result[0] := Point(fX, fY);
+  PosCount := 1;
+
   if fFired then
   begin
-    SetLength(Result, PROJECTILE_HORIZONTAL_MOMENTUM * 2); // it'll be expanded if need be
-    Result[0] := Point(fX, fY);
-    PosCount := 1;
 
     for i := 0 to PROJECTILE_HORIZONTAL_MOMENTUM-1 do
     begin
@@ -450,18 +468,48 @@ begin
       if fHit then
         Break;
     end;
-
-    SetLength(Result, PosCount);
   end else if (fLemming.LemRemoved) or not (fLemming.LemAction in [baSpearing, baGrenading]) then
     Discard
   else begin
     // Move with lemming's hand
-    SetLength(Result, 0);
-    SetPositionFromLemming;
 
-    if fLemming.LemPhysicsFrame = 5 then
+    if fDX <> fLemming.LemDX then
+    begin
+      if fX <> fLemming.LemX then
+      begin
+        fDX := Sign(fLemming.LemX - fX);
+        for i := 0 to Abs(fLemming.LemX - fX) do
+        begin
+          AddPos(1, 0);
+          AddPos(1, 0);
+        end;
+      end;
+
+      fDX := fLemming.LemDX;
+    end;
+
+    case fLemming.LemPhysicsFrame of
+      4: begin
+           AddPos(0, -1);
+           AddPos(1, 0);
+           AddPos(0, -1);
+           AddPos(0, -1);
+         end;
+      5: begin
+           AddPos(1, 0);
+           AddPos(1, 0);
+           AddPos(0, -1);
+           AddPos(1, 0);
+           AddPos(1, 0);
+           AddPos(0, -1);
+         end;
+    end;
+
+    if fHit or (fLemming.LemPhysicsFrame = 5) then
       Fire;
   end;
+
+  SetLength(Result, PosCount);
 end;
 
 end.
