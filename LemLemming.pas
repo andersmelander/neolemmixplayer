@@ -286,6 +286,7 @@ begin
   LemAscended := Source.LemAscended;
   LemFallen := Source.LemFallen;
   LemTrueFallen := Source.LemTrueFallen;
+  LemInitialFall := Source.LemInitialFall;
   LemExplosionTimer := Source.LemExplosionTimer;
   LemDisarmingFrames := Source.LemDisarmingFrames;
   LemFrame := Source.LemFrame;
