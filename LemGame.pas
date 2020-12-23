@@ -2906,10 +2906,10 @@ end;
 
 procedure TLemmingGame.ApplyGrenadeMask(P: TProjectile);
 begin
-  GrenadeMask.DrawTo(PhysicsMap, P.X - 12, P.Y - 21);
+  GrenadeMask.DrawTo(PhysicsMap, P.X - 12, P.Y - 12);
 
   if not IsSimulating then
-    fRenderInterface.RemoveTerrain(P.X - 12, P.Y - 21, GrenadeMask.Width, GrenadeMask.Height);
+    fRenderInterface.RemoveTerrain(P.X - 12, P.Y - 12, GrenadeMask.Width, GrenadeMask.Height);
 end;
 
 procedure TLemmingGame.ApplyBashingMask(L: TLemming; MaskFrame: Integer);

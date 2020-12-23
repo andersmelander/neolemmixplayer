@@ -1,0 +1,132 @@
+# ----------------------------- 
+#        NeoLemmix Level        
+#   Created with NLEditor 1.31
+# ----------------------------- 
+ 
+#        Level info             
+# ----------------------------- 
+ TITLE Throwables Test Level 2
+ AUTHOR 
+ ID x3E9BB2EA31DBFA56
+ 
+#       Level dimensions        
+# ----------------------------- 
+ WIDTH 320
+ HEIGHT 160
+ START_X 160
+ START_Y 80
+ THEME orig_marble
+ 
+#         Level stats           
+# ----------------------------- 
+ LEMMINGS 40
+ SAVE_REQUIREMENT 20
+ MAX_SPAWN_INTERVAL 53
+ 
+ $SKILLSET 
+   BLOCKER 1
+   SPEARER 1
+   GRENADER 1
+   MINER 1
+   CLONER 1
+ $END 
+ 
+#     Interactive objects       
+# ----------------------------- 
+ $GADGET
+   STYLE orig_marble
+   PIECE teleporter
+   X 61
+   Y 88
+   NO_OVERWRITE
+   PAIRING 0
+ $END
+ 
+ $GADGET
+   STYLE orig_marble
+   PIECE receiver
+   X 145
+   Y 88
+   NO_OVERWRITE
+   PAIRING 0
+ $END
+ 
+ $GADGET
+   STYLE orig_marble
+   PIECE exit_locked
+   X 86
+   Y 32
+   NO_OVERWRITE
+ $END
+ 
+ $GADGET
+   STYLE default
+   PIECE button
+   X 117
+   Y 51
+ $END
+ 
+ 
+#        Terrain pieces         
+# ----------------------------- 
+ $TERRAIN
+   STYLE orig_marble
+   PIECE bar_03
+   X 42
+   Y 136
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE orig_marble
+   PIECE bar_03
+   X 154
+   Y 136
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE orig_marble
+   PIECE bar_03
+   X 42
+   Y 56
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE orig_marble
+   PIECE bar_03
+   X 90
+   Y 56
+   ONE_WAY
+ $END
+ 
+ 
+#      Preplaced lemmings       
+# ----------------------------- 
+ $LEMMING
+   X 45
+   Y 136
+ $END
+ 
+ $LEMMING
+   X 77
+   Y 136
+ $END
+ 
+ $LEMMING
+   X 43
+   Y 136
+ $END
+ 
+ $LEMMING
+   X 61
+   Y 56
+ $END
+ 
+ $LEMMING
+   X 43
+   Y 56
+ $END
+ 
+ 
