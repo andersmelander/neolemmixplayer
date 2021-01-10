@@ -110,12 +110,7 @@ uses
 const
   PROJECTILE_HORIZONTAL_MOMENTUM = 9;
 
-  SPEAR_OFFSETS: array[0..2] of TPoint =
-  (
-    (X: 2; Y: -3),
-    (X: 3; Y: -3),
-    (X: 4; Y: -4)
-  );
+  SPEAR_OFFSET: TPoint = (X: 2; Y: -3);
 
   // Spear angles
   SPEAR_SLIGHT_UP_BEGIN = 25;
@@ -337,33 +332,21 @@ begin
     0..3: begin
             fX := fLemming.LemX - (4 * fLemming.LemDX);
             fY := fLemming.LemY - 4;
-
-            if fIsSpear then
-            begin
-              fX := fX + (SPEAR_OFFSETS[0].X * fLemming.LemDX);
-              fY := fY + SPEAR_OFFSETS[0].Y;
-            end;
           end;
     4: begin
          fX := fLemming.LemX - (3 * fLemming.LemDX);
          fY := fLemming.LemY - 7;
-
-         if fIsSpear then
-         begin
-           fX := fX + (SPEAR_OFFSETS[1].X * fLemming.LemDX);
-           fY := fY + SPEAR_OFFSETS[1].Y;
-         end;
        end;
     5: begin
          fX := fLemming.LemX + (1 * fLemming.LemDX);
          fY := fLemming.LemY - 9;
-
-         if fIsSpear then
-         begin
-           fX := fX + (SPEAR_OFFSETS[2].X * fLemming.LemDX);
-           fY := fY + SPEAR_OFFSETS[2].Y;
-         end;
        end;
+  end;
+
+  if fIsSpear then
+  begin
+    fX := fX + (SPEAR_OFFSET.X * fLemming.LemDX);
+    fY := fY + SPEAR_OFFSET.Y;
   end;
 end;
 
@@ -475,35 +458,30 @@ begin
 
     if fDX <> fLemming.LemDX then
     begin
-      if fX <> fLemming.LemX then
-      begin
-        fDX := Sign(fLemming.LemX - fX);
-        for i := 0 to Abs(fLemming.LemX - fX) do
-        begin
-          AddPos(1, 0);
-          AddPos(1, 0);
-        end;
-      end;
-
       fDX := fLemming.LemDX;
-    end;
-
-    case fLemming.LemPhysicsFrame of
-      4: begin
-           AddPos(0, -1);
-           AddPos(1, 0);
-           AddPos(0, -1);
-           AddPos(0, -1);
-         end;
-      5: begin
-           AddPos(1, 0);
-           AddPos(1, 0);
-           AddPos(0, -1);
-           AddPos(1, 0);
-           AddPos(1, 0);
-           AddPos(0, -1);
-         end;
-    end;
+      SetPositionFromLemming;
+      if (fLemming.LemPhysicsFrame >= 4) then
+      begin
+        PosCount := 0;
+        AddPos(0, 0);
+      end;
+    end else
+      case fLemming.LemPhysicsFrame of
+        4: begin
+             AddPos(0, -1);
+             AddPos(1, 0);
+             AddPos(0, -1);
+             AddPos(0, -1);
+           end;
+        5: begin
+             AddPos(1, 0);
+             AddPos(1, 0);
+             AddPos(0, -1);
+             AddPos(1, 0);
+             AddPos(1, 0);
+             AddPos(0, -1);
+           end;
+      end;
 
     if fHit or (fLemming.LemPhysicsFrame = 5) then
       Fire;

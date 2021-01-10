@@ -1,0 +1,217 @@
+# ----------------------------- 
+#        NeoLemmix Level        
+#   Created with NLEditor 1.31
+# ----------------------------- 
+ 
+#        Level info             
+# ----------------------------- 
+ TITLE Throwables Test Level 3
+ AUTHOR 
+ MUSIC orig_10
+ ID x251620BA137BA55F
+ 
+#       Level dimensions        
+# ----------------------------- 
+ WIDTH 320
+ HEIGHT 208
+ START_X 60
+ START_Y 141
+ THEME orig_dirt
+ 
+#         Level stats           
+# ----------------------------- 
+ LEMMINGS 40
+ SAVE_REQUIREMENT 20
+ MAX_SPAWN_INTERVAL 53
+ 
+ $SKILLSET 
+   WALKER 6
+   SPEARER 6
+   GRENADER 6
+ $END 
+ 
+#     Interactive objects       
+# ----------------------------- 
+ $GADGET
+   STYLE orig_fire
+   PIECE exit
+   X 268
+   Y 103
+   NO_OVERWRITE
+   ROTATE
+   FLIP_HORIZONTAL
+   FLIP_VERTICAL
+ $END
+ 
+ $GADGET
+   STYLE orig_fire
+   PIECE exit
+   X 268
+   Y 55
+   NO_OVERWRITE
+   ROTATE
+   FLIP_HORIZONTAL
+   FLIP_VERTICAL
+ $END
+ 
+ $GADGET
+   STYLE orig_fire
+   PIECE exit
+   X 268
+   Y 7
+   NO_OVERWRITE
+   ROTATE
+   FLIP_HORIZONTAL
+   FLIP_VERTICAL
+ $END
+ 
+ $GADGET
+   STYLE orig_fire
+   PIECE exit
+   X 268
+   Y 151
+   NO_OVERWRITE
+   ROTATE
+   FLIP_HORIZONTAL
+   FLIP_VERTICAL
+ $END
+ 
+ 
+#        Terrain pieces         
+# ----------------------------- 
+ $TERRAIN
+   STYLE orig_fire
+   PIECE bars_06
+   X 13
+   Y 84
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE orig_fire
+   PIECE bars_06
+   X 13
+   Y 108
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE orig_fire
+   PIECE bars_06
+   X 13
+   Y 132
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE orig_fire
+   PIECE bars_06
+   X 13
+   Y 156
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE orig_fire
+   PIECE bars_06
+   X 13
+   Y 180
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE orig_fire
+   PIECE bars_06
+   X 13
+   Y 204
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE orig_fire
+   PIECE bars_05
+   X 99
+   Y 0
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE orig_fire
+   PIECE bars_05
+   X 99
+   Y 39
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE orig_fire
+   PIECE bars_05
+   X 99
+   Y 78
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE orig_fire
+   PIECE bars_05
+   X 99
+   Y 117
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE orig_fire
+   PIECE bars_05
+   X 99
+   Y 156
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE orig_fire
+   PIECE bars_05
+   X 99
+   Y 195
+   ONE_WAY
+ $END
+ 
+ 
+#      Preplaced lemmings       
+# ----------------------------- 
+ $LEMMING
+   X 40
+   Y 84
+   BLOCKER 
+ $END
+ 
+ $LEMMING
+   X 40
+   Y 108
+   BLOCKER 
+ $END
+ 
+ $LEMMING
+   X 40
+   Y 132
+   BLOCKER 
+ $END
+ 
+ $LEMMING
+   X 40
+   Y 156
+   BLOCKER 
+ $END
+ 
+ $LEMMING
+   X 40
+   Y 180
+   BLOCKER 
+ $END
+ 
+ $LEMMING
+   X 40
+   Y 204
+   BLOCKER 
+ $END
+ 
+ 
