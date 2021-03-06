@@ -153,7 +153,7 @@ var
     Result := G.Name;
   end;
 
-  function LoadLevel(aID: Int64): Boolean;
+  function LoadLevel(aTitle: String): Boolean;
   var
     G: TNeoLevelGroup;
 
@@ -170,7 +170,7 @@ var
       end;
 
       for i := 0 to aGroup.Levels.Count-1 do
-        if aGroup.Levels[i].LevelID = aID then
+        if aGroup.Levels[i].Title = aTitle then
         begin
           GameParams.SetLevel(aGroup.Levels[i]);
           GameParams.LoadCurrentLevel(true);
@@ -201,9 +201,9 @@ var
         S.Position := 0;
         SL.LoadFromStream(S);
         for i2 := 0 to SL.Count-1 do
-          if UpperCase(LeftStr(Trim(SL[i2]), 2)) = 'ID' then
+          if UpperCase(LeftStr(Trim(SL[i2]), 5)) = 'TITLE' then
           begin
-            fReplays[i].ReplayLevelID := StrToInt64Def('x' + RightStr(Trim(SL[i2]), 16), 0);
+            fReplays[i].ReplayLevelTitle := RightStr(TrimLeft(SL[i2]), Length(TrimLeft(Trim(SL[i2]))) - 6);
             Break;
           end;
       end;
@@ -293,16 +293,17 @@ begin
 
     try
       fReplays[i].ReplayLevelText := '';
-      fReplays[i].ReplayLevelTitle := '<no match>';
 
-      if not LoadLevel(fReplays[i].ReplayLevelID) then
+      if not LoadLevel(fReplays[i].ReplayLevelTitle) then
       begin
+        fReplays[i].ReplayLevelTitle := '<no match>';
         fReplays[i].ReplayResult := CR_NOLEVELMATCH;
         Continue;
       end;
 
       if GameParams.Level.HasAnyFallbacks then
       begin
+        fReplays[i].ReplayLevelTitle := '<no match>';
         fReplays[i].ReplayResult := CR_ERROR;
         Continue;
       end;
