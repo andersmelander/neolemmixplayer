@@ -5742,6 +5742,9 @@ var
   HasSkillButton: Boolean;
   i: Integer;
 begin
+  Result := true;
+  Exit;
+
   Assert(aAction in AssignableSkills, 'CheckSkillAvailable for not assignable skill');
 
   HasSkillButton := false;
