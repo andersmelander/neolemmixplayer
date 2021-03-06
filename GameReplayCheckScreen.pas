@@ -309,12 +309,13 @@ begin
       end;
 
       fReplays[i].ReplayLevelText := GameParams.CurrentLevel.Group.Name + ' ' + IntToStr(GameParams.CurrentLevel.GroupIndex + 1);
-      fReplays[i].ReplayLevelTitle := Level.Info.Title;
+      fReplays[i].ReplayLevelID := Level.Info.LevelID;
 
       PieceManager.Tidy;
       Game.PrepareParams;
 
       Game.ReplayManager.LoadFromFile(fReplays[i].ReplayFile);
+      Game.ReplayManager.LevelID := Level.Info.LevelID;
 
       fReplays[i].ReplayResult := CR_UNDETERMINED;
 
