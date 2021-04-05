@@ -6,6 +6,7 @@ interface
 
 uses
   Types,
+  LemCore,
   LemRendering, LemLevel, LemRenderHelpers, LemNeoPieceManager, SharedGlobals,
   Windows, Classes, SysUtils, StrUtils, Controls, Contnrs,
   UMisc,
@@ -118,6 +119,11 @@ var
   Level: TLevel;
   i: Integer;
 
+  TotalSave: Integer;
+  TotalSkill: array[TSkillPanelButton] of Integer;
+  Skill: TSkillPanelButton;
+  ResultRec: TGameResultsRec;
+
   procedure BuildReplaysList;
     procedure Get(aExt: String);
     var
@@ -147,7 +153,7 @@ var
     Result := G.Name;
   end;
 
-  function LoadLevel(aID: Int64): Boolean;
+  function LoadLevel(aTitle: String): Boolean;
   var
     G: TNeoLevelGroup;
 
@@ -164,7 +170,7 @@ var
       end;
 
       for i := 0 to aGroup.Levels.Count-1 do
-        if aGroup.Levels[i].LevelID = aID then
+        if aGroup.Levels[i].Title = aTitle then
         begin
           GameParams.SetLevel(aGroup.Levels[i]);
           GameParams.LoadCurrentLevel(true);
@@ -195,9 +201,9 @@ var
         S.Position := 0;
         SL.LoadFromStream(S);
         for i2 := 0 to SL.Count-1 do
-          if UpperCase(LeftStr(Trim(SL[i2]), 2)) = 'ID' then
+          if UpperCase(LeftStr(Trim(SL[i2]), 5)) = 'TITLE' then
           begin
-            fReplays[i].ReplayLevelID := StrToInt64Def('x' + RightStr(Trim(SL[i2]), 16), 0);
+            fReplays[i].ReplayLevelTitle := RightStr(TrimLeft(SL[i2]), Length(TrimLeft(Trim(SL[i2]))) - 6);
             Break;
           end;
       end;
@@ -233,6 +239,29 @@ var
       Result := Result + ' + ' + IntToStr(f) + ' frames';
   end;
 
+  procedure AppendSaveUpInfo(aFilename: String);
+  var
+    SL: TStringList;
+    OrigLength: Integer;
+    Skill: TSkillPanelButton;
+  begin
+    SL := TStringList.Create;
+    try
+      SL.LoadFromFile(AppPath + aFilename);
+
+      OrigLength := SL.Count;
+
+      SL.Add('Total saved: ' + IntToStr(TotalSave));
+      for Skill := spbWalker to spbCloner do
+        if TotalSkill[Skill] > 0 then
+          SL.Add(SKILL_NAMES[Skill] + '  ' + IntToStr(TotalSkill[Skill]));
+
+      SL.SaveToFile(AppPath + aFilename);
+    finally
+      SL.Free;
+    end;
+  end;
+
 begin
   BuildReplaysList;
 
@@ -243,6 +272,10 @@ begin
       fScreenText.Add('');
     fScreenText.Add('Click mouse to exit');
   end;
+
+  TotalSave := 0;
+  for Skill := spbWalker to spbCloner do
+    TotalSkill[Skill] := 0;
 
   GetReplayLevelIDs;
 
@@ -260,27 +293,29 @@ begin
 
     try
       fReplays[i].ReplayLevelText := '';
-      fReplays[i].ReplayLevelTitle := '<no match>';
 
-      if not LoadLevel(fReplays[i].ReplayLevelID) then
+      if not LoadLevel(fReplays[i].ReplayLevelTitle) then
       begin
+        fReplays[i].ReplayLevelTitle := '<no match>';
         fReplays[i].ReplayResult := CR_NOLEVELMATCH;
         Continue;
       end;
 
       if GameParams.Level.HasAnyFallbacks then
       begin
+        fReplays[i].ReplayLevelTitle := '<no match>';
         fReplays[i].ReplayResult := CR_ERROR;
         Continue;
       end;
 
       fReplays[i].ReplayLevelText := GameParams.CurrentLevel.Group.Name + ' ' + IntToStr(GameParams.CurrentLevel.GroupIndex + 1);
-      fReplays[i].ReplayLevelTitle := Level.Info.Title;
+      fReplays[i].ReplayLevelID := Level.Info.LevelID;
 
       PieceManager.Tidy;
       Game.PrepareParams;
 
       Game.ReplayManager.LoadFromFile(fReplays[i].ReplayFile);
+      Game.ReplayManager.LevelID := Level.Info.LevelID;
 
       fReplays[i].ReplayResult := CR_UNDETERMINED;
 
@@ -320,6 +355,10 @@ begin
       until false;
 
       fReplays[i].ReplayDuration := Game.CurrentIteration;
+
+      TotalSave := TotalSave + Game.LemmingsSaved;
+      for Skill := spbWalker to spbCloner do
+        TotalSkill[Skill] := TotalSkill[Skill] + Game.SkillsUsed[Skill];
     except
       fReplays[i].ReplayResult := CR_ERROR;
     end;
@@ -346,6 +385,7 @@ begin
     if ParamStr(2) <> 'replaytest' then
     begin
       fReplays.SaveToFile(MakeSafeForFilename(GetPackName, false) + ' Replay Results.txt');
+      AppendSaveUpInfo(MakeSafeForFilename(GetPackName, false) + ' Replay Results.txt');
       fScreenText.Add('Results saved to');
       fScreenText.Add(MakeSafeForFilename(GetPackName, false) + ' Replay Results.txt');
       fScreenText.Add('');
