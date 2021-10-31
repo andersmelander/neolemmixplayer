@@ -274,6 +274,11 @@ begin
   InitializeTreeview;
 end;
 
+procedure TFLevelSelect.FormShow(Sender: TObject);
+begin
+  SetInfo;
+end;
+
 procedure TFLevelSelect.FormDestroy(Sender: TObject);
 begin
   fIconBMP.Free;
@@ -607,17 +612,13 @@ begin
   end;
 end;
 
-procedure TFLevelSelect.FormShow(Sender: TObject);
-begin
-  SetInfo;
-end;
-
 procedure TFLevelSelect.DisplayLevelInfo;
 begin
   WriteToParams;
   GameParams.LoadCurrentLevel(false);
 
   fInfoForm.Visible := true;
+  fInfoForm.BoundsRect := pnLevelInfo.BoundsRect; // Delphi 10.4 bugfix
   fInfoForm.Level := GameParams.Level;
   fInfoForm.Talisman := nil;
   fDisplayRecords := rdNone;
