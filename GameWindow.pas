@@ -209,7 +209,7 @@ type
 
 implementation
 
-uses FBaseDosForm, FEditReplay, LemReplay, LemNeoLevelPack;
+uses FBaseDosForm, {FEditReplay,} FNewReplayEditor, LemReplay, LemNeoLevelPack;
 
 { TGameWindow }
 
@@ -497,6 +497,7 @@ begin
   SkillPanel.DrawMinimap;
 end;
 
+{
 procedure TGameWindow.ExecuteReplayEdit;
 var
   F: TFReplayEditor;
@@ -514,6 +515,22 @@ begin
       GotoSaveState(Game.CurrentIteration);
       GameParams.NoAutoReplayMode := OldClearReplay;
     end;
+  finally
+    F.Free;
+    ResumeGameplay;
+  end;
+end;
+}
+
+procedure TGameWindow.ExecuteReplayEdit;
+var
+  F: TNewReplayEditorForm;
+begin
+  F := TNewReplayEditorForm.Create(self);
+  SuspendGameplay;
+  try
+    F.IngameMode := true;
+    F.ShowModal;
   finally
     F.Free;
     ResumeGameplay;
