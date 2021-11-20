@@ -65,8 +65,19 @@ uses
 { TAppController }
 
 constructor TAppController.Create(aOwner: TComponent);
+  procedure DoDateCheck;
+  var
+    CurDate: Integer;
+  begin
+    FormatSettings.ShortDateFormat := 'yyyymmdd';
+    CurDate := StrToInt(DateToStr(Now));
+    if CurDate > 20220331 then
+      raise Exception.Create('This experimental version is no longer useable. Please obtain a stable or newer experimental version of NeoLemmix.');
+  end;
 begin
   inherited;
+
+  DoDateCheck;
 
   // Set to true as default; change to false if any failure.
   fLoadSuccess := true;

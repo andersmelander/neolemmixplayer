@@ -241,6 +241,24 @@ var
   GadgetAccessor: TGadgetMetaAccessor;
   NewAnim: TGadgetAnimation;
   PrimaryWidth: Integer;
+
+  procedure EnforceExperimentalLimits(aEffectLine: String);
+  var
+    Fail: Boolean;
+    Identifier: String;
+  begin
+    Fail := false;
+    Identifier := Lowercase(aCollection + ':' + aPiece);
+
+    if (aEffectLine = 'portal') and (Identifier <> 'namida_systemtest:portal') then Fail := true;
+    if (aEffectLine = 'neutralizer') and (Identifier <> 'namida_systemtest:neutral_add') then Fail := true;
+    if (aEffectLine = 'deneutralizer') and (Identifier <> 'namida_systemtest:neutral_remove') then Fail := true;
+    if (aEffectLine = 'addskill') and (Identifier <> 'namida_systemtest:skill_add') then Fail := true;
+    if (aEffectLine = 'removeskill') and (Identifier <> 'namida_systemtest:skill_remove') then Fail := true;
+
+    if Fail then
+      raise Exception.Create('Custom objects of experimental types are not currently allowed.');
+  end;
 begin
   fGS := Lowercase(aCollection);
   fPiece := Lowercase(aPiece);
@@ -283,6 +301,8 @@ begin
     if Lowercase(Sec.LineTrimString['effect']) = 'paint' then fTriggerEffect := DOM_PAINT;
     if Lowercase(Sec.LineTrimString['effect']) = 'animation' then fTriggerEffect := DOM_ANIMATION;
     if Lowercase(Sec.LineTrimString['effect']) = 'animationonce' then fTriggerEffect := DOM_ANIMONCE;
+
+    EnforceExperimentalLimits(Lowercase(Sec.LineTrimString['effect']));
 
     if Sec.Section['PRIMARY_ANIMATION'] = nil then
     begin
