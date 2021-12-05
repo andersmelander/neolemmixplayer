@@ -301,6 +301,11 @@ begin
     if Lowercase(Sec.LineTrimString['effect']) = 'paint' then fTriggerEffect := DOM_PAINT;
     if Lowercase(Sec.LineTrimString['effect']) = 'animation' then fTriggerEffect := DOM_ANIMATION;
     if Lowercase(Sec.LineTrimString['effect']) = 'animationonce' then fTriggerEffect := DOM_ANIMONCE;
+    if Lowercase(Sec.LineTrimString['effect']) = 'neutralizer' then fTriggerEffect := DOM_NEUTRALIZER;
+    if Lowercase(Sec.LineTrimString['effect']) = 'deneutralizer' then fTriggerEffect := DOM_DENEUTRALIZER;
+    if Lowercase(Sec.LineTrimString['effect']) = 'addskill' then fTriggerEffect := DOM_ADDSKILL;
+    if Lowercase(Sec.LineTrimString['effect']) = 'removeskills' then fTriggerEffect := DOM_REMOVESKILLS;
+    if Lowercase(Sec.LineTrimString['effect']) = 'portal' then fTriggerEffect := DOM_PORTAL;
 
     EnforceExperimentalLimits(Lowercase(Sec.LineTrimString['effect']));
 

@@ -199,6 +199,11 @@ type
     trFlipper,
     trNoSplat,
     trSplat,
+    trPortal,
+    trAddSkill,
+    trRemoveSkills,
+    trNeutralizer,
+    trDeneutralizer,
     trZombie
   );
 

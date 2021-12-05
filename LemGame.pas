@@ -35,7 +35,11 @@ const
 
   AlwaysAnimateObjects = [DOM_NONE, DOM_EXIT, DOM_FORCELEFT, DOM_FORCERIGHT,
         DOM_WATER, DOM_FIRE, DOM_ONEWAYLEFT, DOM_ONEWAYRIGHT, DOM_ONEWAYDOWN,
-        DOM_UPDRAFT, DOM_NOSPLAT, DOM_SPLAT, DOM_BACKGROUND, DOM_PAINT];
+        DOM_UPDRAFT, DOM_NOSPLAT, DOM_SPLAT, DOM_BACKGROUND, DOM_PAINT,
+        DOM_PORTAL, DOM_NEUTRALIZER, DOM_DENEUTRALIZER, DOM_REMOVESKILLS];
+
+  // DOM_ADDSKILL is *not* meant to be in this list. Its primary animation works
+  // the same way as pickup skills, and the actual graphic comes from a secondary.
 
 type
   TLemmingKind = (lkNormal, lkNeutral, lkZombie);
@@ -130,6 +134,11 @@ type
     ForceLeftMap               : TArrayArrayBoolean;
     ForceRightMap              : TArrayArrayBoolean;
     AnimMap                    : TArrayArrayBoolean;
+    PortalMap                  : TArrayArrayBoolean;
+    AddSkillMap                : TArrayArrayBoolean;
+    RemoveSkillMap             : TArrayArrayBoolean;
+    NeutralizerMap             : TArrayArrayBoolean;
+    DeneutralizerMap           : TArrayArrayBoolean;
 
     fReplayManager             : TReplay;
 
@@ -530,7 +539,7 @@ const
   DOM_WINDOW           = 23;
   DOM_ANIMATION        = 24; // no longer used!!
   DOM_HINT             = 25;
-  DOM_NOSPLAT          = 26; // no longer used!!
+  DOM_NOSPLAT          = 26;
   DOM_SPLAT            = 27;
   DOM_TWOWAYTELE       = 28; // no longer used!!
   DOM_SINGLETELE       = 29; // no longer used!!
@@ -539,7 +548,12 @@ const
   DOM_BGIMAGE          = 32; // no longer used!!
   DOM_ONEWAYUP         = 33;
   DOM_PAINT            = 34;
-  DOM_ANIMONCE         = 35; *)
+  DOM_ANIMONCE         = 35;
+  DOM_NEUTRALIZER      = 36;
+  DOM_DENEUTRALIZER    = 37;
+  DOM_ADDSKILL         = 38;
+  DOM_REMOVESKILLS     = 39;
+  DOM_PORTAL           = 40; *)
 
   // removal modes
   RM_NEUTRAL           = 0;
@@ -1663,6 +1677,16 @@ begin
   SetLength(ForceRightMap, Level.Info.Width, Level.Info.Height);
   SetLength(AnimMap, 0, 0);
   SetLength(AnimMap, Level.Info.Width, Level.Info.Height);
+  SetLength(PortalMap, 0, 0);
+  SetLength(PortalMap, Level.Info.Width, Level.Info.Height);
+  SetLength(NeutralizerMap, 0, 0);
+  SetLength(NeutralizerMap, Level.Info.Width, Level.Info.Height);
+  SetLength(DeneutralizerMap, 0, 0);
+  SetLength(DeneutralizerMap, Level.Info.Width, Level.Info.Height);
+  SetLength(AddSkillMap, 0, 0);
+  SetLength(AddSkillMap, Level.Info.Width, Level.Info.Height);
+  SetLength(RemoveSkillMap, 0, 0);
+  SetLength(RemoveSkillMap, Level.Info.Width, Level.Info.Height);
 
   BlockerMap.SetSize(Level.Info.Width, Level.Info.Height);
   BlockerMap.Clear(DOM_NONE);
@@ -1806,6 +1830,11 @@ begin
       DOM_FORCERIGHT: WriteTriggerMap(ForceRightMap, Gadgets[i].TriggerRect);
       DOM_ANIMATION:  WriteTriggerMap(AnimMap, Gadgets[i].TriggerRect);
       DOM_ANIMONCE:   WriteTriggerMap(AnimMap, Gadgets[i].TriggerRect);
+      DOM_NEUTRALIZER: WriteTriggerMap(NeutralizerMap, Gadgets[i].TriggerRect);
+      DOM_DENEUTRALIZER: WriteTriggerMap(DeneutralizerMap, Gadgets[i].TriggerRect);
+      DOM_ADDSKILL:   WriteTriggerMap(AddSkillMap, Gadgets[i].TriggerRect);
+      DOM_REMOVESKILLS: WriteTriggerMap(RemoveSkillMap, Gadgets[i].TriggerRect);
+      DOM_PORTAL: WriteTriggerMap(PortalMap, Gadgets[i].TriggerRect);
     end;
   end;
 end;
@@ -2582,6 +2611,11 @@ begin
     trFlipper:    Result :=     ReadTriggerMap(X, Y, FlipperMap);
     trNoSplat:    Result :=     ReadTriggerMap(X, Y, NoSplatMap);
     trSplat:      Result :=     ReadTriggerMap(X, Y, SplatMap);
+    trPortal:     Result :=     ReadTriggerMap(X, Y, PortalMap);
+    trNeutralizer: Result :=    ReadTriggerMap(X, Y, NeutralizerMap);
+    trDeneutralizer: Result :=  ReadTriggerMap(X, Y, DeneutralizerMap);
+    trAddSkill:   Result :=     ReadTriggerMap(X, Y, AddSkillMap);
+    trRemoveSkills: Result :=   ReadTriggerMap(X, Y, RemoveSkillMap);
     trZombie:     Result :=     (ReadZombieMap(X, Y) and 1 <> 0);
   end;
 end;
