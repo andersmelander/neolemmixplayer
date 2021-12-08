@@ -1,0 +1,406 @@
+# ----------------------------- 
+#        NeoLemmix Level        
+#   Created with NLEditor 1.40
+# ----------------------------- 
+ 
+#        Level info             
+# ----------------------------- 
+ TITLE Skill Assigner Test
+ AUTHOR 
+ ID x421C06702DC299A2
+ VERSION x0000000000000002
+ 
+#       Level dimensions        
+# ----------------------------- 
+ WIDTH 176
+ HEIGHT 144
+ THEME orig_dirt
+ 
+#         Level stats           
+# ----------------------------- 
+ LEMMINGS 40
+ SAVE_REQUIREMENT 20
+ MAX_SPAWN_INTERVAL 53
+ 
+ $SKILLSET 
+ $END 
+ 
+#     Interactive objects       
+# ----------------------------- 
+ $GADGET
+   STYLE namida_systemtest
+   PIECE skill_remove
+   X 83
+   Y 55
+   NO_OVERWRITE
+ $END
+ 
+ $GADGET
+   STYLE namida_systemtest
+   PIECE entrance
+   X 1
+   Y 18
+   NO_OVERWRITE
+   GLIDER 
+ $END
+ 
+ $GADGET
+   STYLE namida_systemtest
+   PIECE skill_add
+   X 98
+   Y 111
+   NO_OVERWRITE
+   SKILL CLIMBER
+ $END
+ 
+ $GADGET
+   STYLE namida_systemtest
+   PIECE skill_add
+   X 120
+   Y 111
+   NO_OVERWRITE
+   SKILL FLOATER
+ $END
+ 
+ $GADGET
+   STYLE namida_systemtest
+   PIECE skill_remove
+   X 76
+   Y 111
+   NO_OVERWRITE
+ $END
+ 
+ $GADGET
+   STYLE namida_systemtest
+   PIECE skill_add
+   X 54
+   Y 111
+   NO_OVERWRITE
+   SKILL CLIMBER
+ $END
+ 
+ $GADGET
+   STYLE namida_systemtest
+   PIECE skill_add
+   X 32
+   Y 111
+   NO_OVERWRITE
+   SKILL GLIDER
+ $END
+ 
+ 
+#        Terrain pieces         
+# ----------------------------- 
+ $TERRAIN
+   STYLE namida_systemtest
+   PIECE block_01
+   X 0
+   Y 112
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE namida_systemtest
+   PIECE block_01
+   X 0
+   Y 96
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE namida_systemtest
+   PIECE block_01
+   X 0
+   Y 80
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE namida_systemtest
+   PIECE block_01
+   X 0
+   Y 64
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE namida_systemtest
+   PIECE block_01
+   X 48
+   Y 72
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE namida_systemtest
+   PIECE block_01
+   X 64
+   Y 72
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE namida_systemtest
+   PIECE block_01
+   X 0
+   Y 48
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE namida_systemtest
+   PIECE block_01
+   X 0
+   Y 32
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE namida_systemtest
+   PIECE block_01
+   X 0
+   Y 16
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE namida_systemtest
+   PIECE block_01
+   X 0
+   Y 0
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE namida_systemtest
+   PIECE block_01
+   X 0
+   Y 128
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE namida_systemtest
+   PIECE block_01
+   X 16
+   Y 128
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE namida_systemtest
+   PIECE block_01
+   X 32
+   Y 128
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE namida_systemtest
+   PIECE block_01
+   X 16
+   Y 0
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE namida_systemtest
+   PIECE block_01
+   X 32
+   Y 0
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE namida_systemtest
+   PIECE block_01
+   X 48
+   Y 0
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE namida_systemtest
+   PIECE block_01
+   X 64
+   Y 0
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE namida_systemtest
+   PIECE block_01
+   X 80
+   Y 0
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE namida_systemtest
+   PIECE block_01
+   X 96
+   Y 0
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE namida_systemtest
+   PIECE block_01
+   X 112
+   Y 0
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE namida_systemtest
+   PIECE block_01
+   X 48
+   Y 128
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE namida_systemtest
+   PIECE block_01
+   X 64
+   Y 128
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE namida_systemtest
+   PIECE block_01
+   X 80
+   Y 128
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE namida_systemtest
+   PIECE block_01
+   X 96
+   Y 128
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE namida_systemtest
+   PIECE block_01
+   X 112
+   Y 128
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE namida_systemtest
+   PIECE block_01
+   X 160
+   Y 112
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE namida_systemtest
+   PIECE block_01
+   X 160
+   Y 96
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE namida_systemtest
+   PIECE block_01
+   X 160
+   Y 80
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE namida_systemtest
+   PIECE block_01
+   X 160
+   Y 64
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE namida_systemtest
+   PIECE block_01
+   X 160
+   Y 48
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE namida_systemtest
+   PIECE block_01
+   X 160
+   Y 32
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE namida_systemtest
+   PIECE block_01
+   X 160
+   Y 16
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE namida_systemtest
+   PIECE block_01
+   X 160
+   Y 0
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE namida_systemtest
+   PIECE block_01
+   X 160
+   Y 128
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE namida_systemtest
+   PIECE block_01
+   X 128
+   Y 0
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE namida_systemtest
+   PIECE block_01
+   X 144
+   Y 0
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE namida_systemtest
+   PIECE block_01
+   X 128
+   Y 128
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE namida_systemtest
+   PIECE block_01
+   X 144
+   Y 128
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE namida_systemtest
+   PIECE block_01
+   X 80
+   Y 72
+   ONE_WAY
+ $END
+ 
+ 

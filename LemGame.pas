@@ -3006,9 +3006,24 @@ begin
 end;
 
 function TLemmingGame.HandleAddSkill(L: TLemming; PosX, PosY: Integer): Boolean;
+var
+  Gadget: TGadget;
+  GadgetID: Word;
 begin
   Result := False;
-  CueSoundEffect(SFX_ADD_SKILL, L.Position);
+
+  GadgetID := FindGadgetID(PosX, PosY, trAddSkill);
+  // Exit if there is no Object
+  if GadgetID = 65535 then Exit;
+
+  Gadget := Gadgets[GadgetID];
+
+  if (Gadget.SkillType = spbSlider) and (not L.LemIsSlider) then
+  begin
+    L.LemIsSlider := true;
+    CueSoundEffect(SFX_ADD_SKILL, L.Position);
+  end;
+
   raise Exception.Create('TLemmingGame.HandleAddSkill not yet implemented');
 end;
 

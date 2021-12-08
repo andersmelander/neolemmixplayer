@@ -957,7 +957,7 @@ var
     S := Lowercase(aSection.LineTrimString['skill']);
 
     if S = 'walker' then O.Skill := Integer(spbWalker);
-    if S = 'jumper' then O.Skill := Integer(spbJumper);    
+    if S = 'jumper' then O.Skill := Integer(spbJumper);
     if S = 'shimmier' then O.Skill := Integer(spbShimmier);
     if S = 'slider' then O.Skill := Integer(spbSlider);
     if S = 'climber' then O.Skill := Integer(spbClimber);
@@ -982,6 +982,20 @@ var
       O.TarLev := Max(aSection.LineNumeric['skillcount'], 1)
     else
       O.TarLev := Max(aSection.LineNumeric['skill_count'], 1);
+  end;
+
+  procedure GetSkillAssignerData;
+  var
+    S: String;
+  begin
+    S := Lowercase(aSection.LineTrimString['skill']);
+
+    if S = 'slider' then O.Skill := Integer(spbSlider);
+    if S = 'climber' then O.Skill := Integer(spbClimber);
+    if S = 'swimmer' then O.Skill := Integer(spbSwimmer);
+    if S = 'floater' then O.Skill := Integer(spbFloater);
+    if S = 'glider' then O.Skill := Integer(spbGlider);
+    if S = 'disarmer' then O.Skill := Integer(spbDisarmer);
   end;
 
   procedure GetSplitterData;
@@ -1064,9 +1078,10 @@ begin
   if (aSection.Line['only_on_terrain'] <> nil) then Flag(odf_OnlyOnTerrain);
 
   case MO.TriggerEffect of
-    DOM_TELEPORT: GetTeleporterData;
+    DOM_TELEPORT, DOM_PORTAL: GetTeleporterData;
     DOM_RECEIVER: GetReceiverData;
     DOM_PICKUP: GetPickupData;
+    DOM_ADDSKILL: GetSkillAssignerData;
     DOM_FLIPPER: GetSplitterData;
     DOM_WINDOW: GetWindowData;
     DOM_BACKGROUND: GetMovingBackgroundData;
@@ -1533,6 +1548,22 @@ var
       Sec.AddLine('SKILL_COUNT', O.TarLev);
   end;
 
+  procedure SetSkillAssignerData;
+  var
+    S: String;
+  begin
+    case TSkillPanelButton(O.Skill) of
+     spbSlider: s := 'SLIDER';
+     spbClimber: s := 'CLIMBER';
+     spbSwimmer: s := 'SWIMMER';
+     spbFloater: s := 'FLOATER';
+     spbGlider: s := 'GLIDER';
+     spbDisarmer: s := 'DISARMER';
+    end;
+
+    Sec.AddLine('SKILL', S);
+  end;
+
   procedure SetWindowData;
   begin
     if O.TarLev and 256 <> 0 then Sec.AddLine('SLIDER');
@@ -1601,9 +1632,10 @@ begin
     end else begin
       case PieceManager.Objects[O.Identifier].TriggerEffect of
         DOM_EXIT, DOM_LOCKEXIT: SetExitData;
-        DOM_TELEPORT: SetTeleporterData;
+        DOM_TELEPORT, DOM_PORTAL: SetTeleporterData;
         DOM_RECEIVER: SetReceiverData;
         DOM_PICKUP: SetPickupData;
+        DOM_ADDSKILL: SetSkillAssignerData;
         DOM_WINDOW: SetWindowData;
         DOM_BACKGROUND: SetMovingBackgroundData;
       end;

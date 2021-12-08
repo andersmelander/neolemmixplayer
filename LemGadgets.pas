@@ -356,7 +356,7 @@ end;
 
 function TGadget.GetSkillType: TSkillPanelButton;
 begin
-  Assert(TriggerEffect = DOM_PICKUP, 'Object.SkillType called for non-PickUp skill');
+  Assert(TriggerEffect in [DOM_PICKUP, DOM_ADDSKILL], 'Object.SkillType called for object other than pickup skill or skill assigner');
   Result := TSkillPanelButton(Obj.Skill);
 end;
 
@@ -766,7 +766,7 @@ begin
 
     MetaObj := aGadget.MetaObj;
 
-    if MetaObj.TriggerEffect = DOM_PICKUP then
+    if MetaObj.TriggerEffect in [DOM_PICKUP, DOM_ADDSKILL] then
       fFrame := (aGadget.Obj.Skill * 2) + 1;
 
     if MetaObj.TriggerEffect in [DOM_LOCKEXIT, DOM_BUTTON, DOM_WINDOW, DOM_TRAPONCE, DOM_ANIMONCE] then
