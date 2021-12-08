@@ -314,7 +314,7 @@ const
 const
   // All objects that don't have trigger areas got mapped to trZombie
   // This only works as long as there are no object types that create Zombie fields!!!
-  ObjectTypeToTrigger: array[-1..35] of TTriggerTypes = (
+  ObjectTypeToTrigger: array[-1..40] of TTriggerTypes = (
     trZombie,                 // no-object
     trZombie,                 // no trigger area
     trExit,                   // exit
@@ -351,7 +351,12 @@ const
     trZombie,                 // background image - unused
     trOWUp,                   // OWW up
     trZombie,                 // paint
-    trAnim                    // once animation
+    trAnim,                   // once animation
+    trNeutralizer,            // neutralizer
+    trDeneutralizer,          // deneutralizer
+    trAddSkill,               // permanent skill assigner
+    trRemoveSkills,           // permanent skill remover
+    trPortal                  // portal
   );
 
 type

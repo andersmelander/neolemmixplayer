@@ -18,8 +18,8 @@
  
 #         Level stats           
 # ----------------------------- 
- LEMMINGS 40
- SAVE_REQUIREMENT 20
+ LEMMINGS 10
+ SAVE_REQUIREMENT 10
  MAX_SPAWN_INTERVAL 53
  
  $SKILLSET 

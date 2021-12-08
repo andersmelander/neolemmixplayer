@@ -3024,7 +3024,35 @@ begin
     CueSoundEffect(SFX_ADD_SKILL, L.Position);
   end;
 
-  raise Exception.Create('TLemmingGame.HandleAddSkill not yet implemented');
+  if (Gadget.SkillType = spbClimber) and (not L.LemIsClimber) then
+  begin
+    L.LemIsClimber := true;
+    CueSoundEffect(SFX_ADD_SKILL, L.Position);
+  end;
+
+  if (Gadget.SkillType = spbSwimmer) and (not L.LemIsSwimmer) then
+  begin
+    L.LemIsSwimmer := true;
+    CueSoundEffect(SFX_ADD_SKILL, L.Position);
+  end;
+
+  if (Gadget.SkillType = spbFloater) and (not L.LemIsFloater) then
+  begin
+    L.LemIsFloater := true;
+    CueSoundEffect(SFX_ADD_SKILL, L.Position);
+  end;
+
+  if (Gadget.SkillType = spbGlider) and (not L.LemIsGlider) then
+  begin
+    L.LemIsGlider := true;
+    CueSoundEffect(SFX_ADD_SKILL, L.Position);
+  end;
+
+  if (Gadget.SkillType = spbDisarmer) and (not L.LemIsDisarmer) then
+  begin
+    L.LemIsDisarmer := true;
+    CueSoundEffect(SFX_ADD_SKILL, L.Position);
+  end;
 end;
 
 function TLemmingGame.HandleRemoveSkills(L: TLemming): Boolean;
