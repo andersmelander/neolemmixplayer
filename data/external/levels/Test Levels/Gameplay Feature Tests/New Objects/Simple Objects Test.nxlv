@@ -1,0 +1,174 @@
+# ----------------------------- 
+#        NeoLemmix Level        
+#   Created with NLEditor 1.40
+# ----------------------------- 
+ 
+#        Level info             
+# ----------------------------- 
+ TITLE Simple Objects Test
+ AUTHOR 
+ ID x1BCDF48A5778D50F
+ VERSION x0000000000000002
+ 
+#       Level dimensions        
+# ----------------------------- 
+ WIDTH 192
+ HEIGHT 120
+ THEME orig_dirt
+ 
+#         Level stats           
+# ----------------------------- 
+ LEMMINGS 40
+ SAVE_REQUIREMENT 20
+ MAX_SPAWN_INTERVAL 53
+ 
+ $SKILLSET 
+   WALKER 30
+   JUMPER 30
+   SHIMMIER 30
+   SLIDER 30
+   CLIMBER 30
+   FLOATER 30
+   GLIDER 30
+   CLONER 30
+ $END 
+ 
+#     Interactive objects       
+# ----------------------------- 
+ $GADGET
+   STYLE namida_systemtest
+   PIECE neutral_add
+   X 64
+   Y 79
+ $END
+ 
+ $GADGET
+   STYLE namida_systemtest
+   PIECE neutral_remove
+   X 108
+   Y 79
+ $END
+ 
+ $GADGET
+   STYLE namida_systemtest
+   PIECE skill_remove
+   X 86
+   Y 79
+ $END
+ 
+ $GADGET
+   STYLE namida_systemtest
+   PIECE exit
+   X 53
+   Y 23
+   NO_OVERWRITE
+ $END
+ 
+ $GADGET
+   STYLE namida_systemtest
+   PIECE entrance
+   X 80
+   Y 6
+   NO_OVERWRITE
+ $END
+ 
+ 
+#        Terrain pieces         
+# ----------------------------- 
+ $TERRAIN
+   STYLE ohno_brick
+   PIECE bricks_large_02
+   X 64
+   Y 40
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE ohno_brick
+   PIECE bricks_large_02
+   X 64
+   Y 96
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE ohno_brick
+   PIECE bricks_large_02
+   X 0
+   Y 96
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE ohno_brick
+   PIECE bricks_large_02
+   X 128
+   Y 96
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE ohno_brick
+   PIECE bricks_small_01
+   X 0
+   Y 48
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE ohno_brick
+   PIECE bricks_small_01
+   X 0
+   Y 0
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE ohno_brick
+   PIECE bricks_small_01
+   X 160
+   Y 0
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE ohno_brick
+   PIECE bricks_small_01
+   X 160
+   Y 48
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE ohno_brick
+   PIECE platform_01
+   X 32
+   Y 0
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE ohno_brick
+   PIECE platform_01
+   X 64
+   Y 0
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE ohno_brick
+   PIECE platform_01
+   X 96
+   Y 0
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE ohno_brick
+   PIECE platform_01
+   X 128
+   Y 0
+   ONE_WAY
+ $END
+ 
+ 

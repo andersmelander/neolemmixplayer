@@ -255,6 +255,11 @@ type
       function HandleFlipper(L: TLemming; PosX, PosY: Integer): Boolean;
       function HandleWaterDrown(L: TLemming): Boolean;
       function HandleWaterSwim(L: TLemming): Boolean;
+      function HandlePortal(L: TLemming; PosX, PosY: Integer): Boolean;
+      function HandleAddSkill(L: TLemming; PosX, PosY: Integer): Boolean;
+      function HandleRemoveSkills(L: TLemming): Boolean;
+      function HandleNeutralize(L: TLemming): Boolean;
+      function HandleDeneutralize(L: TLemming): Boolean;
 
     function CheckForOverlappingField(L: TLemming): Boolean;
     procedure CheckForQueuedAction;
@@ -2526,9 +2531,29 @@ begin
       if (L.LemAction = baFixing) then CheckPos[0, i] := L.LemX;
     end;
 
+    // Portal
+    if (not AbortChecks) and HasTriggerAt(CheckPos[0, i], CheckPos[1, i], trPortal) then
+      AbortChecks := HandlePortal(L, CheckPos[0, i], CheckPos[1, i]);
+
     // Teleporter
     if (not AbortChecks) and HasTriggerAt(CheckPos[0, i], CheckPos[1, i], trTeleport) then
       AbortChecks := HandleTeleport(L, CheckPos[0, i], CheckPos[1, i]);
+
+    // Neutralizer
+    if (not AbortChecks) and HasTriggerAt(CheckPos[0, i], CheckPos[1, i], trNeutralizer) then
+      HandleNeutralize(L); // never aborts checks
+
+    // Deneutralizer
+    if (not AbortChecks) and HasTriggerAt(CheckPos[0, i], CheckPos[1, i], trDeneutralizer) then
+      HandleDeneutralize(L); // never aborts checks
+
+    // Skill Adder
+    if (not AbortChecks) and HasTriggerAt(CheckPos[0, i], CheckPos[1, i], trAddSkill) then
+      HandleAddSkill(L, CheckPos[0, i], CheckPos[1, i]); // never aborts checks
+
+    // Skill Remover
+    if (not AbortChecks) and HasTriggerAt(CheckPos[0, i], CheckPos[1, i], trRemoveSkills) then
+      HandleRemoveSkills(L); // never aborts checks
 
     // Exits
     if (not AbortChecks) and HasTriggerAt(CheckPos[0, i], CheckPos[1, i], trExit) then
@@ -2546,7 +2571,7 @@ begin
 
     // Triggered animations and one-shot animations
     if (not AbortChecks) and HasTriggerAt(CheckPos[0, i], CheckPos[1, i], trAnim) then
-      HandleAnimation(L, CheckPos[0, i], CheckPos[1, i]); // HandleAnimation will never activate AbortChecks
+      HandleAnimation(L, CheckPos[0, i], CheckPos[1, i]); // never aborts checks
 
     // If the lem was required stop, move him there!
     if AbortChecks then
@@ -2970,6 +2995,58 @@ begin
   begin
     Transition(L, baSwimming);
     CueSoundEffect(SFX_SWIMMING, L.Position);
+  end;
+end;
+
+function TLemmingGame.HandlePortal(L: TLemming; PosX, PosY: Integer): Boolean;
+begin
+  Result := True;
+  CueSoundEffect(SFX_PORTAL, L.Position);
+  raise Exception.Create('TLemmingGame.HandlePortal not yet implemented');
+end;
+
+function TLemmingGame.HandleAddSkill(L: TLemming; PosX, PosY: Integer): Boolean;
+begin
+  Result := False;
+  CueSoundEffect(SFX_ADD_SKILL, L.Position);
+  raise Exception.Create('TLemmingGame.HandleAddSkill not yet implemented');
+end;
+
+function TLemmingGame.HandleRemoveSkills(L: TLemming): Boolean;
+begin
+  Result := False;
+
+  if L.HasPermanentSkills then
+  begin
+    CueSoundEffect(SFX_REMOVE_SKILLS, L.Position);
+    L.LemIsClimber := false;
+    L.LemIsSlider := false;
+    L.LemIsSwimmer := false;
+    L.LemIsFloater := false;
+    L.LemIsGlider := false;
+    L.LemIsDisarmer := false;
+  end;
+end;
+
+function TLemmingGame.HandleNeutralize(L: TLemming): Boolean;
+begin
+  Result := False;
+
+  if not (L.LemIsNeutral or L.LemIsZombie) then
+  begin
+    CueSoundEffect(SFX_NEUTRALIZE, L.Position);
+    L.LemIsNeutral := true;
+  end;
+end;
+
+function TLemmingGame.HandleDeneutralize(L: TLemming): Boolean;
+begin
+  Result := False;
+
+  if L.LemIsNeutral and not L.LemIsZombie then
+  begin
+    CueSoundEffect(SFX_DENEUTRALIZE, L.Position);
+    L.LemIsNeutral := false;
   end;
 end;
 
