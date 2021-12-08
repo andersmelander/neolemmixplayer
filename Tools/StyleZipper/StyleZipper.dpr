@@ -13,10 +13,11 @@ uses
   SZChecksummer;
 
 const
-  DEFAULT_SOUNDS: array[0..28] of string =
+  DEFAULT_SOUNDS: array[0..33] of string =
    ('chain',
     'changeop',
     'chink',
+    'deneutralize',
     'die',
     'door',
     'electric',
@@ -27,8 +28,12 @@ const
     'glug',
     'letsgo',
     'mousepre',
+    'neutralize',
     'ohno',
     'oing2',
+    'portal',
+    'skill_add',
+    'skill_remove',
     'slurp',
     'splash',
     'splat',

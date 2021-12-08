@@ -326,6 +326,7 @@ begin
   Get('chain');
   Get('changeop');
   Get('chink');
+  Get('deneutralize');
   Get('die');
   Get('door');
   Get('electric');
@@ -334,8 +335,12 @@ begin
   Get('glug');
   Get('letsgo');
   Get('mousepre');
+  Get('neutralize');
   Get('ohno');
   Get('oing2');
+  Get('portal');
+  Get('skill_add');
+  Get('skill_remove');
   Get('slurp');
   Get('splash');
   Get('splat');
