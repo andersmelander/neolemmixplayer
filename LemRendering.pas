@@ -455,7 +455,7 @@ begin
     SrcRect := SizedRect(WarpWidth * ((aLemming.LemPortalWarpFrame + 2) mod 3), 0,
                          WarpWidth, fAni.WarpBitmap.Height);
     DstRect := SizedRect(
-                           DstRect.Left + SrcMetaAnim.FootX - (WarpWidth div 2),
+                           DstRect.Left + SrcMetaAnim.FootX - (WarpWidth div 2) + 1,
                            (DstRect.Top + DstRect.Bottom - fAni.WarpBitmap.Height) div 2,
                            WarpWidth, fAni.WarpBitmap.Height
                          );
