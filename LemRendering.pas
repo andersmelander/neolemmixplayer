@@ -354,6 +354,7 @@ var
   TriggerRect: TRect;
   TriggerLeft, TriggerTop: Integer;
   i: Integer;
+  WarpWidth: Integer;
 
   Selected: Boolean;
 
@@ -440,9 +441,27 @@ begin
 
   SrcRect := GetFrameBounds;
   DstRect := GetLocationBounds;
-  SrcAnim.DrawMode := dmCustom;
-  SrcAnim.OnPixelCombine := Recolorer.CombineLemmingPixels;
-  SrcAnim.DrawTo(fLayers[rlLemmings], DstRect, SrcRect);
+
+  if (aLemming.LemPortalWarpFrame < 3) or (aLemming.LemPortalWarpFrame > 4) then
+  begin
+    SrcAnim.DrawMode := dmCustom;
+    SrcAnim.OnPixelCombine := Recolorer.CombineLemmingPixels;
+    SrcAnim.DrawTo(fLayers[rlLemmings], DstRect, SrcRect);
+  end;
+
+  if (aLemming.LemPortalWarpFrame > 0) then
+  begin
+    WarpWidth := fAni.WarpBitmap.Width div 3;
+    SrcRect := SizedRect(WarpWidth * ((aLemming.LemPortalWarpFrame + 2) mod 3), 0,
+                         WarpWidth, fAni.WarpBitmap.Height);
+    DstRect := SizedRect(
+                           DstRect.Left + SrcMetaAnim.FootX - (WarpWidth div 2),
+                           (DstRect.Top + DstRect.Bottom - fAni.WarpBitmap.Height) div 2,
+                           WarpWidth, fAni.WarpBitmap.Height
+                         );
+
+    fAni.WarpBitmap.DrawTo(fLayers[rlLemmings], DstRect, SrcRect);
+  end;
 
   // Helper for selected lemming
   if (Selected and aLemming.CannotReceiveSkills) or UsefulOnly or
