@@ -6243,6 +6243,8 @@ begin
          or HasTriggerAt(LemPosArray[0, i], LemPosArray[1, i], trFire)
          or (    HasTriggerAt(LemPosArray[0, i], LemPosArray[1, i], trTeleport)
              and (FindGadgetID(LemPosArray[0, i], LemPosArray[1, i], trTeleport) <> 65535))
+         or (    HasTriggerAt(LemPosArray[0, i], LemPosArray[1, i], trPortal)
+             and (FindGadgetID(LemPosArray[0, i], LemPosArray[1, i], trPortal) <> 65535))
          then
       begin
         L.LemAction := baExploding; // This always stops the simulation!
