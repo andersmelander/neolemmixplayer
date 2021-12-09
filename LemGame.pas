@@ -266,6 +266,7 @@ type
     procedure CheckForReplayAction(PausedRRCheck: Boolean = false);
     procedure CheckLemmings;
     function CheckLemTeleporting(L: TLemming): Boolean;
+    function CheckLemPortalWarping(L: TLemming): Boolean;
     procedure CheckReleaseLemming;
     procedure CheckUpdateNuking;
     procedure CueSoundEffect(aSound: String); overload;
@@ -2089,7 +2090,7 @@ begin
     if (IsHighlight and not (L = GetHighlitLemming))
     or (IsReplay and not (L = GetTargetLemming)) then Continue;
     // Does Lemming exist
-    if L.LemRemoved or L.LemTeleporting then Continue;
+    if L.LemRemoved or L.LemTeleporting or (L.LemPortalWarpFrame > 0) then Continue;
     // Is the Lemming unable to receive skills, because zombie, neutral, or was-ohnoer? (remove unless we haven't yet had any lem under the cursor)
     if L.CannotReceiveSkills and Assigned(PriorityLem) then Continue;
     // Is Lemming inside cursor (only check if we are not using Hightlightning!)
@@ -2584,6 +2585,11 @@ begin
     if not HasTriggerAt(CheckPos[0, i], CheckPos[1, i], trFlipper)
        and not ((L.LemActionOld = baJumping) or (L.LemAction = baJumping)) then
       L.LemInFlipper := DOM_NOOBJECT;
+
+    // Set L.LemInPortal correctly
+    if not HasTriggerAt(CheckPos[0, i], CheckPos[1, i], trPortal) then
+      L.LemInPortal := DOM_NOOBJECT;
+
   until [CheckPos[0, i], CheckPos[1, i]] = [L.LemX, L.LemY] (*or AbortChecks*);
 
   if NeedShiftPosition then
@@ -2999,10 +3005,38 @@ begin
 end;
 
 function TLemmingGame.HandlePortal(L: TLemming; PosX, PosY: Integer): Boolean;
+var
+  Gadget: TGadget;
+  GadgetID: Word;
 begin
+  Result := False;
+
+  // Exit if lemming is splatting
+  if L.LemAction = baSplatting then Exit;
+  // Exit if lemming is falling, has ground under his feet and will splat
+  if (L.LemAction = baFalling) and HasPixelAt(PosX, PosY) and (L.LemFallen > MAX_FALLDISTANCE) then Exit;
+
+  GadgetID := FindGadgetID(PosX, PosY, trPortal);
+
+  // Exit if there is no Object
+  if GadgetID = 65535 then Exit;
+  if GadgetID = L.LemInPortal then Exit;
+
   Result := True;
+
+  Gadget := Gadgets[GadgetID];
+
+  Assert((Gadget.ReceiverID >= 0) and (Gadget.ReceiverID < Gadgets.Count), 'ReceiverID for portal out of bounds.');
+  Assert(Gadgets[Gadget.ReceiverID].TriggerEffect = DOM_PORTAL, 'Receiving object for portal has wrong trigger effect.');
+
   CueSoundEffect(SFX_PORTAL, L.Position);
-  raise Exception.Create('TLemmingGame.HandlePortal not yet implemented');
+  L.LemPortalWarpFrame := 1;
+
+  // Make sure to remove the blocker field and the Dehoister pin
+  L.LemHasBlockerField := False;
+  L.LemDehoistPinY := -1;
+
+  SetBlockerMap;
 end;
 
 function TLemmingGame.HandleAddSkill(L: TLemming; PosX, PosY: Integer): Boolean;
@@ -6114,6 +6148,9 @@ begin
       if LemTeleporting then
         ContinueWithLem := CheckLemTeleporting(CurrentLemming);
 
+      if ContinueWithLem and (LemPortalWarpFrame > 0) then
+        ContinueWithLem := CheckLemPortalWarping(CurrentLemming);
+
       // Explosion-Countdown
       if ContinueWithLem and (LemExplosionTimer <> 0) then
         ContinueWithLem := not UpdateExplosionTimer(CurrentLemming);
@@ -6282,6 +6319,39 @@ begin
       SetBlockerMap;
     end;
   end;
+end;
+
+function TLemmingGame.CheckLemPortalWarping(L: TLemming): Boolean;
+var
+  GadgetID: Integer;
+  Gadget: TGadget;
+
+  DestGadgetID: Integer;
+  DestGadget: TGadget;
+begin
+  Result := False;
+
+  Assert(L.LemPortalWarpFrame > 0, 'CheckLemPortalWarping called for non-warping lemming');
+
+  Inc(L.LemPortalWarpFrame);
+
+  if L.LemPortalWarpFrame = 4 then
+  begin
+    // Search for Portal, the lemming is in
+    GadgetID := FindGadgetID(L.LemX, L.LemY, trPortal);
+    Assert(GadgetID < Gadgets.Count, 'Portal associated to warping lemming not found');
+
+    Gadget := Gadgets[GadgetID];
+    if Gadget.TriggerEffect <> DOM_PORTAL then Exit;
+
+    DestGadgetID := Gadget.ReceiverId;
+    DestGadget := Gadgets[DestGadgetID];
+
+    L.LemX := DestGadget.TriggerRect.Left + ((DestGadget.TriggerRect.Width + 1) div 2);
+    L.LemY := DestGadget.TriggerRect.Bottom - 1;
+    L.LemInPortal := DestGadgetID;
+  end else if L.LemPortalWarpFrame >= 7 then
+    L.LemPortalWarpFrame := 0;
 end;
 
 
