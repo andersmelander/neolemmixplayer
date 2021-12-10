@@ -2556,7 +2556,14 @@ begin
     if (not AbortChecks) and HasTriggerAt(CheckPos[0, i], CheckPos[1, i], trRemoveSkills) then
     begin
       if HandleRemoveSkills(L) then // never aborts checks
-        CheckPos := GetGadgetCheckPositions(L); // but if it returns TRUE, it means CheckPos needs to be regenerated
+      begin
+        // but other special handling is needed when it returns TRUE
+        L.LemXOld := CheckPos[0, i];
+        L.LemYOld := CheckPos[1, i];
+        i := 0;
+        CheckPos := GetGadgetCheckPositions(L);
+        Continue;
+      end;
     end;
 
     // Exits
