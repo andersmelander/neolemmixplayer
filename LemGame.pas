@@ -2555,15 +2555,9 @@ begin
     // Skill Remover
     if (not AbortChecks) and HasTriggerAt(CheckPos[0, i], CheckPos[1, i], trRemoveSkills) then
     begin
-      if HandleRemoveSkills(L) then // never aborts checks
-      begin
-        // but other special handling is needed when it returns TRUE
-        L.LemXOld := CheckPos[0, i];
-        L.LemYOld := CheckPos[1, i];
-        i := 0;
-        CheckPos := GetGadgetCheckPositions(L);
-        Continue;
-      end;
+      NeedShiftPosition := (L.LemAction in [baClimbing, baSliding, baDehoisting]);
+      AbortChecks := HandleRemoveSkills(L);
+      NeedShiftPosition := NeedShiftPosition and AbortChecks;
     end;
 
     // Exits
@@ -3101,10 +3095,6 @@ end;
 
 function TLemmingGame.HandleRemoveSkills(L: TLemming): Boolean;
 begin
-  // This one returns TRUE if the lemming had permanent skills. It is NOT interpreted
-  // as aborting the checks; rather, it is interpreted as needing to regenerate the
-  // check positions.
-
   if L.HasPermanentSkills then
   begin
     CueSoundEffect(SFX_REMOVE_SKILLS, L.Position);
