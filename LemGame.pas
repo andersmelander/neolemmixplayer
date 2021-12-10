@@ -3109,11 +3109,7 @@ begin
     Result := false;
 
   case L.LemAction of
-    baClimbing, baDehoisting, baSliding:
-      begin
-        Dec(L.LemX, L.LemDX);
-        Transition(L, baFalling, true);
-      end;
+    baClimbing, baDehoisting, baSliding: Transition(L, baFalling, true);
     baFloating, baGliding: Transition(L, baFalling);
     baSwimming: Transition(L, baDrowning);
     // Disarmer (a) should never happen, and (b) would purely result in the lemming skipping the animation, so is not handled.
