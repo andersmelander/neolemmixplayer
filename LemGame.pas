@@ -2554,7 +2554,10 @@ begin
 
     // Skill Remover
     if (not AbortChecks) and HasTriggerAt(CheckPos[0, i], CheckPos[1, i], trRemoveSkills) then
-      HandleRemoveSkills(L); // never aborts checks
+    begin
+      if HandleRemoveSkills(L) then // never aborts checks
+        CheckPos := GetGadgetCheckPositions(L); // but if it returns TRUE, it means CheckPos needs to be regenerated
+    end;
 
     // Exits
     if (not AbortChecks) and HasTriggerAt(CheckPos[0, i], CheckPos[1, i], trExit) then
@@ -3091,7 +3094,9 @@ end;
 
 function TLemmingGame.HandleRemoveSkills(L: TLemming): Boolean;
 begin
-  Result := False;
+  // This one returns TRUE if the lemming had permanent skills. It is NOT interpreted
+  // as aborting the checks; rather, it is interpreted as needing to regenerate the
+  // check positions.
 
   if L.HasPermanentSkills then
   begin
@@ -3102,6 +3107,19 @@ begin
     L.LemIsFloater := false;
     L.LemIsGlider := false;
     L.LemIsDisarmer := false;
+    Result := true;
+  end else
+    Result := false;
+
+  case L.LemAction of
+    baClimbing, baDehoisting, baSliding:
+      begin
+        Dec(L.LemX, L.LemDX);
+        Transition(L, baFalling, true);
+      end;
+    baFloating, baGliding: Transition(L, baFalling);
+    baSwimming: Transition(L, baDrowning);
+    // Disarmer (a) should never happen, and (b) would purely result in the lemming skipping the animation, so is not handled.
   end;
 end;
 
