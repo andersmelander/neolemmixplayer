@@ -2543,7 +2543,7 @@ begin
     end;
 
     // Portal
-    if (not AbortChecks) and HasTriggerAt(CheckPos[0, i], CheckPos[1, i], trPortal) then
+    if (not AbortChecks) and HasTriggerAt(CheckPos[0, i], CheckPos[1, i], trPortal) and not IsPostTeleportCheck then
       AbortChecks := HandlePortal(L, CheckPos[0, i], CheckPos[1, i]);
 
     // Teleporter
@@ -6342,24 +6342,6 @@ begin
   HandlePostTeleport(L);
 end;
 
-procedure TLemmingGame.HandlePostTeleport(L: TLemming);
-begin
-  // Check for trigger areas.
-  CheckTriggerArea(L, true);
-
-  // Reset blocker map, if lemming is a blocker and the target position is free
-  if L.LemAction = baBlocking then
-  begin
-    if CheckForOverlappingField(L) then
-      Transition(L, baWalking)
-    else
-    begin
-      L.LemHasBlockerField := True;
-      SetBlockerMap;
-    end;
-  end;
-end;
-
 function TLemmingGame.CheckLemPortalWarping(L: TLemming): Boolean;
 var
   GadgetID: Integer;
@@ -6389,8 +6371,28 @@ begin
     L.LemX := DestGadget.TriggerRect.Left + ((DestGadget.TriggerRect.Width + 1) div 2);
     L.LemY := DestGadget.TriggerRect.Bottom - 1;
     L.LemInPortal := DestGadgetID;
+
+    HandlePostTeleport(L);
   end else if L.LemPortalWarpFrame >= 7 then
     L.LemPortalWarpFrame := 0;
+end;
+
+procedure TLemmingGame.HandlePostTeleport(L: TLemming);
+begin
+  // Check for trigger areas.
+  CheckTriggerArea(L, true);
+
+  // Reset blocker map, if lemming is a blocker and the target position is free
+  if L.LemAction = baBlocking then
+  begin
+    if CheckForOverlappingField(L) then
+      Transition(L, baWalking)
+    else
+    begin
+      L.LemHasBlockerField := True;
+      SetBlockerMap;
+    end;
+  end;
 end;
 
 
