@@ -3074,13 +3074,13 @@ begin
     CueSoundEffect(SFX_ADD_SKILL, L.Position);
   end;
 
-  if (Gadget.SkillType = spbFloater) and (not L.LemIsFloater) then
+  if (Gadget.SkillType = spbFloater) and (not (L.LemIsFloater or L.LemIsGlider)) then
   begin
     L.LemIsFloater := true;
     CueSoundEffect(SFX_ADD_SKILL, L.Position);
   end;
 
-  if (Gadget.SkillType = spbGlider) and (not L.LemIsGlider) then
+  if (Gadget.SkillType = spbGlider) and (not (L.LemIsFloater or L.LemIsGlider)) then
   begin
     L.LemIsGlider := true;
     CueSoundEffect(SFX_ADD_SKILL, L.Position);
