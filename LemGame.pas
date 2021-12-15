@@ -3111,6 +3111,8 @@ begin
 end;
 
 function TLemmingGame.HandleRemoveSkills(L: TLemming): Boolean;
+var
+  OldAction: TBasicLemmingAction;
 begin
   if L.HasPermanentSkills then
   begin
@@ -3122,15 +3124,23 @@ begin
     L.LemIsGlider := false;
     L.LemIsDisarmer := false;
     Result := true;
+
+    OldAction := L.LemAction;
+
+    case L.LemAction of
+      baClimbing, baDehoisting, baSliding: Transition(L, baFalling, true);
+      baFloating, baGliding: Transition(L, baFalling);
+      baSwimming: Transition(L, baDrowning);
+      // Disarmer (a) should never happen, and (b) would purely result in the lemming skipping the animation, so is not handled.
+    end;
+
+    if (L.LemAction = baFalling) and (OldAction <> baFalling) then
+    begin
+      L.LemFallen := -1;
+      L.LemTrueFallen := -1;
+    end;
   end else
     Result := false;
-
-  case L.LemAction of
-    baClimbing, baDehoisting, baSliding: Transition(L, baFalling, true);
-    baFloating, baGliding: Transition(L, baFalling);
-    baSwimming: Transition(L, baDrowning);
-    // Disarmer (a) should never happen, and (b) would purely result in the lemming skipping the animation, so is not handled.
-  end;
 end;
 
 function TLemmingGame.HandleNeutralize(L: TLemming): Boolean;
