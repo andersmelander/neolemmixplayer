@@ -12,6 +12,7 @@ object NewReplayEditorForm: TNewReplayEditorForm
   Font.Style = []
   OldCreateOrder = False
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   OnShow = FormShow
   DesignSize = (
     635
@@ -55,7 +56,7 @@ object NewReplayEditorForm: TNewReplayEditorForm
     Height = 305
     Caption = 'Metadata'
     TabOrder = 3
-    object lblMetadataPlaceholder: TLabel
+    object lblMetadataPlayerName: TLabel
       Left = 16
       Top = 17
       Width = 60
@@ -68,7 +69,7 @@ object NewReplayEditorForm: TNewReplayEditorForm
       Font.Style = [fsUnderline]
       ParentFont = False
     end
-    object Label1: TLabel
+    object lblMetadataLevelID: TLabel
       Left = 16
       Top = 57
       Width = 39
@@ -81,7 +82,7 @@ object NewReplayEditorForm: TNewReplayEditorForm
       Font.Style = [fsUnderline]
       ParentFont = False
     end
-    object Label2: TLabel
+    object lblMetadataLevelTitle: TLabel
       Left = 16
       Top = 97
       Width = 48
@@ -94,7 +95,7 @@ object NewReplayEditorForm: TNewReplayEditorForm
       Font.Style = [fsUnderline]
       ParentFont = False
     end
-    object Label3: TLabel
+    object lblMetadataLevelAuthor: TLabel
       Left = 16
       Top = 137
       Width = 61
@@ -107,7 +108,7 @@ object NewReplayEditorForm: TNewReplayEditorForm
       Font.Style = [fsUnderline]
       ParentFont = False
     end
-    object Label4: TLabel
+    object lblMetadataLevelPack: TLabel
       Left = 16
       Top = 177
       Width = 50
@@ -120,7 +121,7 @@ object NewReplayEditorForm: TNewReplayEditorForm
       Font.Style = [fsUnderline]
       ParentFont = False
     end
-    object Label5: TLabel
+    object lblMetadataLevelGroup: TLabel
       Left = 16
       Top = 217
       Width = 79
@@ -133,7 +134,7 @@ object NewReplayEditorForm: TNewReplayEditorForm
       Font.Style = [fsUnderline]
       ParentFont = False
     end
-    object Label6: TLabel
+    object lblMetadataLevelNumber: TLabel
       Left = 16
       Top = 257
       Width = 36
@@ -146,7 +147,7 @@ object NewReplayEditorForm: TNewReplayEditorForm
       Font.Style = [fsUnderline]
       ParentFont = False
     end
-    object Label7: TLabel
+    object lblMetadataLevelVersion: TLabel
       Left = 96
       Top = 257
       Width = 63
@@ -159,7 +160,8 @@ object NewReplayEditorForm: TNewReplayEditorForm
       Font.Style = [fsUnderline]
       ParentFont = False
     end
-    object ebMetadataPlaceholder: TEdit
+    object ebMetadataPlayerName: TEdit
+      Tag = 1
       Left = 16
       Top = 32
       Width = 153
@@ -167,7 +169,8 @@ object NewReplayEditorForm: TNewReplayEditorForm
       TabOrder = 0
       Text = 'Placeholder'
     end
-    object Edit1: TEdit
+    object ebMetadataLevelID: TEdit
+      Tag = 2
       Left = 16
       Top = 72
       Width = 153
@@ -175,7 +178,8 @@ object NewReplayEditorForm: TNewReplayEditorForm
       TabOrder = 1
       Text = 'Placeholder'
     end
-    object Edit2: TEdit
+    object ebMetadataLevelTitle: TEdit
+      Tag = 3
       Left = 16
       Top = 112
       Width = 153
@@ -183,7 +187,8 @@ object NewReplayEditorForm: TNewReplayEditorForm
       TabOrder = 2
       Text = 'Placeholder'
     end
-    object Edit3: TEdit
+    object ebMetadataLevelAuthor: TEdit
+      Tag = 4
       Left = 16
       Top = 152
       Width = 153
@@ -191,7 +196,8 @@ object NewReplayEditorForm: TNewReplayEditorForm
       TabOrder = 3
       Text = 'Placeholder'
     end
-    object Edit4: TEdit
+    object ebMetadataLevelPack: TEdit
+      Tag = 5
       Left = 16
       Top = 192
       Width = 153
@@ -199,7 +205,8 @@ object NewReplayEditorForm: TNewReplayEditorForm
       TabOrder = 4
       Text = 'Placeholder'
     end
-    object Edit5: TEdit
+    object ebMetadataLevelGroup: TEdit
+      Tag = 6
       Left = 16
       Top = 232
       Width = 153
@@ -207,7 +214,8 @@ object NewReplayEditorForm: TNewReplayEditorForm
       TabOrder = 5
       Text = 'Placeholder'
     end
-    object Edit6: TEdit
+    object ebMetadataLevelNumber: TEdit
+      Tag = 7
       Left = 16
       Top = 272
       Width = 73
@@ -216,7 +224,8 @@ object NewReplayEditorForm: TNewReplayEditorForm
       TabOrder = 6
       Text = 'Placeholder'
     end
-    object Edit7: TEdit
+    object ebMetadataLevelVersion: TEdit
+      Tag = 8
       Left = 96
       Top = 272
       Width = 73
