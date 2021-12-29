@@ -1559,8 +1559,14 @@ begin
                      CueSoundEffect(SFX_YIPPEE, L.Position);
                    end;
     baVaporizing : L.LemExplosionTimer := 0;
-    baBuilding   : L.LemNumberOfBricksLeft := 12;
-    baPlatforming: L.LemNumberOfBricksLeft := 12;
+    baBuilding   : begin
+                     L.LemNumberOfBricksLeft := 12;
+                     L.LemConstructivePositionFreeze := false;
+                   end;
+    baPlatforming: begin
+                     L.LemNumberOfBricksLeft := 12;
+                     L.LemConstructivePositionFreeze := false;
+                   end;
     baStacking   : L.LemNumberOfBricksLeft := 8;
     baOhnoing,
     baStoning    : begin
@@ -4117,7 +4123,7 @@ begin
       Transition(L, baWalking, True);  // turn around as well
     end
 
-    else
+    else if not L.LemConstructivePositionFreeze then
       Inc(L.LemX, L.LemDx);
   end
 
@@ -4137,7 +4143,8 @@ begin
 
     else
     begin
-      Inc(L.LemX, 2*L.LemDx);
+      if not L.LemConstructivePositionFreeze then
+        Inc(L.LemX, 2*L.LemDx);
       Dec(L.LemNumberOfBricksLeft); // Why are we doing this here, instead at the beginning of frame 15??
       if L.LemNumberOfBricksLeft = 0 then
       begin
@@ -4146,7 +4153,10 @@ begin
         Transition(L, baShrugging);
       end;
     end;
-  end
+  end;
+
+  if L.LemPhysicsFrame = 0 then
+    L.LemConstructivePositionFreeze := false;
 end;
 
 
@@ -4180,8 +4190,11 @@ begin
 
     else
     begin
-      Dec(L.LemY);
-      Inc(L.LemX, 2*L.LemDx);
+      if not L.LemConstructivePositionFreeze then
+      begin
+        Dec(L.LemY);
+        Inc(L.LemX, 2*L.LemDx);
+      end;
 
       if (     HasPixelAt(L.LemX, L.LemY - 2)
            or  HasPixelAt(L.LemX, L.LemY - 3)
@@ -4194,6 +4207,9 @@ begin
          Transition(L, baShrugging);
     end;
   end;
+
+  if L.LemPhysicsFrame = 0 then
+    L.LemConstructivePositionFreeze := false;
 end;
 
 
@@ -6403,6 +6419,9 @@ begin
       SetBlockerMap;
     end;
   end;
+
+  if (L.LemAction in [baBuilding, baPlatforming]) and (L.LemPhysicsFrame >= 9) then
+  L.LemConstructivePositionFreeze := true;
 end;
 
 
