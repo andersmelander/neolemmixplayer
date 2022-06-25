@@ -2483,7 +2483,8 @@ var
   i: Integer;
   AbortChecks: Boolean;
 
-  NeedShiftPosition: Boolean;
+  NeedShiftPosition: Integer;
+  WasAttachedToWall: Boolean;
   SavePos: TPoint;
 begin
   // If this is a post-teleport check, (a) reset previous position and (b) remember new position
@@ -2500,7 +2501,8 @@ begin
   // Now move through the values in CheckPosX/Y and check for trigger areas
   i := -1;
   AbortChecks := False;
-  NeedShiftPosition := False;
+  NeedShiftPosition := 0;
+  WasAttachedToWall := False;
   repeat
     Inc(i);
 
@@ -2571,9 +2573,9 @@ begin
     // Skill Remover
     if (not AbortChecks) and HasTriggerAt(CheckPos[0, i], CheckPos[1, i], trRemoveSkills) then
     begin
-      NeedShiftPosition := (L.LemAction in [baClimbing, baSliding, baDehoisting]);
+      WasAttachedToWall := (L.LemAction in [baClimbing, baSliding, baDehoisting]);
       AbortChecks := HandleRemoveSkills(L);
-      NeedShiftPosition := NeedShiftPosition and AbortChecks;
+      if WasAttachedToWall and AbortChecks then NeedShiftPosition := -L.LemDX;
     end;
 
     // Exits
@@ -2585,9 +2587,9 @@ begin
                          and not (L.LemAction = baBlocking)
                          and not ((L.LemActionOld = baJumping) or (L.LemAction = baJumping)) then
     begin
-      NeedShiftPosition := (L.LemAction in [baClimbing, baSliding, baDehoisting]);
+      WasAttachedToWall := (L.LemAction in [baClimbing, baSliding, baDehoisting]);
       AbortChecks := HandleFlipper(L, CheckPos[0, i], CheckPos[1, i]);
-      NeedShiftPosition := NeedShiftPosition and AbortChecks;
+      if WasAttachedToWall and AbortChecks then NeedShiftPosition := L.LemDX;
     end;
 
     // Triggered animations and one-shot animations
@@ -2612,8 +2614,7 @@ begin
 
   until [CheckPos[0, i], CheckPos[1, i]] = [L.LemX, L.LemY] (*or AbortChecks*);
 
-  if NeedShiftPosition then
-    Inc(L.LemX, L.LemDX);
+  Inc(L.LemX, L.LemDX * NeedShiftPosition);
 
   // Check for water to transition to swimmer only at final position
   if HasTriggerAt(L.LemX, L.LemY, trWater) then
@@ -3134,7 +3135,7 @@ begin
     OldAction := L.LemAction;
 
     case L.LemAction of
-      baClimbing, baDehoisting, baSliding: Transition(L, baFalling, true);
+      baClimbing, baDehoisting, baSliding: Transition(L, baFalling);
       baFloating, baGliding: Transition(L, baFalling);
       baSwimming: Transition(L, baDrowning);
       // Disarmer (a) should never happen, and (b) would purely result in the lemming skipping the animation, so is not handled.
