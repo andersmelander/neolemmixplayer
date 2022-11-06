@@ -282,6 +282,9 @@ type
 
   function SortAlphabetical(Item1, Item2: Pointer): Integer;
 
+var
+  DumpImagesFallbackFlag: Boolean;
+
 implementation
 
 uses
@@ -835,6 +838,9 @@ begin
     begin
       GameParams.SetLevel(Levels[i]);
       GameParams.LoadCurrentLevel;
+
+      if GameParams.Level.HasAnyFallbacks then
+        DumpImagesFallbackFlag := true;
 
       Output.SetSize(GameParams.Level.Info.Width, GameParams.Level.Info.Height);
       GameParams.Renderer.RenderWorld(Output, true);
