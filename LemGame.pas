@@ -2243,7 +2243,7 @@ const
   ActionSet = [baWalking, baShrugging, baPlatforming, baStacking, baLasering, baBashing,
                baFencing, baMining, baDigging];
 begin
-  Result := (L.LemAction in ActionSet) and not (L.LemY <= 1);
+  Result := (L.LemAction in ActionSet);
 end;
 
 function TLemmingGame.MayAssignPlatformer(L: TLemming): Boolean;
@@ -2612,7 +2612,7 @@ begin
     if not HasTriggerAt(CheckPos[0, i], CheckPos[1, i], trPortal) then
       L.LemInPortal := DOM_NOOBJECT;
 
-  until [CheckPos[0, i], CheckPos[1, i]] = [L.LemX, L.LemY] (*or AbortChecks*);
+  until (CheckPos[0, i] = L.LemX) and (CheckPos[1, i] = L.LemY) (*or AbortChecks*);
 
   Inc(L.LemX, L.LemDX * NeedShiftPosition);
 
@@ -5493,7 +5493,10 @@ begin
     RM_SAVE : begin
                 Inc(LemmingsIn);
                 if LemmingsIn = Level.Info.RescueCount then
+                begin
                   GameResultRec.gLastRescueIteration := fCurrentIteration;
+                  fReplayManager.ExpectedCompletionIteration := fCurrentIteration;
+                end;
                 UpdateLevelRecords;
               end;
     RM_NEUTRAL: if not Silent then
@@ -5541,6 +5544,9 @@ begin
   CheckLemmings;
   CheckUpdateNuking;
   UpdateGadgets;
+
+  if (fReplayManager.ExpectedCompletionIteration = fCurrentIteration) and (not Checkpass) then
+    fReplayManager.ExpectedCompletionIteration := 0;
 
   // Get highest priority lemming under cursor
   GetPriorityLemming(fLemSelected, SkillPanelButtonToAction[fSelectedSkill], CursorPoint);
