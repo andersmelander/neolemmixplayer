@@ -17,6 +17,7 @@ const
   PADDING_BASE_SIZE = 8;
   NORMAL_BASE_SPACING = 40;
   COLUMN_BASE_SPACING = 92;
+  COLUMN_LONGER_SPACING = 112;
   ICON_BASE_SIZE = 32;
   ICON_INTERNAL_SIZE = 32;
 
@@ -28,11 +29,12 @@ type
     PaddingSize: Integer;
     NormalSpacing: Integer;
     ColumnSpacing: Integer;
+    ColumnLongerSpacing: Integer;
     IconSize: Integer;
   end;
 
   TLevelInfoPanelMove = (pmNone,
-                         pmNextColumnTop, pmNextColumnSame, pmMoveHorz,
+                         pmNextColumnTop, pmNextColumnSame, pmNextColumnLongSame, pmMoveHorz,
                          pmNextRowLeft, pmNextRowSame, pmNextRowPadLeft, pmNextRowPadSame);
 
   TLevelInfoPanel = class(TForm)
@@ -465,6 +467,7 @@ begin
   case aMovement of
     pmNextColumnTop: begin fCurrentPos.X := fCurrentPos.X + fAdjustedSizing.ColumnSpacing; fCurrentPos.Y := fAdjustedSizing.PaddingSize; end;
     pmNextColumnSame: fCurrentPos.X := fCurrentPos.X + fAdjustedSizing.ColumnSpacing;
+    pmNextColumnLongSame: fCurrentPos.X := fCurrentPos.X + fAdjustedSizing.ColumnLongerSpacing;
     pmMoveHorz: fCurrentPos.X := fCurrentPos.X + fAdjustedSizing.NormalSpacing;
     pmNextRowLeft: begin fCurrentPos.X := fAdjustedSizing.PaddingSize; fCurrentPos.Y := fCurrentPos.Y + fAdjustedSizing.NormalSpacing; end;
     pmNextRowSame: fCurrentPos.Y := fCurrentPos.Y + fAdjustedSizing.NormalSpacing;
@@ -490,6 +493,7 @@ begin
     PaddingSize := Adjust(PADDING_BASE_SIZE);
     NormalSpacing := Adjust(NORMAL_BASE_SPACING);
     ColumnSpacing := Adjust(COLUMN_BASE_SPACING);
+    ColumnLongerSpacing := Adjust(COLUMN_LONGER_SPACING);
     IconSize := Adjust(ICON_BASE_SIZE);
   end;
 end;
@@ -743,10 +747,10 @@ begin
   end;
 
   if Records.LemmingsRescued.Value < 0 then
-    Add(ICON_SAVE_REQUIREMENT, '~', '', true, pmNextColumnSame)
+    Add(ICON_SAVE_REQUIREMENT, '~', '', true, pmNextColumnLongSame)
   else
     Add(ICON_SAVE_REQUIREMENT, IntToStr(Records.LemmingsRescued.Value) + ' / ' + IntToStr(fLevel.Info.LemmingsCount - fLevel.Info.ZombieCount),
-        PrepareHintName(Records.LemmingsRescued.User), true, pmNextColumnSame, COLOR_RECORDS);
+        PrepareHintName(Records.LemmingsRescued.User), true, pmNextColumnLongSame, COLOR_RECORDS);
 
   if Records.TimeTaken.Value < 0 then
     Add(ICON_TIMER, '~', '', true, pmNextColumnSame)
