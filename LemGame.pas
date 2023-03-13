@@ -2575,7 +2575,7 @@ begin
     begin
       WasAttachedToWall := (L.LemAction in [baClimbing, baSliding, baDehoisting]);
       AbortChecks := HandleRemoveSkills(L);
-      if WasAttachedToWall and AbortChecks then NeedShiftPosition := -L.LemDX;
+      if WasAttachedToWall and AbortChecks then NeedShiftPosition := -1;
     end;
 
     // Exits
