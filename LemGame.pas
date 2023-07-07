@@ -6402,7 +6402,7 @@ begin
     DestGadgetID := Gadget.ReceiverId;
     DestGadget := Gadgets[DestGadgetID];
 
-    L.LemX := DestGadget.TriggerRect.Left + ((DestGadget.TriggerRect.Width + 1) div 2);
+    L.LemX := DestGadget.TriggerRect.Left + ((DestGadget.TriggerRect.Width + 1) div 2) - 1;
     L.LemY := DestGadget.TriggerRect.Bottom - 1;
     L.LemInPortal := DestGadgetID;
 
