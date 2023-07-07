@@ -2211,6 +2211,39 @@ begin
       begin
         fHelperImages[hpi_Water].DrawTo(Dst, DrawX - 16 * ResMod, DrawY);
       end;
+
+    DOM_PORTAL:
+      begin
+        fHelperImages[hpi_Portal].DrawTo(Dst, DrawX - 19 * ResMod, DrawY);
+      end;
+
+    DOM_ADDSKILL:
+      begin
+        fHelperImages[hpi_Assigner].DrawTo(Dst, DrawX - 9 * ResMod, DrawY - 1);
+        case Gadget.SkillType of
+          spbClimber: fHelperImages[hpi_Skill_Climber].DrawTo(Dst, DrawX, DrawY - 1);
+          spbSlider: fHelperImages[hpi_Skill_Slider].DrawTo(Dst, DrawX, DrawY - 1);
+          spbSwimmer: fHelperImages[hpi_Skill_Swimmer].DrawTo(Dst, DrawX, DrawY - 1);
+          spbFloater: fHelperImages[hpi_Skill_Floater].DrawTo(Dst, DrawX, DrawY - 1);
+          spbGlider: fHelperImages[hpi_Skill_Glider].DrawTo(Dst, DrawX, DrawY - 1);
+          spbDisarmer: fHelperImages[hpi_Skill_Disarmer].DrawTo(Dst, DrawX, DrawY - 1);
+        end;
+      end;
+
+    DOM_REMOVESKILLS:
+      begin
+        fHelperImages[hpi_Deassigner].DrawTo(Dst, DrawX - 14 * ResMod, DrawY);
+      end;
+
+    DOM_NEUTRALIZER:
+      begin
+        fHelperImages[hpi_Neutralizer].DrawTo(Dst, DrawX - 10 * ResMod, DrawY - 2);
+      end;
+
+    DOM_DENEUTRALIZER:
+      begin
+        fHelperImages[hpi_Deneutralizer].DrawTo(Dst, DrawX - 10 * ResMod, DrawY - 2);
+      end;
   end;
 end;
 
