@@ -1058,10 +1058,9 @@ begin
   end;
   if fButtonRects[aButton].Left <= 0 then Exit;
 
+  RemoveHighlight(aButton);
   if Highlight then
-    DrawHighlight(aButton)
-  else
-    RemoveHighlight(aButton);
+    DrawHighlight(aButton);
 end;
 
 procedure TBaseSkillPanel.DrawHighlight(aButton: TSkillPanelButton);

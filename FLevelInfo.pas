@@ -17,6 +17,7 @@ const
   PADDING_BASE_SIZE = 8;
   NORMAL_BASE_SPACING = 40;
   COLUMN_BASE_SPACING = 92;
+  COLUMN_LONGER_SPACING = 112;
   COLUMN_SMALLER_SPACING = 72;
   ICON_BASE_SIZE = 32;
   ICON_INTERNAL_SIZE = 32;
@@ -29,12 +30,13 @@ type
     PaddingSize: Integer;
     NormalSpacing: Integer;
     ColumnSpacing: Integer;
+    ColumnLongerSpacing: Integer;
     ColumnSmallerSpacing: Integer;
     IconSize: Integer;
   end;
 
   TLevelInfoPanelMove = (pmNone,
-                         pmNextColumnTop, pmNextColumnSame, pmNextColumnShortSame, pmMoveHorz,
+                         pmNextColumnTop, pmNextColumnSame, pmNextColumnLongSame, pmNextColumnShortSame, pmMoveHorz,
                          pmNextRowLeft, pmNextRowSame, pmNextRowPadLeft, pmNextRowPadSame);
 
   TLevelInfoPanel = class(TForm)
@@ -57,7 +59,7 @@ type
       procedure Add(aIcon: Integer; aText: String; aHintText: String; aTextOnRight: Boolean; aMovement: TLevelInfoPanelMove; aColor: Integer = -1); overload;
       procedure AddTalisman(aWrapWidth: Integer);
       procedure AddDummy(aTextOnRight: Boolean; aMovement: TLevelInfoPanelMove);
-      procedure AddPreview;
+      procedure AddPreview(aForceRedraw: Boolean);
       procedure AddClose;
 
       procedure Reposition(aMovement: TLevelInfoPanelMove);
@@ -75,7 +77,7 @@ type
       destructor Destroy; override;
 
       procedure ShowPopup;
-      procedure PrepareEmbed;
+      procedure PrepareEmbed(aForceRedraw: Boolean);
       procedure PrepareEmbedRecords(aKind: TRecordDisplay);
 
       procedure Wipe;
@@ -395,7 +397,7 @@ begin
   Add(ICON_BLANK, '', '', aTextOnRight, aMovement);
 end;
 
-procedure TLevelInfoPanel.AddPreview;
+procedure TLevelInfoPanel.AddPreview(aForceRedraw: Boolean);
 var
   AvailHeight: Integer;
   LevelImg: TImage32;
@@ -411,7 +413,7 @@ begin
   LevelImg.ScaleMode := smResize;
   LevelImg.BitmapAlign := baCenter;
 
-  if fLastRenderLevelID <> fLevel.Info.LevelID then
+  if (fLastRenderLevelID <> fLevel.Info.LevelID) or aForceRedraw then
   begin
     fLastRenderLevelID := fLevel.Info.LevelID;
     GameParams.Renderer.RenderWorld(fLevelImage, true);
@@ -469,6 +471,7 @@ begin
   case aMovement of
     pmNextColumnTop: begin fCurrentPos.X := fCurrentPos.X + fAdjustedSizing.ColumnSpacing; fCurrentPos.Y := fAdjustedSizing.PaddingSize; end;
     pmNextColumnSame: fCurrentPos.X := fCurrentPos.X + fAdjustedSizing.ColumnSpacing;
+    pmNextColumnLongSame: fCurrentPos.X := fCurrentPos.X + fAdjustedSizing.ColumnLongerSpacing;
     pmNextColumnShortSame: fCurrentPos.X := fCurrentPos.X + fAdjustedSizing.ColumnSmallerSpacing;
     pmMoveHorz: fCurrentPos.X := fCurrentPos.X + fAdjustedSizing.NormalSpacing;
     pmNextRowLeft: begin fCurrentPos.X := fAdjustedSizing.PaddingSize; fCurrentPos.Y := fCurrentPos.Y + fAdjustedSizing.NormalSpacing; end;
@@ -495,6 +498,7 @@ begin
     PaddingSize := Adjust(PADDING_BASE_SIZE);
     NormalSpacing := Adjust(NORMAL_BASE_SPACING);
     ColumnSpacing := Adjust(COLUMN_BASE_SPACING);
+    ColumnLongerSpacing := Adjust(COLUMN_LONGER_SPACING);
     ColumnSmallerSpacing := Adjust(COLUMN_SMALLER_SPACING);
     IconSize := Adjust(ICON_BASE_SIZE);
   end;
@@ -619,7 +623,7 @@ begin
   end;
 end;
 
-procedure TLevelInfoPanel.PrepareEmbed;
+procedure TLevelInfoPanel.PrepareEmbed(aForceRedraw: Boolean);
 var
   SIVal: Integer;
   Skill: TSkillPanelButton;
@@ -725,7 +729,7 @@ begin
   if fCurrentPos.X = fAdjustedSizing.PaddingSize then
     AddDummy(false, pmMoveHorz);
 
-  AddPreview;
+  AddPreview(aForceRedraw);
 
   ApplySize(fAdjustedSizing.AsPanelWidth, fAdjustedSizing.AsPanelHeight);
 end;
@@ -758,10 +762,10 @@ begin
   end;
 
   if Records.LemmingsRescued.Value < 0 then
-    Add(ICON_SAVE_REQUIREMENT, '~', '', true, pmNextColumnSame)
+    Add(ICON_SAVE_REQUIREMENT, '~', '', true, pmNextColumnLongSame)
   else
     Add(ICON_SAVE_REQUIREMENT, IntToStr(Records.LemmingsRescued.Value) + ' / ' + IntToStr(fLevel.Info.LemmingsCount - fLevel.Info.ZombieCount),
-        PrepareHintName(Records.LemmingsRescued.User), true, pmNextColumnSame, COLOR_RECORDS);
+        PrepareHintName(Records.LemmingsRescued.User), true, pmNextColumnLongSame, COLOR_RECORDS);
 
   if Records.TimeTaken.Value < 0 then
     Add(ICON_TIMER, '~', '', true, pmNextColumnSame)
@@ -797,7 +801,7 @@ begin
   if fCurrentPos.X = fAdjustedSizing.PaddingSize then
     AddDummy(false, pmMoveHorz);
 
-  AddPreview;
+  AddPreview(false);
 
   ApplySize(fAdjustedSizing.AsPanelWidth, fAdjustedSizing.AsPanelHeight);
 end;
