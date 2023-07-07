@@ -6302,6 +6302,8 @@ begin
          or (HasTriggerAt(LemPosArray[0, i], LemPosArray[1, i], trExit) and not LemWasJumping)
          or (HasTriggerAt(LemPosArray[0, i], LemPosArray[1, i], trWater) and not L.LemIsSwimmer)
          or HasTriggerAt(LemPosArray[0, i], LemPosArray[1, i], trFire)
+         or HasTriggerAt(LemPosArray[0, i], LemPosArray[1, i], trAddSkill)
+         or HasTriggerAt(LemPosArray[0, i], LemPosArray[1, i], trRemoveSkills)
          or (    HasTriggerAt(LemPosArray[0, i], LemPosArray[1, i], trTeleport)
              and (FindGadgetID(LemPosArray[0, i], LemPosArray[1, i], trTeleport) <> 65535))
          or (    HasTriggerAt(LemPosArray[0, i], LemPosArray[1, i], trPortal)
@@ -6320,7 +6322,6 @@ begin
          HasPixelAt(LemPosArray[0, i], LemPosArray[1, i]) and
          L.LemIsDisarmer then
         fLemNextAction := baFixing;
-
 
       // End this loop when we have reached the lemming position
       if (L.LemX = LemPosArray[0, i]) and (L.LemY = LemPosArray[1, i]) then Break;
