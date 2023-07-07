@@ -2214,7 +2214,8 @@ begin
 
     DOM_PORTAL:
       begin
-        fHelperImages[hpi_Portal].DrawTo(Dst, DrawX - 19 * ResMod, DrawY);
+        fHelperImages[hpi_Portal].DrawTo(Dst, DrawX - 25 * ResMod, DrawY);
+        fHelperImages[THelperIcon(Gadget.PairingID + 1)].DrawTo(Dst, DrawX + 15 * ResMod, DrawY);
       end;
 
     DOM_ADDSKILL:
