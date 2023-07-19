@@ -4,16 +4,9 @@ bin/
 *.exe
 *.zip
 *.res
-!OLMaker.exe
 !GetCommitID.exe
-*.nxsv
-!old_stuff/styles_extra.zip
 *.identcache
 LemVersionCID.pas
-old_stuff/OldGS/temp/
-Kernel/gr32png/
-0 TODO.txt
-Kernel/JCL/
 *.dproj.local
 *.stat
 data/external/styles/version.ini

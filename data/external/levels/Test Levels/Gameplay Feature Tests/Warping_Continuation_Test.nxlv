@@ -9,7 +9,7 @@
  AUTHOR 
  MUSIC orig_09
  ID x31D10EB61AF77286
- VERSION x0000000000000005
+ VERSION x0000000000000006
  
 #       Level dimensions        
 # ----------------------------- 
@@ -33,46 +33,10 @@
 # ----------------------------- 
  $GADGET
    STYLE orig_marble
-   PIECE teleporter
-   X 80
-   Y 42
-   NO_OVERWRITE
-   PAIRING 0
- $END
- 
- $GADGET
-   STYLE orig_marble
-   PIECE receiver
-   X 159
-   Y 47
-   NO_OVERWRITE
-   PAIRING 0
- $END
- 
- $GADGET
-   STYLE orig_marble
    PIECE window
    X 15
    Y 45
    NO_OVERWRITE
- $END
- 
- $GADGET
-   STYLE orig_marble
-   PIECE teleporter
-   X 55
-   Y 35
-   NO_OVERWRITE
-   PAIRING 0
- $END
- 
- $GADGET
-   STYLE orig_marble
-   PIECE receiver
-   X 225
-   Y 90
-   NO_OVERWRITE
-   PAIRING 0
  $END
  
  $GADGET
@@ -84,19 +48,55 @@
  $END
  
  $GADGET
-   STYLE orig_marble
-   PIECE teleporter
-   X 7
-   Y 42
+   STYLE namida_systemtest
+   PIECE portal
+   X 67
+   Y 72
    NO_OVERWRITE
    PAIRING 0
  $END
  
  $GADGET
-   STYLE orig_marble
-   PIECE receiver
-   X 261
-   Y 38
+   STYLE namida_systemtest
+   PIECE portal
+   X 147
+   Y 40
+   NO_OVERWRITE
+   PAIRING 0
+ $END
+ 
+ $GADGET
+   STYLE namida_systemtest
+   PIECE portal
+   X 44
+   Y 66
+   NO_OVERWRITE
+   PAIRING 0
+ $END
+ 
+ $GADGET
+   STYLE namida_systemtest
+   PIECE portal
+   X 214
+   Y 46
+   NO_OVERWRITE
+   PAIRING 0
+ $END
+ 
+ $GADGET
+   STYLE namida_systemtest
+   PIECE portal
+   X -2
+   Y 72
+   NO_OVERWRITE
+   PAIRING 0
+ $END
+ 
+ $GADGET
+   STYLE namida_systemtest
+   PIECE portal
+   X 227
+   Y 105
    NO_OVERWRITE
    PAIRING 0
  $END

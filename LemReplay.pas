@@ -132,6 +132,9 @@ type
       fLevelPosition: Integer;
       fLevelID: Int64;
       fLevelVersion: Int64;
+
+      fExpectedCompletionIteration: Integer;
+
       function GetIsThisUsersReplay: Boolean;
       function GetLastActionFrame: Integer;
       function GetItemByFrame(aFrame: Integer; aIndex: Integer; aItemType: Integer): TBaseReplayItem;
@@ -164,6 +167,8 @@ type
       property Assignment[aFrame: Integer; aIndex: Integer]: TBaseReplayItem Index 1 read GetItemByFrame;
       property SpawnIntervalChange[aFrame: Integer; aIndex: Integer]: TBaseReplayItem Index 2 read GetItemByFrame;
       property LastActionFrame: Integer read GetLastActionFrame;
+      property ExpectedCompletionIteration: Integer read fExpectedCompletionIteration write fExpectedCompletionIteration;
+
       property IsModified: Boolean read fIsModified;
       property IsThisUsersReplay: Boolean read GetIsThisUsersReplay;
   end;
@@ -404,6 +409,7 @@ begin
   fLevelPosition := 0;
   fLevelID := 0;
   fLevelVersion := 0;
+  fExpectedCompletionIteration := 0;
 end;
 
 procedure TReplay.Cut(aLastFrame: Integer; aExpectedSpawnInterval: Integer);
@@ -425,6 +431,9 @@ begin
     DoCut(fSpawnIntervalChanges, aLastFrame)
   else
     DoCut(fSpawnIntervalChanges, aLastFrame + 1);
+
+  if fExpectedCompletionIteration > aLastFrame then
+    fExpectedCompletionIteration := 0;
 
   fIsModified := true;
 end;
@@ -509,6 +518,7 @@ begin
     fLevelPosition := Sec.LineNumeric['level'];
     fLevelID := Sec.LineNumeric['id'];
     fLevelVersion := Sec.LineNumeric['version'];
+    fExpectedCompletionIteration := Sec.LineNumeric['completion_frame'];
 
     Sec.DoForEachSection('assignment', HandleLoadSection);
     Sec.DoForEachSection('spawn_interval', HandleLoadSection);
@@ -596,6 +606,9 @@ begin
     end;
     Sec.AddLine('ID', fLevelID, 16);
     Sec.AddLine('VERSION', fLevelVersion);
+
+    if fExpectedCompletionIteration > 0 then
+      Sec.AddLine('COMPLETION_FRAME', fExpectedCompletionIteration);
 
     SaveReplayList(fAssignments, Sec);
     SaveReplayList(fSpawnIntervalChanges, Sec);

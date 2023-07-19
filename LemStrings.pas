@@ -62,6 +62,11 @@ const
   SFX_FIXING = 'wrench';
   SFX_ZOMBIE = 'zombie';
   SFX_TIMEUP = 'timeup';
+  SFX_PORTAL = 'portal';
+  SFX_NEUTRALIZE = 'neutralize';
+  SFX_DENEUTRALIZE = 'deneutralize';
+  SFX_ADD_SKILL = 'skill_add';
+  SFX_REMOVE_SKILLS = 'skill_remove';
 
 resourcestring
   SProgramName = 'NeoLemmix Player';

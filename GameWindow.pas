@@ -1407,12 +1407,21 @@ begin
       lka_SkillRight: begin
                         sn := GetSelectedSkill;
                         if (sn >= 0) and (sn < MAX_SKILL_TYPES_PER_LEVEL - 1) and (fActiveSkills[sn + 1] <> spbNone) then
-                          SetSelectedSkill(fActiveSkills[sn + 1]);
+                          SetSelectedSkill(fActiveSkills[sn + 1])
+                        else if (sn > 0) then
+                          SetSelectedSkill(fActiveSkills[0]);
                       end;
       lka_SkillLeft:  begin
                         sn := GetSelectedSkill;
                         if (sn > 0) and (fActiveSkills[sn - 1] <> spbNone) then
-                          SetSelectedSkill(fActiveSkills[sn - 1]);
+                          SetSelectedSkill(fActiveSkills[sn - 1])
+                        else if (sn = 0) and (fActiveSkills[1] <> spbNone) then
+                        begin
+                          sn := MAX_SKILL_TYPES_PER_LEVEL - 1;
+                          while fActiveSkills[sn] = spbNone do
+                            Dec(sn);
+                          SetSelectedSkill(fActiveSkills[sn]);
+                        end;
                       end;
       lka_Skip: if Game.Playing then
                   if func.Modifier < 0 then
@@ -1794,7 +1803,8 @@ begin
   fRenderInterface := Game.RenderInterface;
   fRenderer.SetInterface(fRenderInterface);
 
-  if FileExists(AppPath + SFMusic + GetLevelMusicName + SoundManager.FindExtension(GetLevelMusicName, true)) then
+  if FileExists(AppPath + SFMusic + GetLevelMusicName + SoundManager.FindExtension(GetLevelMusicName, true)) and
+    not (GameParams.DisableMusicInTestplay and (GameParams.TestModeLevel <> nil)) then
     SoundManager.LoadMusicFromFile(GetLevelMusicName)
   else
     SoundManager.FreeMusic; // This is safe to call even if no music is loaded, but ensures we don't just get the previous level's music
