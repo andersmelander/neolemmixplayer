@@ -1424,7 +1424,7 @@ begin
       aSection.AddLine('THEME', GraphicSetName);
     aSection.AddLine('MUSIC', MusicFile);
     aSection.AddLine('ID', 'x' + IntToHex(LevelID, 16));
-    aSection.AddLine('VERSION', LevelVersion);
+    aSection.AddLine('VERSION', 'x' + IntToHex(LevelVersion, 16));
 
     aSection.AddLine('LEMMINGS', LemmingsCount);
     aSection.AddLine('SAVE_REQUIREMENT', RescueCount);

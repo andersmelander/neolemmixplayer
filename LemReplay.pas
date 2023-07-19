@@ -605,7 +605,7 @@ begin
       Sec.AddLine('LEVEL', fLevelPosition);
     end;
     Sec.AddLine('ID', fLevelID, 16);
-    Sec.AddLine('VERSION', fLevelVersion);
+    Sec.AddLine('VERSION', fLevelVersion, 16);
 
     if fExpectedCompletionIteration > 0 then
       Sec.AddLine('COMPLETION_FRAME', fExpectedCompletionIteration);
