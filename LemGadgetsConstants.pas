@@ -40,6 +40,11 @@ const
   DOM_ONEWAYUP         = 33;
   DOM_PAINT            = 34;
   DOM_ANIMONCE         = 35;
+  DOM_NEUTRALIZER      = 36;
+  DOM_DENEUTRALIZER    = 37;
+  DOM_ADDSKILL         = 38;
+  DOM_REMOVESKILLS     = 39;
+  DOM_PORTAL           = 40;
 
 implementation
 

@@ -140,6 +140,7 @@ type
     fMetaLemmingAnimations : TMetaLemmingAnimations; // meta data lemmings
     fLemmingAnimations     : TBitmaps; // the list of lemmings bitmaps
 
+    fWarpBitmap             : TBitmap32;
     fCountDownDigitsBitmap  : TBitmap32;
     fHighlightBitmap        : TBitmap32;
     fTheme                  : TNeoTheme;
@@ -164,6 +165,7 @@ type
 
     property LemmingAnimations     : TBitmaps read fLemmingAnimations;
     property MetaLemmingAnimations : TMetaLemmingAnimations read fMetaLemmingAnimations;
+    property WarpBitmap            : TBitmap32 read fWarpBitmap;
     property CountDownDigitsBitmap : TBitmap32 read fCountDownDigitsBitmap;
     property HighlightBitmap       : TBitmap32 read fHighlightBitmap;
     property Recolorer             : TRecolorImage read fRecolorer;
@@ -408,6 +410,9 @@ begin
     // Extract masks / Digits / etc. //
     // // // // // // // // // // // //
 
+    fWarpBitmap.DrawMode := dmBlend;
+    fWarpBitmap.CombineMode := cmMerge;
+
     fCountDownDigitsBitmap.DrawMode := dmBlend;
     fCountDownDigitsBitmap.CombineMode := cmMerge;
 
@@ -417,10 +422,12 @@ begin
     if GameParams.HighResolution then
     begin
       TPngInterface.LoadPngFile(AppPath + SFGraphicsMasks + 'stoner-hr.png', fLemmingAnimations[STONED]);
+      TPngInterface.LoadPngFile(AppPath + SFGraphicsMasks + 'warp-hr.png', fWarpBitmap);
       TPngInterface.LoadPngFile(AppPath + SFGraphicsMasks + 'highlight-hr.png', fHighlightBitmap);
       TPngInterface.LoadPngFile(AppPath + SFGraphicsMasks + 'countdown-hr.png', fCountdownDigitsBitmap);
     end else begin
       TPngInterface.LoadPngFile(AppPath + SFGraphicsMasks + 'stoner.png', fLemmingAnimations[STONED]);
+      TPngInterface.LoadPngFile(AppPath + SFGraphicsMasks + 'warp.png', fWarpBitmap);
       TPngInterface.LoadPngFile(AppPath + SFGraphicsMasks + 'highlight.png', fHighlightBitmap);
       TPngInterface.LoadPngFile(AppPath + SFGraphicsMasks + 'countdown.png', fCountdownDigitsBitmap);
     end;
@@ -442,6 +449,7 @@ begin
   fLemmingAnimations.Clear;
   fMetaLemmingAnimations.Clear;
   fCountDownDigitsBitmap.Clear;
+  fWarpBitmap.Clear;
   fHighlightBitmap.Clear;
   fHasZombieColor := false;
   fHasNeutralColor := false;
@@ -454,6 +462,7 @@ begin
   fMetaLemmingAnimations := TMetaLemmingAnimations.Create(TMetaLemmingAnimation);
   fLemmingAnimations := TBitmaps.Create;
   fRecolorer := TRecolorImage.Create;
+  fWarpBitmap := TBitmap32.Create;
   fCountDownDigitsBitmap := TBitmap32.Create;
   fHighlightBitmap := TBitmap32.Create;
 end;
@@ -463,6 +472,7 @@ begin
   fMetaLemmingAnimations.Free;
   fLemmingAnimations.Free;
   fCountDownDigitsBitmap.Free;
+  fWarpBitmap.Free;
   fHighlightBitmap.Free;
   fRecolorer.Free;
   inherited Destroy;

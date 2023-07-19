@@ -35,7 +35,11 @@ const
 
   AlwaysAnimateObjects = [DOM_NONE, DOM_EXIT, DOM_FORCELEFT, DOM_FORCERIGHT,
         DOM_WATER, DOM_FIRE, DOM_ONEWAYLEFT, DOM_ONEWAYRIGHT, DOM_ONEWAYDOWN,
-        DOM_UPDRAFT, DOM_NOSPLAT, DOM_SPLAT, DOM_BACKGROUND, DOM_PAINT];
+        DOM_UPDRAFT, DOM_NOSPLAT, DOM_SPLAT, DOM_BACKGROUND, DOM_PAINT,
+        DOM_PORTAL, DOM_NEUTRALIZER, DOM_DENEUTRALIZER, DOM_REMOVESKILLS];
+
+  // DOM_ADDSKILL is *not* meant to be in this list. Its primary animation works
+  // the same way as pickup skills, and the actual graphic comes from a secondary.
 
 type
   TLemmingKind = (lkNormal, lkNeutral, lkZombie);
@@ -130,6 +134,11 @@ type
     ForceLeftMap               : TArrayArrayBoolean;
     ForceRightMap              : TArrayArrayBoolean;
     AnimMap                    : TArrayArrayBoolean;
+    PortalMap                  : TArrayArrayBoolean;
+    AddSkillMap                : TArrayArrayBoolean;
+    RemoveSkillMap             : TArrayArrayBoolean;
+    NeutralizerMap             : TArrayArrayBoolean;
+    DeneutralizerMap           : TArrayArrayBoolean;
 
     fReplayManager             : TReplay;
 
@@ -246,12 +255,18 @@ type
       function HandleFlipper(L: TLemming; PosX, PosY: Integer): Boolean;
       function HandleWaterDrown(L: TLemming): Boolean;
       function HandleWaterSwim(L: TLemming): Boolean;
+      function HandlePortal(L: TLemming; PosX, PosY: Integer): Boolean;
+      function HandleAddSkill(L: TLemming; PosX, PosY: Integer): Boolean;
+      function HandleRemoveSkills(L: TLemming): Boolean;
+      function HandleNeutralize(L: TLemming): Boolean;
+      function HandleDeneutralize(L: TLemming): Boolean;
 
     function CheckForOverlappingField(L: TLemming): Boolean;
     procedure CheckForQueuedAction;
     procedure CheckForReplayAction(PausedRRCheck: Boolean = false);
     procedure CheckLemmings;
     function CheckLemTeleporting(L: TLemming): Boolean;
+    function CheckLemPortalWarping(L: TLemming): Boolean;
     procedure HandlePostTeleport(L: TLemming);
     procedure CheckReleaseLemming;
     procedure CheckUpdateNuking;
@@ -531,7 +546,7 @@ const
   DOM_WINDOW           = 23;
   DOM_ANIMATION        = 24; // no longer used!!
   DOM_HINT             = 25;
-  DOM_NOSPLAT          = 26; // no longer used!!
+  DOM_NOSPLAT          = 26;
   DOM_SPLAT            = 27;
   DOM_TWOWAYTELE       = 28; // no longer used!!
   DOM_SINGLETELE       = 29; // no longer used!!
@@ -540,7 +555,12 @@ const
   DOM_BGIMAGE          = 32; // no longer used!!
   DOM_ONEWAYUP         = 33;
   DOM_PAINT            = 34;
-  DOM_ANIMONCE         = 35; *)
+  DOM_ANIMONCE         = 35;
+  DOM_NEUTRALIZER      = 36;
+  DOM_DENEUTRALIZER    = 37;
+  DOM_ADDSKILL         = 38;
+  DOM_REMOVESKILLS     = 39;
+  DOM_PORTAL           = 40; *)
 
   // removal modes
   RM_NEUTRAL           = 0;
@@ -1670,6 +1690,16 @@ begin
   SetLength(ForceRightMap, Level.Info.Width, Level.Info.Height);
   SetLength(AnimMap, 0, 0);
   SetLength(AnimMap, Level.Info.Width, Level.Info.Height);
+  SetLength(PortalMap, 0, 0);
+  SetLength(PortalMap, Level.Info.Width, Level.Info.Height);
+  SetLength(NeutralizerMap, 0, 0);
+  SetLength(NeutralizerMap, Level.Info.Width, Level.Info.Height);
+  SetLength(DeneutralizerMap, 0, 0);
+  SetLength(DeneutralizerMap, Level.Info.Width, Level.Info.Height);
+  SetLength(AddSkillMap, 0, 0);
+  SetLength(AddSkillMap, Level.Info.Width, Level.Info.Height);
+  SetLength(RemoveSkillMap, 0, 0);
+  SetLength(RemoveSkillMap, Level.Info.Width, Level.Info.Height);
 
   BlockerMap.SetSize(Level.Info.Width, Level.Info.Height);
   BlockerMap.Clear(DOM_NONE);
@@ -1813,6 +1843,11 @@ begin
       DOM_FORCERIGHT: WriteTriggerMap(ForceRightMap, Gadgets[i].TriggerRect);
       DOM_ANIMATION:  WriteTriggerMap(AnimMap, Gadgets[i].TriggerRect);
       DOM_ANIMONCE:   WriteTriggerMap(AnimMap, Gadgets[i].TriggerRect);
+      DOM_NEUTRALIZER: WriteTriggerMap(NeutralizerMap, Gadgets[i].TriggerRect);
+      DOM_DENEUTRALIZER: WriteTriggerMap(DeneutralizerMap, Gadgets[i].TriggerRect);
+      DOM_ADDSKILL:   WriteTriggerMap(AddSkillMap, Gadgets[i].TriggerRect);
+      DOM_REMOVESKILLS: WriteTriggerMap(RemoveSkillMap, Gadgets[i].TriggerRect);
+      DOM_PORTAL: WriteTriggerMap(PortalMap, Gadgets[i].TriggerRect);
     end;
   end;
 end;
@@ -2062,7 +2097,7 @@ begin
     if (IsHighlight and not (L = GetHighlitLemming))
     or (IsReplay and not (L = GetTargetLemming)) then Continue;
     // Does Lemming exist
-    if L.LemRemoved or L.LemTeleporting then Continue;
+    if L.LemRemoved or L.LemTeleporting or (L.LemPortalWarpFrame > 0) then Continue;
     // Is the Lemming unable to receive skills, because zombie, neutral, or was-ohnoer? (remove unless we haven't yet had any lem under the cursor)
     if L.CannotReceiveSkills and Assigned(PriorityLem) then Continue;
     // Is Lemming inside cursor (only check if we are not using Hightlightning!)
@@ -2448,7 +2483,8 @@ var
   i: Integer;
   AbortChecks: Boolean;
 
-  NeedShiftPosition: Boolean;
+  NeedShiftPosition: Integer;
+  WasAttachedToWall: Boolean;
   SavePos: TPoint;
 begin
   // If this is a post-teleport check, (a) reset previous position and (b) remember new position
@@ -2465,7 +2501,8 @@ begin
   // Now move through the values in CheckPosX/Y and check for trigger areas
   i := -1;
   AbortChecks := False;
-  NeedShiftPosition := False;
+  NeedShiftPosition := 0;
+  WasAttachedToWall := False;
   repeat
     Inc(i);
 
@@ -2513,9 +2550,33 @@ begin
       if (L.LemAction = baFixing) then CheckPos[0, i] := L.LemX;
     end;
 
+    // Portal
+    if (not AbortChecks) and HasTriggerAt(CheckPos[0, i], CheckPos[1, i], trPortal) and not IsPostTeleportCheck then
+      AbortChecks := HandlePortal(L, CheckPos[0, i], CheckPos[1, i]);
+
     // Teleporter
     if (not AbortChecks) and HasTriggerAt(CheckPos[0, i], CheckPos[1, i], trTeleport) and not IsPostTeleportCheck then
       AbortChecks := HandleTeleport(L, CheckPos[0, i], CheckPos[1, i]);
+
+    // Neutralizer
+    if (not AbortChecks) and HasTriggerAt(CheckPos[0, i], CheckPos[1, i], trNeutralizer) then
+      HandleNeutralize(L); // never aborts checks
+
+    // Deneutralizer
+    if (not AbortChecks) and HasTriggerAt(CheckPos[0, i], CheckPos[1, i], trDeneutralizer) then
+      HandleDeneutralize(L); // never aborts checks
+
+    // Skill Adder
+    if (not AbortChecks) and HasTriggerAt(CheckPos[0, i], CheckPos[1, i], trAddSkill) then
+      HandleAddSkill(L, CheckPos[0, i], CheckPos[1, i]); // never aborts checks
+
+    // Skill Remover
+    if (not AbortChecks) and HasTriggerAt(CheckPos[0, i], CheckPos[1, i], trRemoveSkills) then
+    begin
+      WasAttachedToWall := (L.LemAction in [baClimbing, baSliding, baDehoisting]);
+      AbortChecks := HandleRemoveSkills(L);
+      if WasAttachedToWall and AbortChecks then NeedShiftPosition := -1;
+    end;
 
     // Exits
     if (not AbortChecks) and HasTriggerAt(CheckPos[0, i], CheckPos[1, i], trExit) then
@@ -2526,14 +2587,14 @@ begin
                          and not (L.LemAction = baBlocking)
                          and not ((L.LemActionOld = baJumping) or (L.LemAction = baJumping)) then
     begin
-      NeedShiftPosition := (L.LemAction in [baClimbing, baSliding, baDehoisting]);
+      WasAttachedToWall := (L.LemAction in [baClimbing, baSliding, baDehoisting]);
       AbortChecks := HandleFlipper(L, CheckPos[0, i], CheckPos[1, i]);
-      NeedShiftPosition := NeedShiftPosition and AbortChecks;
+      if WasAttachedToWall and AbortChecks then NeedShiftPosition := L.LemDX;
     end;
 
     // Triggered animations and one-shot animations
     if (not AbortChecks) and HasTriggerAt(CheckPos[0, i], CheckPos[1, i], trAnim) then
-      HandleAnimation(L, CheckPos[0, i], CheckPos[1, i]); // HandleAnimation will never activate AbortChecks
+      HandleAnimation(L, CheckPos[0, i], CheckPos[1, i]); // never aborts checks
 
     // If the lem was required stop, move him there!
     if AbortChecks then
@@ -2546,10 +2607,14 @@ begin
     if not HasTriggerAt(CheckPos[0, i], CheckPos[1, i], trFlipper)
        and not ((L.LemActionOld = baJumping) or (L.LemAction = baJumping)) then
       L.LemInFlipper := DOM_NOOBJECT;
+
+    // Set L.LemInPortal correctly
+    if not HasTriggerAt(CheckPos[0, i], CheckPos[1, i], trPortal) then
+      L.LemInPortal := DOM_NOOBJECT;
+
   until (CheckPos[0, i] = L.LemX) and (CheckPos[1, i] = L.LemY) (*or AbortChecks*);
 
-  if NeedShiftPosition then
-    Inc(L.LemX, L.LemDX);
+  Inc(L.LemX, L.LemDX * NeedShiftPosition);
 
   // Check for water to transition to swimmer only at final position
   if HasTriggerAt(L.LemX, L.LemY, trWater) then
@@ -2605,6 +2670,11 @@ begin
     trFlipper:    Result :=     ReadTriggerMap(X, Y, FlipperMap);
     trNoSplat:    Result :=     ReadTriggerMap(X, Y, NoSplatMap);
     trSplat:      Result :=     ReadTriggerMap(X, Y, SplatMap);
+    trPortal:     Result :=     ReadTriggerMap(X, Y, PortalMap);
+    trNeutralizer: Result :=    ReadTriggerMap(X, Y, NeutralizerMap);
+    trDeneutralizer: Result :=  ReadTriggerMap(X, Y, DeneutralizerMap);
+    trAddSkill:   Result :=     ReadTriggerMap(X, Y, AddSkillMap);
+    trRemoveSkills: Result :=   ReadTriggerMap(X, Y, RemoveSkillMap);
     trZombie:     Result :=     (ReadZombieMap(X, Y) and 1 <> 0);
   end;
 end;
@@ -2959,6 +3029,146 @@ begin
   begin
     Transition(L, baSwimming);
     CueSoundEffect(SFX_SWIMMING, L.Position);
+  end;
+end;
+
+function TLemmingGame.HandlePortal(L: TLemming; PosX, PosY: Integer): Boolean;
+var
+  Gadget: TGadget;
+  GadgetID: Word;
+begin
+  Result := False;
+
+  // Exit if lemming is splatting
+  if L.LemAction = baSplatting then Exit;
+  // Exit if lemming is falling, has ground under his feet and will splat
+  if (L.LemAction = baFalling) and HasPixelAt(PosX, PosY) and (L.LemFallen > MAX_FALLDISTANCE) then Exit;
+
+  GadgetID := FindGadgetID(PosX, PosY, trPortal);
+
+  // Exit if there is no Object
+  if GadgetID = 65535 then Exit;
+  if GadgetID = L.LemInPortal then Exit;
+
+  Result := True;
+
+  Gadget := Gadgets[GadgetID];
+
+  Assert((Gadget.ReceiverID >= 0) and (Gadget.ReceiverID < Gadgets.Count), 'ReceiverID for portal out of bounds.');
+  Assert(Gadgets[Gadget.ReceiverID].TriggerEffect = DOM_PORTAL, 'Receiving object for portal has wrong trigger effect.');
+
+  CueSoundEffect(SFX_PORTAL, L.Position);
+  L.LemPortalWarpFrame := 1;
+
+  // Make sure to remove the blocker field and the Dehoister pin
+  L.LemHasBlockerField := False;
+  L.LemDehoistPinY := -1;
+
+  SetBlockerMap;
+end;
+
+function TLemmingGame.HandleAddSkill(L: TLemming; PosX, PosY: Integer): Boolean;
+var
+  Gadget: TGadget;
+  GadgetID: Word;
+begin
+  Result := False;
+
+  GadgetID := FindGadgetID(PosX, PosY, trAddSkill);
+  // Exit if there is no Object
+  if GadgetID = 65535 then Exit;
+
+  Gadget := Gadgets[GadgetID];
+
+  if (Gadget.SkillType = spbSlider) and (not L.LemIsSlider) then
+  begin
+    L.LemIsSlider := true;
+    CueSoundEffect(SFX_ADD_SKILL, L.Position);
+  end;
+
+  if (Gadget.SkillType = spbClimber) and (not L.LemIsClimber) then
+  begin
+    L.LemIsClimber := true;
+    CueSoundEffect(SFX_ADD_SKILL, L.Position);
+  end;
+
+  if (Gadget.SkillType = spbSwimmer) and (not L.LemIsSwimmer) then
+  begin
+    L.LemIsSwimmer := true;
+    CueSoundEffect(SFX_ADD_SKILL, L.Position);
+  end;
+
+  if (Gadget.SkillType = spbFloater) and (not (L.LemIsFloater or L.LemIsGlider)) then
+  begin
+    L.LemIsFloater := true;
+    CueSoundEffect(SFX_ADD_SKILL, L.Position);
+  end;
+
+  if (Gadget.SkillType = spbGlider) and (not (L.LemIsFloater or L.LemIsGlider)) then
+  begin
+    L.LemIsGlider := true;
+    CueSoundEffect(SFX_ADD_SKILL, L.Position);
+  end;
+
+  if (Gadget.SkillType = spbDisarmer) and (not L.LemIsDisarmer) then
+  begin
+    L.LemIsDisarmer := true;
+    CueSoundEffect(SFX_ADD_SKILL, L.Position);
+  end;
+end;
+
+function TLemmingGame.HandleRemoveSkills(L: TLemming): Boolean;
+var
+  OldAction: TBasicLemmingAction;
+begin
+  if L.HasPermanentSkills then
+  begin
+    CueSoundEffect(SFX_REMOVE_SKILLS, L.Position);
+    L.LemIsClimber := false;
+    L.LemIsSlider := false;
+    L.LemIsSwimmer := false;
+    L.LemIsFloater := false;
+    L.LemIsGlider := false;
+    L.LemIsDisarmer := false;
+    Result := true;
+
+    OldAction := L.LemAction;
+
+    case L.LemAction of
+      baClimbing, baDehoisting, baSliding: Transition(L, baFalling);
+      baFloating, baGliding: Transition(L, baFalling);
+      baSwimming: Transition(L, baDrowning);
+      // Disarmer (a) should never happen, and (b) would purely result in the lemming skipping the animation, so is not handled.
+    end;
+
+    if (L.LemAction = baFalling) and (OldAction <> baFalling) then
+    begin
+      L.LemFallen := -1;
+      L.LemTrueFallen := -1;
+    end;
+  end else
+    Result := false;
+end;
+
+function TLemmingGame.HandleNeutralize(L: TLemming): Boolean;
+begin
+  Result := False;
+
+  if not (L.LemIsNeutral or L.LemIsZombie) then
+  begin
+    CueSoundEffect(SFX_NEUTRALIZE, L.Position);
+    L.LemIsNeutral := true;
+  end;
+end;
+
+function TLemmingGame.HandleDeneutralize(L: TLemming): Boolean;
+begin
+  Result := False;
+
+  if L.LemIsNeutral and not L.LemIsZombie then
+  begin
+    CueSoundEffect(SFX_DENEUTRALIZE, L.Position);
+    L.LemIsNeutral := false;
   end;
 end;
 
@@ -5999,6 +6209,9 @@ begin
       if LemTeleporting then
         ContinueWithLem := CheckLemTeleporting(CurrentLemming);
 
+      if ContinueWithLem and (LemPortalWarpFrame > 0) then
+        ContinueWithLem := CheckLemPortalWarping(CurrentLemming);
+
       // Explosion-Countdown
       if ContinueWithLem and (LemExplosionTimer <> 0) then
         ContinueWithLem := not UpdateExplosionTimer(CurrentLemming);
@@ -6089,8 +6302,12 @@ begin
          or (HasTriggerAt(LemPosArray[0, i], LemPosArray[1, i], trExit) and not LemWasJumping)
          or (HasTriggerAt(LemPosArray[0, i], LemPosArray[1, i], trWater) and not L.LemIsSwimmer)
          or HasTriggerAt(LemPosArray[0, i], LemPosArray[1, i], trFire)
+         or HasTriggerAt(LemPosArray[0, i], LemPosArray[1, i], trAddSkill)
+         or HasTriggerAt(LemPosArray[0, i], LemPosArray[1, i], trRemoveSkills)
          or (    HasTriggerAt(LemPosArray[0, i], LemPosArray[1, i], trTeleport)
              and (FindGadgetID(LemPosArray[0, i], LemPosArray[1, i], trTeleport) <> 65535))
+         or (    HasTriggerAt(LemPosArray[0, i], LemPosArray[1, i], trPortal)
+             and (FindGadgetID(LemPosArray[0, i], LemPosArray[1, i], trPortal) <> 65535))
          then
       begin
         L.LemAction := baExploding; // This always stops the simulation!
@@ -6105,7 +6322,6 @@ begin
          HasPixelAt(LemPosArray[0, i], LemPosArray[1, i]) and
          L.LemIsDisarmer then
         fLemNextAction := baFixing;
-
 
       // End this loop when we have reached the lemming position
       if (L.LemX = LemPosArray[0, i]) and (L.LemY = LemPosArray[1, i]) then Break;
@@ -6158,6 +6374,41 @@ begin
   Result := True;
 
   HandlePostTeleport(L);
+end;
+
+function TLemmingGame.CheckLemPortalWarping(L: TLemming): Boolean;
+var
+  GadgetID: Integer;
+  Gadget: TGadget;
+
+  DestGadgetID: Integer;
+  DestGadget: TGadget;
+begin
+  Result := False;
+
+  Assert(L.LemPortalWarpFrame > 0, 'CheckLemPortalWarping called for non-warping lemming');
+
+  Inc(L.LemPortalWarpFrame);
+
+  if L.LemPortalWarpFrame = 4 then
+  begin
+    // Search for Portal, the lemming is in
+    GadgetID := FindGadgetID(L.LemX, L.LemY, trPortal);
+    Assert(GadgetID < Gadgets.Count, 'Portal associated to warping lemming not found');
+
+    Gadget := Gadgets[GadgetID];
+    if Gadget.TriggerEffect <> DOM_PORTAL then Exit;
+
+    DestGadgetID := Gadget.ReceiverId;
+    DestGadget := Gadgets[DestGadgetID];
+
+    L.LemX := DestGadget.TriggerRect.Left + ((DestGadget.TriggerRect.Width + 1) div 2) - 1;
+    L.LemY := DestGadget.TriggerRect.Bottom - 1;
+    L.LemInPortal := DestGadgetID;
+
+    HandlePostTeleport(L);
+  end else if L.LemPortalWarpFrame >= 7 then
+    L.LemPortalWarpFrame := 0;
 end;
 
 procedure TLemmingGame.HandlePostTeleport(L: TLemming);

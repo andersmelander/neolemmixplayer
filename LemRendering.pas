@@ -354,6 +354,7 @@ var
   TriggerRect: TRect;
   TriggerLeft, TriggerTop: Integer;
   i: Integer;
+  WarpWidth: Integer;
 
   Selected: Boolean;
 
@@ -440,9 +441,27 @@ begin
 
   SrcRect := GetFrameBounds;
   DstRect := GetLocationBounds;
-  SrcAnim.DrawMode := dmCustom;
-  SrcAnim.OnPixelCombine := Recolorer.CombineLemmingPixels;
-  SrcAnim.DrawTo(fLayers[rlLemmings], DstRect, SrcRect);
+
+  if (aLemming.LemPortalWarpFrame < 3) or (aLemming.LemPortalWarpFrame > 4) then
+  begin
+    SrcAnim.DrawMode := dmCustom;
+    SrcAnim.OnPixelCombine := Recolorer.CombineLemmingPixels;
+    SrcAnim.DrawTo(fLayers[rlLemmings], DstRect, SrcRect);
+  end;
+
+  if (aLemming.LemPortalWarpFrame > 0) then
+  begin
+    WarpWidth := fAni.WarpBitmap.Width div 3;
+    SrcRect := SizedRect(WarpWidth * ((aLemming.LemPortalWarpFrame + 2) mod 3), 0,
+                         WarpWidth, fAni.WarpBitmap.Height);
+    DstRect := SizedRect(
+                           DstRect.Left + SrcMetaAnim.FootX - (WarpWidth div 2) + 1,
+                           (DstRect.Top + DstRect.Bottom - fAni.WarpBitmap.Height) div 2,
+                           WarpWidth, fAni.WarpBitmap.Height
+                         );
+
+    fAni.WarpBitmap.DrawTo(fLayers[rlLemmings], DstRect, SrcRect);
+  end;
 
   // Helper for selected lemming
   if (Selected and aLemming.CannotReceiveSkills) or UsefulOnly or
@@ -2191,6 +2210,40 @@ begin
     DOM_WATER:
       begin
         fHelperImages[hpi_Water].DrawTo(Dst, DrawX - 16 * ResMod, DrawY);
+      end;
+
+    DOM_PORTAL:
+      begin
+        fHelperImages[hpi_Portal].DrawTo(Dst, DrawX - 25 * ResMod, DrawY);
+        fHelperImages[THelperIcon(Gadget.PairingID + 1)].DrawTo(Dst, DrawX + 15 * ResMod, DrawY);
+      end;
+
+    DOM_ADDSKILL:
+      begin
+        fHelperImages[hpi_Assigner].DrawTo(Dst, DrawX - 9 * ResMod, DrawY - 1);
+        case Gadget.SkillType of
+          spbClimber: fHelperImages[hpi_Skill_Climber].DrawTo(Dst, DrawX, DrawY - 1);
+          spbSlider: fHelperImages[hpi_Skill_Slider].DrawTo(Dst, DrawX, DrawY - 1);
+          spbSwimmer: fHelperImages[hpi_Skill_Swimmer].DrawTo(Dst, DrawX, DrawY - 1);
+          spbFloater: fHelperImages[hpi_Skill_Floater].DrawTo(Dst, DrawX, DrawY - 1);
+          spbGlider: fHelperImages[hpi_Skill_Glider].DrawTo(Dst, DrawX, DrawY - 1);
+          spbDisarmer: fHelperImages[hpi_Skill_Disarmer].DrawTo(Dst, DrawX, DrawY - 1);
+        end;
+      end;
+
+    DOM_REMOVESKILLS:
+      begin
+        fHelperImages[hpi_Deassigner].DrawTo(Dst, DrawX - 14 * ResMod, DrawY);
+      end;
+
+    DOM_NEUTRALIZER:
+      begin
+        fHelperImages[hpi_Neutralizer].DrawTo(Dst, DrawX - 10 * ResMod, DrawY - 2);
+      end;
+
+    DOM_DENEUTRALIZER:
+      begin
+        fHelperImages[hpi_Deneutralizer].DrawTo(Dst, DrawX - 10 * ResMod, DrawY - 2);
       end;
   end;
 end;
