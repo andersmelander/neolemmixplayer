@@ -1089,7 +1089,8 @@ begin
   if aButton <= LAST_SKILL_BUTTON then
   begin
     BorderRect := fButtonRects[fHighlitSkill];
-    fLastHighlitSkill := fHighlitSkill;
+    if fHighlitSkill <> spbNone then
+      fLastHighlitSkill := fHighlitSkill;
     fHighlitSkill := spbNone;
   end else
     BorderRect := fButtonRects[aButton];
