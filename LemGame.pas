@@ -3820,6 +3820,11 @@ begin
     end else if ((LemAscended = 4) and HasPixelAt(LemX, LemY-1) and HasPixelAt(LemX, LemY-2)) or ((LemAscended >= 5) and HasPixelAt(LemX, LemY-1)) then
     begin
       Dec(LemX, LemDx);
+      while HasPixelAt(LemX, LemY) and (LemAscended > 0) do
+      begin
+        Inc(LemY);
+        Dec(LemAscended);
+      end;
       Transition(L, baFalling, true); // turn around as well
     end;
   end;
