@@ -2915,7 +2915,7 @@ begin
 
   if     (not L.LemIsZombie)
      and (not (L.LemAction in [baFalling, baSplatting, baJumping, baReaching]))
-     and (HasPixelAt(L.LemX, L.LemY) or not (L.LemAction = baOhNoing)) then
+     and (HasPixelAt(L.LemX, L.LemY) or not (L.LemAction in [baOhNoing, baStoning])) then
   begin
     if IsOutOfTime and UserSetNuking and (L.LemAction = baOhNoing) then
       Exit;
