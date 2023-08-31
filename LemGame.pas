@@ -1938,7 +1938,11 @@ begin
     begin
       // Go one back to cancel the Inc(L.LemX, L.LemDx) in HandleWalking
       // unless the Lem will fall down (which is handles already in Transition)
-      if HasPixelAt(L.LemX, L.LemY) then Dec(L.LemX, L.LemDx);
+      if HasPixelAt(L.LemX, L.LemY) then
+      begin
+        L.LemWalkerPositionAdjusted := true;
+        Dec(L.LemX, L.LemDx);
+      end;
     end;
   end;
 
@@ -3663,8 +3667,12 @@ end;
 function TLemmingGame.HandleWalking(L: TLemming): Boolean;
 var
   LemDy: Integer;
+  WalkerPositionAdjusted: Boolean;
 begin
   Result := True;
+
+  WalkerPositionAdjusted := L.LemWalkerPositionAdjusted;
+  L.LemWalkerPositionAdjusted := false;
 
   Inc(L.LemX, L.LemDx);
   LemDy := FindGroundPixel(L.LemX, L.LemY);
@@ -3683,7 +3691,8 @@ begin
     else
     begin
       TurnAround(L);
-      Inc(L.LemX, L.LemDx);
+      if not WalkerPositionAdjusted then
+        Inc(L.LemX, L.LemDx);
     end;
   end
   else if (LemDy < -2) then
