@@ -1,0 +1,146 @@
+# ----------------------------- 
+#        NeoLemmix Level        
+#   Created with NLEditor 1.41
+# ----------------------------- 
+ 
+#        Level info             
+# ----------------------------- 
+ TITLE Teleporter Crash Test
+ AUTHOR 
+ MUSIC orig_13
+ ID x5AF3EAD146AFBDEB
+ VERSION x0000000000000005
+ 
+#       Level dimensions        
+# ----------------------------- 
+ WIDTH 320
+ HEIGHT 160
+ THEME orig_dirt
+ 
+#         Level stats           
+# ----------------------------- 
+ LEMMINGS 40
+ SAVE_REQUIREMENT 20
+ MAX_SPAWN_INTERVAL 53
+ 
+ $SKILLSET 
+   JUMPER 5
+   SWIMMER 5
+ $END 
+ 
+#     Interactive objects       
+# ----------------------------- 
+ $GADGET
+   STYLE namida_martian
+   PIECE water
+   X 159
+   Y 74
+   WIDTH 64
+   NO_OVERWRITE
+ $END
+ 
+ $GADGET
+   STYLE namida_martian
+   PIECE window
+   X 83
+   Y 28
+   NO_OVERWRITE
+ $END
+ 
+ $GADGET
+   STYLE namida_martian
+   PIECE exit
+   X 93
+   Y 96
+   NO_OVERWRITE
+   FLIP_VERTICAL
+ $END
+ 
+ $GADGET
+   STYLE namida_martian
+   PIECE teleporter
+   X 192
+   Y 63
+   NO_OVERWRITE
+   PAIRING 1
+ $END
+ 
+ $GADGET
+   STYLE namida_martian
+   PIECE teleporter
+   X 156
+   Y 44
+   NO_OVERWRITE
+   PAIRING 2
+ $END
+ 
+ $GADGET
+   STYLE namida_martian
+   PIECE receiver
+   X 237
+   Y 16
+   NO_OVERWRITE
+   PAIRING 1
+ $END
+ 
+ $GADGET
+   STYLE namida_martian
+   PIECE receiver
+   X 253
+   Y 16
+   NO_OVERWRITE
+   PAIRING 2
+ $END
+ 
+ 
+#        Terrain pieces         
+# ----------------------------- 
+ $TERRAIN
+   STYLE namida_martian
+   PIECE steel_02
+   X 95
+   Y 74
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE namida_martian
+   PIECE steel_02
+   X 127
+   Y 74
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE namida_martian
+   PIECE steel_02
+   X 237
+   Y 33
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE namida_martian
+   PIECE steel_02
+   X 159
+   Y 90
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE namida_martian
+   PIECE steel_02
+   X 191
+   Y 90
+   ONE_WAY
+ $END
+ 
+ $TERRAIN
+   STYLE namida_martian
+   PIECE steel_02
+   X 223
+   Y 74
+   ONE_WAY
+ $END
+ 
+ 
