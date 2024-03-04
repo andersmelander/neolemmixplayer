@@ -59,6 +59,13 @@ type
   TGameSoundOptions = set of TGameSoundOption;
 
 type
+  TExitToPostview = (
+    etpAlways,
+    etpIfPassed,
+    etpNever
+  );
+
+type
   TMiscOption = (
     moAutoReplaySave,
     moEnableOnline,
@@ -128,6 +135,7 @@ type
     fLoadedWindowWidth: Integer;
     fLoadedWindowHeight: Integer;
 
+    fExitToPostview: TExitToPostview;
     fUserName: String;
 
     fAutoSaveReplayPattern: String;
@@ -148,7 +156,7 @@ type
 
     procedure SetUserName(aValue: String);
   public
-    SoundOptions : TGameSoundOptions;
+    SoundOptions   : TGameSoundOptions;
 
     Level        : TLevel;
     Renderer     : TRenderer;
@@ -228,10 +236,9 @@ type
     property DisableMusicInTestplay: boolean Index moDisableMusicInTestplay read GetOptionFlag write SetOptionFlag;
 
     property HideAdvancedOptions: boolean Index moHideAdvanced read GetOptionFlag write SetOptionFlag;
+
     property FileCaching: boolean Index moFileCaching read GetOptionFlag write SetOptionFlag;
-
     property MatchBlankReplayUsername: boolean Index moMatchBlankReplayUsername read GetOptionFlag write SetOptionFlag;
-
     property PostviewJingles: Boolean Index moPostviewJingles read GetOptionFlag write SetOptionFlag;
 
     property DumpMode: boolean read fDumpMode write fDumpMode;
@@ -262,6 +269,8 @@ type
     property Hotkeys: TLemmixHotkeyManager read fHotkeys;
 
     property CurrentGroupName: String read GetCurrentGroupName;
+
+    property ExitToPostview: TExitToPostview read fExitToPostview write fExitToPostview;
 
     property Username: String read fUsername write SetUsername;
     property AutoSaveReplayPattern: String read fAutoSaveReplayPattern write fAutoSaveReplayPattern;
@@ -381,6 +390,11 @@ var
     for i := 0 to SL2.Count-1 do
       SL.Add(SL2[i]);
   end;
+
+  procedure SaveString(aLabel, aValue: String);
+  begin
+    SL.Add(aLabel + '=' + aValue);
+  end;
 begin
   SL := TStringList.Create;
   SL2 := TStringList.Create;
@@ -401,6 +415,14 @@ begin
   SL.Add('IngameSaveReplayPattern=' + IngameSaveReplayPattern);
   SL.Add('PostviewSaveReplayPattern=' + PostviewSaveReplayPattern);
   SaveBoolean('HideAdvancedOptions', HideAdvancedOptions);
+
+  if (ExitToPostview = etpAlways) then
+    SaveString('ExitToPostview', 'Always')
+  else if (ExitToPostview = etpIfPassed) then
+    SaveString('ExitToPostview', 'IfLevelPassed')
+  else if (ExitToPostview = etpNever) then
+    SaveString('ExitToPostview', 'Never');
+
   SaveBoolean('NoAutoReplay', NoAutoReplayMode);
   SaveBoolean('PauseAfterBackwardsSkip', PauseAfterBackwardsSkip);
   SaveBoolean('NoBackgrounds', NoBackgrounds);
@@ -536,6 +558,19 @@ var
       fPanelZoomLevel := 1;
   end;
 
+  procedure LoadExitToPostviewOptions;
+  var
+    sOption: String;
+  begin
+    sOption := SL.Values['ExitToPostview'];
+
+    if (sOption = 'Always') then
+      ExitToPostview := etpAlways
+    else if (sOption = 'Never') then
+      ExitToPostview := etpNever
+    else // Set default if the string is anything else
+      ExitToPostview := etpIfPassed;
+  end;
 begin
   SL := TStringList.Create;
   try
@@ -555,6 +590,8 @@ begin
     UserName := SL.Values['UserName'];
 
     HideAdvancedOptions := LoadBoolean('HideAdvancedOptions', HideAdvancedOptions);
+
+    LoadExitToPostviewOptions;
 
     AutoSaveReplay := LoadBoolean('AutoSaveReplay', AutoSaveReplay);
     AutoSaveReplayPattern := SL.Values['AutoSaveReplayPattern'];
@@ -801,9 +838,10 @@ begin
 
   UserName := 'Anonymous';
 
-
   SoundManager.MusicVolume := 50;
   SoundManager.SoundVolume := 50;
+  ExitToPostview := etpIfPassed;
+
   fDumpMode := false;
   fShownText := false;
   fOneLevelMode := false;

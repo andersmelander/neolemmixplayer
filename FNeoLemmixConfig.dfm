@@ -6,7 +6,7 @@ object FormNXConfig: TFormNXConfig
   BorderIcons = []
   BorderStyle = bsToolWindow
   Caption = 'NeoLemmix Configuration'
-  ClientHeight = 516
+  ClientHeight = 397
   ClientWidth = 273
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -18,15 +18,15 @@ object FormNXConfig: TFormNXConfig
   Position = poMainFormCenter
   DesignSize = (
     273
-    516)
+    397)
   PixelsPerInch = 96
   TextHeight = 13
   object NXConfigPages: TPageControl
     Left = 0
     Top = 0
     Width = 273
-    Height = 477
-    ActivePage = TabSheet4
+    Height = 358
+    ActivePage = TabSheet1
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 0
     object TabSheet1: TTabSheet
@@ -166,16 +166,16 @@ object FormNXConfig: TFormNXConfig
         OnClick = btnStylesClick
       end
     end
-    object TabSheet5: TTabSheet
+    object TabSheet2: TTabSheet
       Caption = 'Interface'
-      ImageIndex = 4
+      ImageIndex = 2
       object GroupBox2: TGroupBox
         Left = 8
         Top = 8
         Width = 249
         Height = 57
         Caption = 'Input Options'
-        TabOrder = 0
+        TabOrder = 2
         object cbNoAutoReplay: TCheckBox
           Left = 12
           Top = 16
@@ -199,12 +199,12 @@ object FormNXConfig: TFormNXConfig
         Left = 8
         Top = 68
         Width = 249
-        Height = 129
+        Height = 126
         Caption = 'Interface Options'
         TabOrder = 1
         object cbNoBackgrounds: TCheckBox
           Left = 12
-          Top = 16
+          Top = 17
           Width = 153
           Height = 17
           Caption = 'Disable Background Images'
@@ -213,7 +213,7 @@ object FormNXConfig: TFormNXConfig
         end
         object cbEdgeScrolling: TCheckBox
           Left = 12
-          Top = 67
+          Top = 68
           Width = 221
           Height = 17
           Caption = 'Enable Edge Scrolling and Trap Cursor'
@@ -222,7 +222,7 @@ object FormNXConfig: TFormNXConfig
         end
         object cbSpawnInterval: TCheckBox
           Left = 12
-          Top = 84
+          Top = 85
           Width = 153
           Height = 17
           Caption = 'Use Spawn Interval'
@@ -231,7 +231,7 @@ object FormNXConfig: TFormNXConfig
         end
         object cbHideShadows: TCheckBox
           Left = 12
-          Top = 50
+          Top = 51
           Width = 153
           Height = 17
           Caption = 'Hide Skill Shadows'
@@ -240,7 +240,7 @@ object FormNXConfig: TFormNXConfig
         end
         object cbHideAdvanced: TCheckBox
           Left = 12
-          Top = 101
+          Top = 102
           Width = 234
           Height = 17
           Caption = 'Hide Advanced Options in Level Select'
@@ -249,7 +249,7 @@ object FormNXConfig: TFormNXConfig
         end
         object cbForceDefaultLemmings: TCheckBox
           Left = 12
-          Top = 33
+          Top = 34
           Width = 173
           Height = 17
           Caption = 'Force Default Lemming Sprites'
@@ -257,13 +257,30 @@ object FormNXConfig: TFormNXConfig
           OnClick = OptionChanged
         end
       end
-      object GroupBox6: TGroupBox
+      object rgWhenNoLemmings: TRadioGroup
         Left = 8
         Top = 200
         Width = 249
+        Height = 69
+        Caption = 'When No Lemmings Remain'
+        Items.Strings = (
+          'Always Exit To Postview'
+          'Exit To Postview if Save Requirement Met'
+          'Never Exit To Postview')
+        TabOrder = 0
+        OnClick = rgWhenNoLemmingsClick
+      end
+    end
+    object TabSheet3: TTabSheet
+      Caption = 'Graphics'
+      ImageIndex = 3
+      object GroupBox6: TGroupBox
+        Left = 8
+        Top = 8
+        Width = 249
         Height = 226
         Caption = 'Graphics Options'
-        TabOrder = 2
+        TabOrder = 0
         object Label1: TLabel
           Left = 11
           Top = 20
@@ -389,7 +406,7 @@ object FormNXConfig: TFormNXConfig
     end
     object TabSheet4: TTabSheet
       Caption = 'Audio'
-      ImageIndex = 3
+      ImageIndex = 4
       object Label3: TLabel
         Left = 24
         Top = 45
@@ -459,7 +476,7 @@ object FormNXConfig: TFormNXConfig
   end
   object btnOK: TButton
     Left = 24
-    Top = 483
+    Top = 364
     Width = 65
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -469,7 +486,7 @@ object FormNXConfig: TFormNXConfig
   end
   object btnCancel: TButton
     Left = 104
-    Top = 483
+    Top = 364
     Width = 65
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -479,7 +496,7 @@ object FormNXConfig: TFormNXConfig
   end
   object btnApply: TButton
     Left = 184
-    Top = 483
+    Top = 364
     Width = 65
     Height = 25
     Anchors = [akLeft, akBottom]

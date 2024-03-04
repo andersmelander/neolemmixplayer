@@ -190,7 +190,7 @@ type
     CurrSkillCount             : array[TBasicLemmingAction] of Integer;  // should only be called with arguments in AssignableSkills
     UsedSkillCount             : array[TBasicLemmingAction] of Integer;  // should only be called with arguments in AssignableSkills
 
-    fUserSetNuking              : Boolean;
+    fUserSetNuking             : Boolean;
     ExploderAssignInProgress   : Boolean;
     Index_LemmingToBeNuked     : Integer;
     BrickPixelColors           : array[0..11] of TColor32; // gradient steps
@@ -227,6 +227,7 @@ type
 
   { internal methods }
     procedure DoTalismanCheck;
+    function CheckIfZombiesRemain: Boolean;
     function GetIsReplaying: Boolean;
     function GetIsReplayingNoRR(isPaused: Boolean): Boolean;
     procedure ApplyLaserMask(P: TPoint; L: TLemming);
@@ -237,7 +238,6 @@ type
     procedure ApplyMinerMask(L: TLemming; MaskFrame, AdjustX, AdjustY: Integer);
     procedure AddConstructivePixel(X, Y: Integer; Color: TColor32);
     function CalculateNextLemmingCountdown: Integer;
-    procedure CheckForGameFinished;
     // The next few procedures are for checking the behavior of lems in trigger areas!
     procedure CheckTriggerArea(L: TLemming; IsPostTeleportCheck: Boolean = false);
       function GetGadgetCheckPositions(L: TLemming): TArrayArrayInt;
@@ -417,6 +417,8 @@ type
     procedure UpdateLemmings;
 
   { callable }
+    function ShouldWeExitBecauseOfOptions: Boolean;
+    procedure MaybeExitToPostview;
     procedure CheckAdjustSpawnInterval;
     procedure AdjustSpawnInterval(aSI: Integer);
     function CheckIfLegalSI(aSI: Integer): Boolean;
@@ -436,6 +438,7 @@ type
     function GetHighlitLemming: TLemming;
     function GetTargetLemming: TLemming;
     procedure CheckForNewShadow(aForceRedraw: Boolean = false);
+    function StateIsUnplayable: Boolean;
 
   { properties }
     property CurrentIteration: Integer read fCurrentIteration;
@@ -467,7 +470,6 @@ type
 
     property RenderInterface: TRenderInterface read fRenderInterface;
     property IsSimulating: Boolean read GetIsSimulating;
-
     property UserSetNuking: Boolean read fUserSetNuking write fUserSetNuking;
     property ActiveLemmingTypes: TLemmingKinds read GetActiveLemmingTypes;
 
@@ -1627,33 +1629,48 @@ begin
   end;
 end;
 
+function TLemmingGame.StateIsUnplayable: Boolean;
+begin
+  Result := (LemmingsOut = 0)
+            and ((LemmingsToSpawn = 0) or UserSetNuking)
+            and (DelayEndFrames = 0)
+            and (fParticleFinishTimer = 0)
+            and not (UserSetNuking and CheckIfZombiesRemain);
+end;
 
-procedure TLemmingGame.CheckForGameFinished;
+function TLemmingGame.ShouldWeExitBecauseOfOptions: Boolean;
+begin
+  Result := False;
+
+  if not StateIsUnplayable then
+    Exit;
+
+  if (GameParams.ExitToPostview = etpAlways) then
+  begin
+    Result := True;
+    Exit;
+  end;
+
+  if (GameParams.ExitToPostview = etpIfPassed) then
+  begin
+    Result := (LemmingsIn >= Level.Info.RescueCount) or UserSetNuking;
+    Exit;
+  end;
+
+  if (GameParams.ExitToPostview = etpNever) then
+  begin
+    Result := UserSetNuking;
+    Exit;
+  end;
+end;
+
+procedure TLemmingGame.MaybeExitToPostview;
 begin
   if fGameFinished then
     Exit;
-
-  if fParticleFinishTimer > 0 then
-    Exit;
-
-  if (LemmingsIn >= Level.Info.LemmingsCount + LemmingsCloned) and (DelayEndFrames = 0) then
-  begin
+    
+  if ShouldWeExitBecauseOfOptions then
     Finish(GM_FIN_LEMMINGS);
-    Exit;
-  end;
-
-  if ((Level.Info.LemmingsCount + LemmingsCloned - fSpawnedDead) - (LemmingsRemoved) = 0) and (DelayEndFrames = 0) then
-  begin
-    Finish(GM_FIN_LEMMINGS);
-    Exit;
-  end;
-
-  if UserSetNuking and (LemmingsOut = 0) and (DelayEndFrames = 0) then
-  begin
-    Finish(GM_FIN_LEMMINGS);
-    Exit;
-  end;
-
 end;
 
 //  SETTING SIZE OF OBJECT MAPS
@@ -5535,13 +5552,13 @@ procedure TLemmingGame.UpdateLemmings;
 begin
   fDoneAssignmentThisFrame := false;
 
-  if fGameFinished then
+  // Don't update if the game is finished, or we've reached an unplayable state
+  if fGameFinished or StateIsUnplayable then
     Exit;
+
   fSoundList.Clear(); // Clear list of played sound effects
-  CheckForGameFinished;
 
   CheckAdjustSpawnInterval;
-
   CheckForQueuedAction; // needs to be done before CheckForReplayAction, because it writes an assignment in the replay
   CheckForReplayAction;
 
@@ -5831,6 +5848,12 @@ begin
       end;
     spbNuke:
       begin
+        if StateIsUnplayable then
+        begin
+          Finish(GM_FIN_TERMINATE);
+          Exit;
+        end;
+
         RecordNuke(RightClick);
       end;
     spbPause: ; // Do Nothing
@@ -6027,6 +6050,29 @@ begin
     Result := false
   else
     Result := true;
+end;
+
+function TLemmingGame.CheckIfZombiesRemain: Boolean;
+var
+  i: Integer;
+  ReleaseOffset: Integer;
+begin
+  Result := true;
+
+  for i := 0 to LemmingList.Count-1 do
+    if LemmingList[i].LemIsZombie and not LemmingList[i].LemRemoved then
+      Exit;
+
+  ReleaseOffset := 0;
+  if (LemmingsToRelease - ReleaseOffset > 0) then
+  begin
+    i := Level.Info.SpawnOrder[Level.Info.LemmingsCount - Level.PreplacedLemmings.Count - LemmingsToRelease + ReleaseOffset];
+    if i >= 0 then
+      if Gadgets[i].IsPreassignedZombie then
+        Exit;
+  end;
+
+  Result := false;
 end;
 
 procedure TLemmingGame.AdjustSpawnInterval(aSI: Integer);
