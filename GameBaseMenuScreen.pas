@@ -239,7 +239,7 @@ begin
 
     fBasicCursor.LoadFromBitmap(BMP);
 
-    for i := 1 to fBasicCursor.MaxZoom+1 do
+    for i := 1 to fBasicCursor.MaxZoom do
       Screen.Cursors[i] := fBasicCursor.GetCursor(i);
   finally
     BMP.Free;
