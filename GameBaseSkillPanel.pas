@@ -1018,6 +1018,9 @@ var
 begin
   if Parent = nil then Exit;
 
+  BaseOffsetHoriz := 0;
+  BaseOffsetVert := 0;
+
   // Draw a message instead of the minimap in certain conditions
   if Game.StateIsUnplayable and not Game.ShouldWeExitBecauseOfOptions then
     DrawMinimapMessage('nolems_message.png', MinimapMessage)
