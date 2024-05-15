@@ -1181,7 +1181,7 @@ begin
 
   Img := ScreenImg; // set ref to inherited screenimg (just for a short name)
   Img.RepaintMode := rmOptimizer;
-  Img.Color := clNone;
+  Img.Color := clBlack;
   Img.BitmapAlign := baCustom;
   Img.ScaleMode := smScale;
 
