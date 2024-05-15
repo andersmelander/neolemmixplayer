@@ -568,6 +568,7 @@ begin
   // this makes sure this method is called very often :)
   Done := False;
 
+  Game.MaybeExitToPostview;
   if not CanPlay or not Game.Playing or Game.GameFinished then
   begin
     ProcessGameMessages; // may still be some lingering, especially the GAMEMSG_FINISH message
@@ -675,6 +676,10 @@ begin
       end else
         fHyperSpeedTarget := Game.CurrentIteration + 1;
     end;
+
+    // Prevents large forward skips overshooting into unplayable state
+    if Game.StateIsUnplayable and Hyper then
+      fHyperSpeedTarget := Game.CurrentIteration;
 
     // Refresh panel if in usual or fast play mode
     if not Hyper then
