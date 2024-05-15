@@ -372,13 +372,16 @@ begin
             Game.UpdateLemmings;
 
             if (Game.CurrentIteration > CutoffFrame) or
-               Game.IsOutOfTime then
+               Game.IsOutOfTime or Game.StateIsUnplayable then
             begin
               Game.Finish(GM_FIN_TERMINATE);
               if Game.GameResultRec.gSuccess then
                 fReplays[i].ReplayResult := CR_PASS;
               if Game.GameResultRec.gGotTalisman then
                 fReplays[i].ReplayResult := CR_PASS_TALISMAN;
+              if (Game.StateIsUnplayable or Game.IsOutOfTime)
+                and not (Game.GameResultRec.gSuccess or Game.GameResultRec.gGotTalisman) then
+                  fReplays[i].ReplayResult := CR_FAIL;
               Break;
             end;
 

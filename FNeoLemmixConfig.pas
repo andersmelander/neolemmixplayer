@@ -5,7 +5,7 @@ interface
 uses
   GameControl, GameSound, FEditHotkeys, FStyleManager, Math,
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ComCtrls, StdCtrls;
+  Dialogs, ComCtrls, StdCtrls, Vcl.ExtCtrls;
 
 type
   TFormNXConfig = class(TForm)
@@ -15,6 +15,8 @@ type
     btnCancel: TButton;
     btnApply: TButton;
     GroupBox4: TGroupBox;
+    TabSheet2: TTabSheet;
+    TabSheet3: TTabSheet;
     TabSheet4: TTabSheet;
     tbSoundVol: TTrackBar;
     Label3: TLabel;
@@ -22,7 +24,6 @@ type
     tbMusicVol: TTrackBar;
     Label6: TLabel;
     cbPostviewJingles: TCheckBox;
-    TabSheet5: TTabSheet;
     GroupBox2: TGroupBox;
     GroupBox3: TGroupBox;
     cbNoBackgrounds: TCheckBox;
@@ -61,6 +62,7 @@ type
     Label2: TLabel;
     cbForceDefaultLemmings: TCheckBox;
     cbDisableTestplayMusic: TCheckBox;
+    rgWhenNoLemmings: TRadioGroup;
     procedure btnApplyClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure btnHotkeysClick(Sender: TObject);
@@ -71,6 +73,7 @@ type
     procedure cbFullScreenClick(Sender: TObject);
     procedure cbAutoSaveReplayClick(Sender: TObject);
     procedure cbReplayPatternEnter(Sender: TObject);
+    procedure rgWhenNoLemmingsClick(Sender: TObject);
   private
     fIsSetting: Boolean;
     fResetWindowSize: Boolean;
@@ -245,6 +248,8 @@ begin
     cbSpawnInterval.Checked := GameParams.SpawnInterval;
     cbHideAdvanced.Checked := GameParams.HideAdvancedOptions;
 
+    rgWhenNoLemmings.ItemIndex := Ord(GameParams.ExitToPostview);
+
     cbFullScreen.Checked := GameParams.FullScreen;
     cbResetWindowSize.Enabled := not GameParams.FullScreen;
     cbResetWindowSize.Checked := false;
@@ -307,6 +312,10 @@ begin
   GameParams.EdgeScroll := cbEdgeScrolling.Checked;
   GameParams.SpawnInterval := cbSpawnInterval.Checked;
   GameParams.HideAdvancedOptions := cbHideAdvanced.Checked;
+
+  if (rgWhenNoLemmings.ItemIndex >= Ord(Low(TExitToPostview)))
+    and (rgWhenNoLemmings.ItemIndex <= Ord(High(TExitToPostview))) then
+      GameParams.ExitToPostview := TExitToPostview(rgWhenNoLemmings.ItemIndex);
 
   GameParams.FullScreen := cbFullScreen.Checked;
   fResetWindowSize := cbResetWindowSize.Checked;
@@ -410,6 +419,11 @@ begin
 
   if P.ItemIndex >= 0 then
     P.Text := PRESET_REPLAY_PATTERNS[P.ItemIndex];
+end;
+
+procedure TFormNXConfig.rgWhenNoLemmingsClick(Sender: TObject);
+begin
+  OptionChanged(Sender);
 end;
 
 procedure TFormNXConfig.cbEnableOnlineClick(Sender: TObject);
