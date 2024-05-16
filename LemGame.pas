@@ -2458,41 +2458,41 @@ begin
   CurrPosX := L.LemXOld;
   CurrPosY := L.LemYOld;
 
-  if L.LemActionOld = baJumping then
-    HandleJumperMovement; // but continue with the rest as normal
 
   // no movement
   if (L.LemX = L.LemXOld) and (L.LemY = L.LemYOld) then
   begin
-    if (L.LemActionOld <> baJumping) or (n = 0) then
-      SaveCheckPos;
-  end
+    SaveCheckPos;
+  end else begin
+    if L.LemActionOld = baJumping then
+      HandleJumperMovement; // but continue with the rest as normal
 
-  // special treatment of miners!
-  else if L.LemActionOld = baMining then
-  begin
-    // First move one pixel down, if Y-coordinate changed
-    if L.LemYOld < L.LemY then
+    // special treatment of miners!
+    if L.LemActionOld = baMining then
     begin
-      Inc(CurrPosY);
-      SaveCheckPos;
+      // First move one pixel down, if Y-coordinate changed
+      if L.LemYOld < L.LemY then
+      begin
+        Inc(CurrPosY);
+        SaveCheckPos;
+      end;
+      MoveHorizontal;
+      MoveVertical;
+    end
+
+    // lem moves up or is faller; exception is made for builders!
+    else if ((L.LemY < L.LemYOld) or (L.LemAction = baFalling)) and not (L.LemActionOld = baBuilding) then
+    begin
+      MoveHorizontal;
+      MoveVertical;
+    end
+
+    // lem moves down (or straight) and is no faller; alternatively lem is a builder!
+    else
+    begin
+      MoveVertical;
+      MoveHorizontal;
     end;
-    MoveHorizontal;
-    MoveVertical;
-  end
-
-  // lem moves up or is faller; exception is made for builders!
-  else if ((L.LemY < L.LemYOld) or (L.LemAction = baFalling)) and not (L.LemActionOld = baBuilding) then
-  begin
-    MoveHorizontal;
-    MoveVertical;
-  end
-
-  // lem moves down (or straight) and is no faller; alternatively lem is a builder!
-  else
-  begin
-    MoveVertical;
-    MoveHorizontal;
   end;
 end;
 
