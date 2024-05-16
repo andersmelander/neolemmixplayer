@@ -268,7 +268,7 @@ object FormNXConfig: TFormNXConfig
           'Exit To Postview if Save Requirement Met'
           'Never Exit To Postview')
         TabOrder = 0
-        OnClick = rgWhenNoLemmingsClick
+        OnClick = OptionChanged
       end
     end
     object TabSheet3: TTabSheet

@@ -73,7 +73,6 @@ type
     procedure cbFullScreenClick(Sender: TObject);
     procedure cbAutoSaveReplayClick(Sender: TObject);
     procedure cbReplayPatternEnter(Sender: TObject);
-    procedure rgWhenNoLemmingsClick(Sender: TObject);
   private
     fIsSetting: Boolean;
     fResetWindowSize: Boolean;
@@ -150,6 +149,7 @@ begin
       Exit;
     end;
 
+  aBox.ItemIndex := -1;
   aBox.Text := aPattern;
 end;
 
@@ -229,12 +229,14 @@ begin
 
     // Checkboxes
     cbAutoSaveReplay.Checked := GameParams.AutoSaveReplay;
+    cbAutoSaveReplayPattern.Enabled := GameParams.AutoSaveReplay;
     SetReplayPatternDropdown(cbAutoSaveReplayPattern, GameParams.AutoSaveReplayPattern);
     SetReplayPatternDropdown(cbIngameSaveReplayPattern, GameParams.IngameSaveReplayPattern);
     SetReplayPatternDropdown(cbPostviewSaveReplayPattern, GameParams.PostviewSaveReplayPattern);
 
-    cbUpdateCheck.Checked := GameParams.CheckUpdates; // in reverse order as the next one may override this
     cbEnableOnline.Checked := GameParams.EnableOnline;
+    cbUpdateCheck.Checked := GameParams.CheckUpdates and GameParams.EnableOnline;
+    cbUpdateCheck.Enabled := GameParams.EnableOnline;
 
     //// Page 2 (Interface Options) ////
     // Checkboxes
@@ -406,8 +408,11 @@ end;
 
 procedure TFormNXConfig.cbAutoSaveReplayClick(Sender: TObject);
 begin
-  cbAutoSaveReplayPattern.Enabled := cbAutoSaveReplay.Checked;
-  OptionChanged(Sender);
+  if not fIsSetting then
+  begin
+    cbAutoSaveReplayPattern.Enabled := cbAutoSaveReplay.Checked;
+    OptionChanged(Sender);
+  end;
 end;
 
 procedure TFormNXConfig.cbReplayPatternEnter(Sender: TObject);
@@ -421,16 +426,14 @@ begin
     P.Text := PRESET_REPLAY_PATTERNS[P.ItemIndex];
 end;
 
-procedure TFormNXConfig.rgWhenNoLemmingsClick(Sender: TObject);
-begin
-  OptionChanged(Sender);
-end;
-
 procedure TFormNXConfig.cbEnableOnlineClick(Sender: TObject);
 begin
-  cbUpdateCheck.Enabled := cbEnableOnline.Checked;
-  if not cbEnableOnline.Checked then cbUpdateCheck.Checked := false;
-  btnApply.Enabled := true;
+  if not fIsSetting then
+  begin
+    cbUpdateCheck.Enabled := cbEnableOnline.Checked;
+    if not cbEnableOnline.Checked then cbUpdateCheck.Checked := false;
+    OptionChanged(Sender);
+  end;
 end;
 
 procedure TFormNXConfig.cbFullScreenClick(Sender: TObject);
@@ -456,7 +459,8 @@ end;
 
 procedure TFormNXConfig.SliderChange(Sender: TObject);
 begin
-  btnApply.Enabled := true;
+  if not fIsSetting then
+    btnApply.Enabled := true;
 end;
 
 end.
