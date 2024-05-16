@@ -44,7 +44,7 @@ type
     procedure SetZoom(NewZoom: Integer);
     function GetMaxZoom: Integer;
 
-    procedure CombineShift(F: TColor32; var B: TColor32; M: TColor32);
+    procedure CombineShift(F: TColor32; var B: TColor32; M: Cardinal);
     procedure SetShowUsedSkills(const Value: Boolean);
   protected
     fGameWindow           : IGameWindow;
@@ -235,7 +235,6 @@ begin
   // Some general settings for the panel
   Color := $000000;
   ParentBackground := false;
-  DoubleBuffered := true;
 
   fLastClickFrameskip := GetTickCount;
 
@@ -883,7 +882,6 @@ begin
 
   // Copy the created bitmap
   fImage.Bitmap.Assign(fOriginal);
-  fImage.Bitmap.Changed;
 
   // Load the remaining graphics for icons, ...
   LoadPanelFont;
@@ -896,16 +894,17 @@ begin
   // Sets game-dependant properties of the skill panel:
   // Size of the minimap, style, scaling factor, skills on the panel, ...
   fImage.BeginUpdate;
+  try
 
-  Minimap.SetSize(Level.Info.Width div 8 * ResMod, Level.Info.Height div 8 * ResMod);
+    Minimap.SetSize(Level.Info.Width div 8 * ResMod, Level.Info.Height div 8 * ResMod);
 
-  ReadBitmapFromStyle;
-  SetButtonRects;
-  SetSkillIcons;
+    ReadBitmapFromStyle;
+    SetButtonRects;
+    SetSkillIcons;
 
-  fImage.EndUpdate;
-  fImage.Changed;
-  Invalidate;
+  finally
+    fImage.EndUpdate;
+  end;
 end;
 
 procedure TBaseSkillPanel.SetShowUsedSkills(const Value: Boolean);
@@ -1019,6 +1018,9 @@ var
 begin
   if Parent = nil then Exit;
 
+  BaseOffsetHoriz := 0;
+  BaseOffsetVert := 0;
+
   // Draw a message instead of the minimap in certain conditions
   if Game.StateIsUnplayable and not Game.ShouldWeExitBecauseOfOptions then
     DrawMinimapMessage('nolems_message.png', MinimapMessage)
@@ -1069,8 +1071,6 @@ begin
     fMinimapImage.OffsetHorz := OH * fMinimapImage.Scale;
     fMinimapImage.OffsetVert := OV * fMinimapImage.Scale;
   end;
-
-  fMinimapImage.Changed;
 end;
 
 procedure TBaseSkillPanel.DrawButtonSelector(aButton: TSkillPanelButton; Highlight: Boolean);
@@ -1211,7 +1211,7 @@ end;
 {-----------------------------------------
     Info string at top
 -----------------------------------------}
-procedure TBaseSkillPanel.CombineShift(F: TColor32; var B: TColor32; M: TColor32);
+procedure TBaseSkillPanel.CombineShift(F: TColor32; var B: TColor32; M: Cardinal);
 var
   H, S, V: Single;
 begin
@@ -1325,9 +1325,9 @@ begin
     end;
 
     DrawButtonSelector(spbNuke, (Game.UserSetNuking or (Game.ReplayManager.Assignment[Game.CurrentIteration, 0] is TReplayNuke)));
+
   finally
     Image.EndUpdate;
-    Image.Invalidate;
   end;
 end;
 

@@ -239,7 +239,7 @@ begin
 
     fBasicCursor.LoadFromBitmap(BMP);
 
-    for i := 1 to fBasicCursor.MaxZoom+1 do
+    for i := 1 to fBasicCursor.MaxZoom do
       Screen.Cursors[i] := fBasicCursor.GetCursor(i);
   finally
     BMP.Free;
@@ -473,6 +473,9 @@ var
   Region: TClickableRegion;
   P: TPoint;
 begin
+  if ScreenIsClosing then
+    Exit;
+
   Region := fClickableRegions[TComponent(Sender).Tag];
   P := GetInternalMouseCoordinates;
 
@@ -601,8 +604,6 @@ begin
         fClickableRegions[i].CurrentState := rsClick;
         fClickableRegions[i].Bitmaps.DrawTo(ScreenImg.Bitmap, fClickableRegions[i].Bounds, fClickableRegions[i].SrcRect[rsClick]);
 
-        ScreenImg.Bitmap.Changed;
-
         fClickableRegions[i].Action;
         InvokeCustomHandler := false;
         Break;
@@ -689,6 +690,9 @@ var
     Result := true;
   end;
 begin
+  if ScreenIsClosing then
+    Exit;
+
   if aForceNormalState then
   begin
     for i := 0 to fClickableRegions.Count-1 do
@@ -928,16 +932,10 @@ begin
   if GameParams.LinearResampleMenu then
   begin
     if ScreenImg.Bitmap.Resampler is TNearestResampler then
-    begin
       TLinearResampler.Create(ScreenImg.Bitmap);
-      ScreenImg.Bitmap.Changed;
-    end;
   end else begin
     if ScreenImg.Bitmap.Resampler is TLinearResampler then
-    begin
       TNearestResampler.Create(ScreenImg.Bitmap);
-      ScreenImg.Bitmap.Changed;
-    end;
   end;
 
 end;

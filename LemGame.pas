@@ -215,15 +215,15 @@ type
 
   { pixel combine eventhandlers }
     // CombineMaskPixels has variants based on the direction of destruction
-    procedure CombineMaskPixels(F: TColor32; var B: TColor32; M: TColor32; E: TColor32); // general-purpose
-    procedure CombineMaskPixelsLeft(F: TColor32; var B: TColor32; M: TColor32);       //left-facing basher
-    procedure CombineMaskPixelsRight(F: TColor32; var B: TColor32; M: TColor32);      //right-facing basher
-    procedure CombineMaskPixelsUpLeft(F: TColor32; var B: TColor32; M: TColor32);     //left-facing fencer
-    procedure CombineMaskPixelsUpRight(F: TColor32; var B: TColor32; M: TColor32);    //right-facing fencer
-    procedure CombineMaskPixelsDownLeft(F: TColor32; var B: TColor32; M: TColor32);   //left-facing miner
-    procedure CombineMaskPixelsDownRight(F: TColor32; var B: TColor32; M: TColor32);  //right-facing miner
-    procedure CombineMaskPixelsNeutral(F: TColor32; var B: TColor32; M: TColor32);    //bomber
-    procedure CombineNoOverwriteStoner(F: TColor32; var B: TColor32; M: TColor32);
+    procedure CombineMaskPixels(F: TColor32; var B: TColor32; M: Cardinal; E: TColor32); // general-purpose
+    procedure CombineMaskPixelsLeft(F: TColor32; var B: TColor32; M: Cardinal);       //left-facing basher
+    procedure CombineMaskPixelsRight(F: TColor32; var B: TColor32; M: Cardinal);      //right-facing basher
+    procedure CombineMaskPixelsUpLeft(F: TColor32; var B: TColor32; M: Cardinal);     //left-facing fencer
+    procedure CombineMaskPixelsUpRight(F: TColor32; var B: TColor32; M: Cardinal);    //right-facing fencer
+    procedure CombineMaskPixelsDownLeft(F: TColor32; var B: TColor32; M: Cardinal);   //left-facing miner
+    procedure CombineMaskPixelsDownRight(F: TColor32; var B: TColor32; M: Cardinal);  //right-facing miner
+    procedure CombineMaskPixelsNeutral(F: TColor32; var B: TColor32; M: Cardinal);    //bomber
+    procedure CombineNoOverwriteStoner(F: TColor32; var B: TColor32; M: Cardinal);
 
   { internal methods }
     procedure DoTalismanCheck;
@@ -1264,7 +1264,7 @@ begin
   end;
 end;
 
-procedure TLemmingGame.CombineMaskPixels(F: TColor32; var B: TColor32; M: TColor32; E: TColor32);
+procedure TLemmingGame.CombineMaskPixels(F: TColor32; var B: TColor32; M: Cardinal; E: TColor32);
 // copy masks to world
 begin
   if (AlphaComponent(F) <> 0) and (B and E = 0) then B := B and not PM_TERRAIN;
@@ -1273,7 +1273,7 @@ end;
 // Not sure who wrote this (probably me), but upon seeing this I forgot what the hell they were
 // for. The pixel in "E" is excluded, IE: anything that matches even one bit of E, will not be
 // removed when applying the mask.
-procedure TLemmingGame.CombineMaskPixelsUpLeft(F: TColor32; var B: TColor32; M: TColor32);
+procedure TLemmingGame.CombineMaskPixelsUpLeft(F: TColor32; var B: TColor32; M: Cardinal);
 var
   E: TColor32;
 begin
@@ -1281,7 +1281,7 @@ begin
   CombineMaskPixels(F, B, M, E);
 end;
 
-procedure TLemmingGame.CombineMaskPixelsUpRight(F: TColor32; var B: TColor32; M: TColor32);
+procedure TLemmingGame.CombineMaskPixelsUpRight(F: TColor32; var B: TColor32; M: Cardinal);
 var
   E: TColor32;
 begin
@@ -1289,7 +1289,7 @@ begin
   CombineMaskPixels(F, B, M, E);
 end;
 
-procedure TLemmingGame.CombineMaskPixelsLeft(F: TColor32; var B: TColor32; M: TColor32);
+procedure TLemmingGame.CombineMaskPixelsLeft(F: TColor32; var B: TColor32; M: Cardinal);
 var
   E: TColor32;
 begin
@@ -1297,7 +1297,7 @@ begin
   CombineMaskPixels(F, B, M, E);
 end;
 
-procedure TLemmingGame.CombineMaskPixelsRight(F: TColor32; var B: TColor32; M: TColor32);
+procedure TLemmingGame.CombineMaskPixelsRight(F: TColor32; var B: TColor32; M: Cardinal);
 var
   E: TColor32;
 begin
@@ -1305,7 +1305,7 @@ begin
   CombineMaskPixels(F, B, M, E);
 end;
 
-procedure TLemmingGame.CombineMaskPixelsDownLeft(F: TColor32; var B: TColor32; M: TColor32);
+procedure TLemmingGame.CombineMaskPixelsDownLeft(F: TColor32; var B: TColor32; M: Cardinal);
 var
   E: TColor32;
 begin
@@ -1313,7 +1313,7 @@ begin
   CombineMaskPixels(F, B, M, E);
 end;
 
-procedure TLemmingGame.CombineMaskPixelsDownRight(F: TColor32; var B: TColor32; M: TColor32);
+procedure TLemmingGame.CombineMaskPixelsDownRight(F: TColor32; var B: TColor32; M: Cardinal);
 var
   E: TColor32;
 begin
@@ -1321,7 +1321,7 @@ begin
   CombineMaskPixels(F, B, M, E);
 end;
 
-procedure TLemmingGame.CombineMaskPixelsNeutral(F: TColor32; var B: TColor32; M: TColor32);
+procedure TLemmingGame.CombineMaskPixelsNeutral(F: TColor32; var B: TColor32; M: Cardinal);
 var
   E: TColor32;
 begin
@@ -1331,7 +1331,7 @@ end;
 
 
 
-procedure TLemmingGame.CombineNoOverwriteStoner(F: TColor32; var B: TColor32; M: TColor32);
+procedure TLemmingGame.CombineNoOverwriteStoner(F: TColor32; var B: TColor32; M: Cardinal);
 // copy Stoner to world
 begin
   if (B and PM_SOLID = 0) and (AlphaComponent(F) <> 0) then B := (B or PM_SOLID);
@@ -2417,7 +2417,7 @@ var
     Inc(n);
   end;
 
-  procedure MoveHoizontal;
+  procedure MoveHorizontal;
   begin
     while CurrPosX <> L.LemX do
     begin
@@ -2458,41 +2458,41 @@ begin
   CurrPosX := L.LemXOld;
   CurrPosY := L.LemYOld;
 
-  if L.LemActionOld = baJumping then
-    HandleJumperMovement; // but continue with the rest as normal
 
   // no movement
   if (L.LemX = L.LemXOld) and (L.LemY = L.LemYOld) then
   begin
-    if (L.LemActionOld <> baJumping) or (n = 0) then
-      SaveCheckPos;
-  end
+    SaveCheckPos;
+  end else begin
+    if L.LemActionOld = baJumping then
+      HandleJumperMovement; // but continue with the rest as normal
 
-  // special treatment of miners!
-  else if L.LemActionOld = baMining then
-  begin
-    // First move one pixel down, if Y-coordinate changed
-    if L.LemYOld < L.LemY then
+    // special treatment of miners!
+    if L.LemActionOld = baMining then
     begin
-      Inc(CurrPosY);
-      SaveCheckPos;
+      // First move one pixel down, if Y-coordinate changed
+      if L.LemYOld < L.LemY then
+      begin
+        Inc(CurrPosY);
+        SaveCheckPos;
+      end;
+      MoveHorizontal;
+      MoveVertical;
+    end
+
+    // lem moves up or is faller; exception is made for builders!
+    else if ((L.LemY < L.LemYOld) or (L.LemAction = baFalling)) and not (L.LemActionOld = baBuilding) then
+    begin
+      MoveHorizontal;
+      MoveVertical;
+    end
+
+    // lem moves down (or straight) and is no faller; alternatively lem is a builder!
+    else
+    begin
+      MoveVertical;
+      MoveHorizontal;
     end;
-    MoveHoizontal;
-    MoveVertical;
-  end
-
-  // lem moves up or is faller; exception is made for builders!
-  else if ((L.LemY < L.LemYOld) or (L.LemAction = baFalling)) and not (L.LemActionOld = baBuilding) then
-  begin
-    MoveHoizontal;
-    MoveVertical;
-  end
-
-  // lem moves down (or straight) and is no faller; alternatively lem is a builder!
-  else
-  begin
-    MoveVertical;
-    MoveHoizontal;
   end;
 end;
 
@@ -4389,7 +4389,7 @@ var
       SimulateLem(CopyL, False);
 
       // Check if we have turned around at steel
-      if (CopyL.LemDX = -L.LemDX) then
+      if (CopyL.LemDX = -L.LemDX) and (CopyL.LemAction <> baDehoisting) then
       begin
         Result := True;
         Break;
@@ -4621,7 +4621,7 @@ var
         MoveUpContinue := true;
 
       // Check if we have turned around at steel
-      if (CopyL.LemDX = -L.LemDX) then
+      if (CopyL.LemDX = -L.LemDX) and (CopyL.LemAction <> baDehoisting) then
       begin
         SteelContinue := True;
         Break;

@@ -185,7 +185,7 @@ type
       function GetCutRect: TRect;
       function GetCutRectHighRes: TRect;
 
-      procedure PickupSkillEraseCombine(F: TColor32; var B: TColor32; M: TColor32);
+      procedure PickupSkillEraseCombine(F: TColor32; var B: TColor32; M: Cardinal);
     public
       constructor Create(aMainObjectWidth: Integer; aMainObjectHeight: Integer);
       destructor Destroy; override;
@@ -365,7 +365,7 @@ begin
   Draw(aBitmap, 0, 0, aFrame);
 end;
 
-procedure TGadgetAnimation.PickupSkillEraseCombine(F: TColor32; var B: TColor32; M: TColor32);
+procedure TGadgetAnimation.PickupSkillEraseCombine(F: TColor32; var B: TColor32; M: Cardinal);
 begin
   B := (((Round(
           ((B shr 24) / 255) *

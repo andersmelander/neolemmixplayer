@@ -504,7 +504,6 @@ begin
     ScreenImg.EndUpdate;
   end;
 
-  ScreenImg.Bitmap.Changed;
   Update;
 end;
 
