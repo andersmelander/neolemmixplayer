@@ -286,6 +286,7 @@ var
   i: Integer;
   SelectedLemming, HighlitLemming: TLemming;
   LemmingList: TLemmingList;
+  L: TLemming;
 begin
   if not fLayers.fIsEmpty[rlParticles] then fLayers[rlParticles].Clear(0);
   fLayers[rlLemmings].Clear(0);
@@ -331,14 +332,16 @@ begin
   fLayers.fIsEmpty[rlParticles] := True;
   for i := 0 to LemmingList.Count-1 do
   begin
-    if LemmingList[i].LemParticleTimer > 0 then
+    L := LemmingList[i];
+
+    if L.LemParticleTimer > 0 then
     begin
-      DrawLemmingParticles(LemmingList[i]);
+      DrawLemmingParticles(L);
       fLayers.fIsEmpty[rlParticles] := False;
     end;
-    DrawLemmingCountdown(LemmingList[i]);
+    DrawLemmingCountdown(L);
 
-    if (LemmingList[i].LemAction = baLasering) and not LemmingList[i].LemRemoved then
+    if (L.LemAction = baLasering) and not (L.LemRemoved or L.LemTeleporting or (L.LemPortalWarpFrame > 0)) then
       DrawLemmingLaser(LemmingList[i]);
   end;
 
