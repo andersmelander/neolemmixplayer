@@ -338,7 +338,7 @@ begin
     end;
     DrawLemmingCountdown(LemmingList[i]);
 
-    if LemmingList[i].LemAction = baLasering then
+    if (LemmingList[i].LemAction = baLasering) and not LemmingList[i].LemRemoved then
       DrawLemmingLaser(LemmingList[i]);
   end;
 

@@ -1,6 +1,6 @@
 # ----------------------------- 
 #        NeoLemmix Level        
-#   Created with NLEditor 1.33
+#   Created with NLEditor 1.40
 # ----------------------------- 
  
 #        Level info             
@@ -9,7 +9,7 @@
  AUTHOR 
  MUSIC orig_13
  ID x76E853EE5213417D
- VERSION x0000000000000001
+ VERSION x0000000000000002
  
 #       Level dimensions        
 # ----------------------------- 
@@ -55,6 +55,14 @@
    Y 112
    NO_OVERWRITE
    SKILL LASERER
+ $END
+ 
+ $GADGET
+   STYLE ohno_bubble
+   PIECE trap_02
+   X 177
+   Y 64
+   NO_OVERWRITE
  $END
  
  
