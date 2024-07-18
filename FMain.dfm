@@ -13,7 +13,6 @@ object MainForm: TMainForm
   Font.Name = 'Segoe UI'
   Font.Style = []
   KeyPreview = True
-  OldCreateOrder = False
   OnActivate = FormActivate
   OnCanResize = FormCanResize
   OnKeyDown = FormKeyDown
@@ -24,6 +23,5 @@ object MainForm: TMainForm
   OnMouseWheel = FormMouseWheel
   OnResize = FormResize
   OnShow = FormShow
-  PixelsPerInch = 96
   TextHeight = 13
 end

@@ -10,6 +10,7 @@ uses
   Windows,
   LemRes,
   Forms,
+  SysUtils,
   FMain in 'FMain.pas' {MainForm},
   AppController in 'AppController.pas',
   CustomPopup in 'CustomPopup.pas',
