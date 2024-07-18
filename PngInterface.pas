@@ -40,7 +40,6 @@ type
 implementation
 
 uses
-  SharedGlobals,
   GR32.ImageFormats,
   GameControl,
   Generics.Collections;
@@ -140,23 +139,13 @@ end;
 
 class procedure TPngInterface.LoadPngFile(fn: String; Bmp: TBitmap32);
 begin
-  try
-    if (not GameParams.FileCaching) or (not ImgCache.ContainsKey(fn)) then
-    begin
-      Bmp.LoadFromFile(fn);
-      if GameParams.FileCaching then
-        ImgCache.Add(fn, TCacheImageData.Create(Bmp));
-    end else
-      ImgCache[fn].Restore(Bmp);
-  except
-    on E: Exception do
-    begin
-      DebugLog.Add('Exception raised while loading ' + fn);
-      DebugLog.Add(E.ToString);
-      Log('');
-      raise;
-    end;
-  end;
+  if (not GameParams.FileCaching) or (not ImgCache.ContainsKey(fn)) then
+  begin
+    Bmp.LoadFromFile(fn);
+    if GameParams.FileCaching then
+      ImgCache.Add(fn, TCacheImageData.Create(Bmp));
+  end else
+    ImgCache[fn].Restore(Bmp);
 end;
 
 class procedure TPngInterface.LoadPngStream(aStream: TStream; Bmp: TBitmap32);
