@@ -246,9 +246,10 @@ var
 
   procedure HandleReplayNaming(aEntry: TReplayCheckEntry);
   var
-    NewName: String;
+    NewName, BaseNewName: String;
     ThisSetting: TReplayNamingSetting;
     OutcomeText: String;
+    i: Integer;
   const
     TAG_RESULT = '{RESULT}';
     TAG_FILENAME = '{FILENAME}';
@@ -265,7 +266,12 @@ var
       Exit;
     end;
 
-    Game.EnsureCorrectReplayDetails;
+    if (aEntry.ReplayResult <> CR_NOLEVELMATCH) and (aEntry.ReplayResult <> CR_ERROR) then
+    try
+      Game.EnsureCorrectReplayDetails;
+    except
+      // Silently accept failure.
+    end;
 
     if ThisSetting.Action = rnaNone then
       NewName := aEntry.ReplayFile
@@ -301,6 +307,17 @@ var
       Game.ReplayManager.SaveToStream(OutStream);
     end else
       OutStream.LoadFromFile(aEntry.ReplayFile);
+
+    if (NewName <> aEntry.ReplayFile) then
+    begin
+      BaseNewName := NewName;
+      i := 1;
+      while FileExists(NewName) do
+      begin
+        NewName := ChangeFileExt(BaseNewName, '') + '-' + LeadZeroStr(i, 4) + ExtractFileExt(BaseNewName);
+        Inc(i);
+      end;
+    end;
 
     OutStream.SaveToFile(NewName);
 
