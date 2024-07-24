@@ -7,6 +7,11 @@ program NeoLemmix;
 
 
 uses
+  madExcept,
+  madLinkDisAsm,
+  madListHardware,
+  madListProcesses,
+  madListModules,
   Windows,
   LemRes,
   Forms,
