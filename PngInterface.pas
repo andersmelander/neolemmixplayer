@@ -139,13 +139,20 @@ begin
 end;
 
 class procedure TPngInterface.LoadPngFile(fn: String; Bmp: TBitmap32);
+var
+  Stream: TFileStream;
 begin
   try
     if (not GameParams.FileCaching) or (not ImgCache.ContainsKey(fn)) then
     begin
-      Bmp.LoadFromFile(fn);
-      if GameParams.FileCaching then
-        ImgCache.Add(fn, TCacheImageData.Create(Bmp));
+      Stream := TFileStream.Create(fn, fmOpenRead);
+      try
+        Bmp.LoadFromStream(Stream);
+        if GameParams.FileCaching then
+          ImgCache.Add(fn, TCacheImageData.Create(Bmp));
+      finally
+        Stream.Free;
+      end;
     end else
       ImgCache[fn].Restore(Bmp);
   except
