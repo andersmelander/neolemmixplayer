@@ -3095,46 +3095,50 @@ var
 begin
   Result := False;
 
-  GadgetID := FindGadgetID(PosX, PosY, trAddSkill);
-  // Exit if there is no Object
-  if GadgetID = 65535 then Exit;
-
-  Gadget := Gadgets[GadgetID];
-
-  if (Gadget.SkillType = spbSlider) and (not L.LemIsSlider) then
+  if not L.LemHasBeenOhnoer then
   begin
-    L.LemIsSlider := true;
-    CueSoundEffect(SFX_ADD_SKILL, L.Position);
-  end;
+    GadgetID := FindGadgetID(PosX, PosY, trAddSkill);
+    // Exit if there is no Object
+    if GadgetID = 65535 then Exit;
 
-  if (Gadget.SkillType = spbClimber) and (not L.LemIsClimber) then
-  begin
-    L.LemIsClimber := true;
-    CueSoundEffect(SFX_ADD_SKILL, L.Position);
-  end;
+    Gadget := Gadgets[GadgetID];
+    if (Gadget.SkillType = spbSlider) and (not L.LemIsSlider) then
+    begin
+      L.LemIsSlider := true;
+      CueSoundEffect(SFX_ADD_SKILL, L.Position);
+    end;
 
-  if (Gadget.SkillType = spbSwimmer) and (not L.LemIsSwimmer) then
-  begin
-    L.LemIsSwimmer := true;
-    CueSoundEffect(SFX_ADD_SKILL, L.Position);
-  end;
+    if (Gadget.SkillType = spbClimber) and (not L.LemIsClimber) then
+    begin
+      L.LemIsClimber := true;
+      CueSoundEffect(SFX_ADD_SKILL, L.Position);
+    end;
 
-  if (Gadget.SkillType = spbFloater) and (not (L.LemIsFloater or L.LemIsGlider)) then
-  begin
-    L.LemIsFloater := true;
-    CueSoundEffect(SFX_ADD_SKILL, L.Position);
-  end;
+    if (Gadget.SkillType = spbSwimmer) and (not L.LemIsSwimmer) then
+    begin
+      L.LemIsSwimmer := true;
+      CueSoundEffect(SFX_ADD_SKILL, L.Position);
+      if L.LemAction = baDrowning then
+        Transition(L, baSwimming);
+    end;
 
-  if (Gadget.SkillType = spbGlider) and (not (L.LemIsFloater or L.LemIsGlider)) then
-  begin
-    L.LemIsGlider := true;
-    CueSoundEffect(SFX_ADD_SKILL, L.Position);
-  end;
+    if (Gadget.SkillType = spbFloater) and (not (L.LemIsFloater or L.LemIsGlider)) then
+    begin
+      L.LemIsFloater := true;
+      CueSoundEffect(SFX_ADD_SKILL, L.Position);
+    end;
 
-  if (Gadget.SkillType = spbDisarmer) and (not L.LemIsDisarmer) then
-  begin
-    L.LemIsDisarmer := true;
-    CueSoundEffect(SFX_ADD_SKILL, L.Position);
+    if (Gadget.SkillType = spbGlider) and (not (L.LemIsFloater or L.LemIsGlider)) then
+    begin
+      L.LemIsGlider := true;
+      CueSoundEffect(SFX_ADD_SKILL, L.Position);
+    end;
+
+    if (Gadget.SkillType = spbDisarmer) and (not L.LemIsDisarmer) then
+    begin
+      L.LemIsDisarmer := true;
+      CueSoundEffect(SFX_ADD_SKILL, L.Position);
+    end;
   end;
 end;
 
