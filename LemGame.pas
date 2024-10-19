@@ -2372,7 +2372,12 @@ begin
 
     if (CopyL.LemAction <> OldAction) and (CopyL.LemDX = L.LemDX) and
        ((OldAction <> baDehoisting) or (CopyL.LemAction <> baSliding)) then
-      Result := True;
+    begin
+      if L.LemY > PhysicsMap.Height + 4 then
+        Result := not HasPixelAt(L.LemX, PhysicsMap.Height - 1)
+      else
+        Result := true;
+    end;
 
     CopyL.Free;
   end else if L.LemAction = baJumping then
