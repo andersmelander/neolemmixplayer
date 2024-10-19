@@ -4681,11 +4681,11 @@ begin
       begin
         DoFencerContinueTests(L, SteelContinue, MoveUpContinue);
 
-        if not ContinueWork then
-          ContinueWork := SteelContinue;
-
         if ContinueWork and not L.LemIsStartingAction then
           ContinueWork := MoveUpContinue;
+
+        if not ContinueWork then
+          ContinueWork := SteelContinue;
       end;
 
     if not ContinueWork then
@@ -4734,11 +4734,8 @@ begin
 
     else if LemDy = 0 then
     begin
-      // Move no, one or two pixels down, if there no steel
-      if FencerIndestructibleCheck(L.LemX, L.LemY + LemDy, L.LemDx) then
-        FencerTurn(L, HasSteelAt(L.LemX, L.LemY + LemDy - 4))
-      else
-        Inc(L.LemY, LemDy);
+      if FencerIndestructibleCheck(L.LemX, L.LemY, L.LemDx) then
+        FencerTurn(L, HasSteelAt(L.LemX, L.LemY - 4));
     end
 
     else if (LemDy = -1) or (LemDy = -2) then
