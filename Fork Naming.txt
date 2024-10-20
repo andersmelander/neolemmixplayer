@@ -1,0 +1,47 @@
+These are my requests to anyone who is creating a fork of NeoLemmix, in terms
+of how these forks should be named.
+
+Firstly, please note that these are just that - requests. These are not legally
+binding, nor will they be enforced through moderation on any Lemmings website
+where I am in control of such decisions (and I discourage any other Lemmings
+websites from doing so, either). The only "enforcement" that should occur is
+through community acceptance or lack thereof; and in particular, where the
+community feels that a decision that goes against these requests is nonetheless
+in the best interest of NeoLemmix culture, I encourage the community to accept
+such forks. Please do take into account that in saying this, I specifically
+consider the "focus on the puzzle, not the execution" aspect of NeoLemmix as
+a core aspect of its culture, and a shift away from this may mean it's time
+for a new engine with a new name even if it's based on NL under the hood.
+
+** This has been written with the assumption V12.14.0 will be the final version.
+   Should this not hold true, replace all references to it with the actual final
+   version. **
+
+
+Any fork should not contain "NeoLemmix" in its name UNLESS it is fully compatible
+with content made for NeoLemmix V12.14.0. "Fully compatible" means that a level file
+and a corresponding replay will have the same outcome on this fork that it would
+have on NeoLemmix V12.14.0. In the case of the official styles (ie: default, xmas,
+special, orig_XXXX and ohno_XXXX), this outcome must hold true using the copies
+of styles provided with/for the respective engines (ie: "the replay has the same
+result if you use NL 12.14.0's styles instead of my fork's copies" doesn't count).
+To avoid doubt, this does not mean the fork cannot also support additional content
+that NL V12.14.0 does not support; as long as the fork does support all content
+that NL V12.14.0 does.
+
+The exception is if the fork in question, instead targets such compatibility with
+an older NeoLemmix version. In this case, the fork name should not begin with
+"NeoLemmix", but may contain it (eg: avoid "NeoLemmix Gimmick Edition", but you
+could use "Gimmicky NeoLemmix").
+
+Any fork also should not contain "NeoLemmix" in its name if it does not keep the
+general spirit of NeoLemmix in regards to UI features. This doesn't mean it has
+to preserve every UI feature as-is, but it should be developed in line with NL's
+philosophy that difficulty should come from figuring out a level's solution, not
+from executing it.
+
+This also extends to any name designed to closely resemble "NeoLemmix", such as
+"Neo Lemmix", "NooLemmix", "N30L3mm1x", etc.
+
+To avoid any doubt, such forks are still permitted to be made; I just ask that you
+call them something else.
