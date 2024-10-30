@@ -132,7 +132,6 @@ begin
     RemainingTime := EndTickCount - GetTickCount;
   end;
 
-  Application.ProcessMessages;
 end;
 
 function TGameBaseScreen.LoadReplay: Boolean;
