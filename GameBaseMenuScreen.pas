@@ -39,6 +39,30 @@ type
   TRegionState = (rsNormal, rsHover, rsClick);
   TRegionAction = procedure of object;
 
+type
+  TClickableLayer = class(TBitmapLayer)
+  private type
+    TShortcuts = TList<Word>;
+  private
+    FAction: TRegionAction;
+    FShortcuts: TShortcuts;
+    FCurrentState: TRegionState;
+    FMargin: integer;
+    procedure SetCurrentState(const Value: TRegionState);
+  protected
+    procedure Click; override;
+    function DoHitTest(X, Y: Integer): Boolean; override;
+    procedure Paint(Buffer: TBitmap32); override;
+  public
+    constructor Create(ALayerCollection: TLayerCollection); override;
+    destructor Destroy; override;
+
+    property Action: TRegionAction read FAction write FAction;
+    property ShortcutKeys: TShortcuts read FShortcuts;
+    property CurrentState: TRegionState read FCurrentState write SetCurrentState;
+    property Margin: integer read FMargin write FMargin;
+  end;
+
   TClickableRegion = class
     private
       fBitmaps: TBitmap32;
@@ -157,7 +181,9 @@ implementation
 uses
   LemGame, LemReplay,
   FMain, FNeoLemmixLevelSelect, FNeoLemmixConfig,
-  PngInterface;
+  PngInterface,
+  GR32_OrdinalMaps,
+  GR32.Blur;
 
 const
   ACCEPT_KEY_DELAY = 200;
@@ -938,6 +964,124 @@ begin
       TNearestResampler.Create(ScreenImg.Bitmap);
   end;
 
+end;
+
+{ TClickableLayer }
+
+constructor TClickableLayer.Create(ALayerCollection: TLayerCollection);
+begin
+  inherited;
+  FShortcuts := TShortcuts.Create;
+  MouseEvents := True;
+  AlphaHit := True;
+
+  TCustomResamplerClass(TCustomImage32(LayerCollection.Owner).Bitmap.Resampler.ClassType).Create(Bitmap);
+end;
+
+destructor TClickableLayer.Destroy;
+begin
+  FShortcuts.Free;
+  inherited;
+end;
+
+function TClickableLayer.DoHitTest(X, Y: Integer): Boolean;
+begin
+  Result := inherited;
+
+  case FCurrentState of
+    rsNormal:
+      if (Result) then
+        CurrentState := rsHover;
+
+    rsHover:
+      if (not Result) then
+        CurrentState := rsNormal;
+  end;
+end;
+
+procedure TClickableLayer.Paint(Buffer: TBitmap32);
+var
+  SrcRect, DstRect, ClipRect, TempRect: TRect;
+  ImageRect: TRect;
+  HoverBitmap: TBitmap32;
+  ScaleX, ScaleY: TFloat;
+const
+  HOVER_COLOR = $FFA0A0A0;
+  CLICK_COLOR = $FF404040;
+begin
+  if (Bitmap = nil) or (Bitmap.Empty) then
+    Exit;
+
+  var HoverRect := MakeRect(GetAdjustedRect(Location));
+
+  var BitmapRect := Location;
+  BitmapRect.Inflate(-Margin, -Margin);
+
+  DstRect := MakeRect(GetAdjustedRect(BitmapRect));
+
+  ClipRect := Buffer.ClipRect;
+  GR32.IntersectRect(TempRect, ClipRect, HoverRect);
+  if GR32.IsRectEmpty(TempRect) then
+    Exit;
+
+  SrcRect := MakeRect(0, 0, Bitmap.Width, Bitmap.Height);
+  if Cropped then
+  begin
+    if (HoverRect.Width < 0.5) or (HoverRect.Height < 0.5) then
+      Exit;
+    ImageRect := TCustomImage32(LayerCollection.Owner).GetBitmapRect;
+    GR32.IntersectRect(ClipRect, ClipRect, ImageRect);
+  end;
+
+  if (FCurrentState = rsHover) then
+  begin
+    HoverBitmap := TBitmap32.Create;
+    try
+      HoverBitmap.SetSize(Bitmap.Width+2*Margin, Bitmap.Height+2*Margin);
+      HoverBitmap.Clear(clNone32);
+      BlockTransfer(HoverBitmap, Margin, Margin, HoverBitmap.BoundsRect, Bitmap, Bitmap.BoundsRect, dmOpaque);
+
+      Blur32(HoverBitmap, Margin);
+
+      var Pixel := PColor32Entry(HoverBitmap.Bits);
+      for var i := 0 to HoverBitmap.Width*HoverBitmap.Height-1 do
+      begin
+        if (Pixel.A <> 0) then
+          Pixel.ARGB := (Min(255, Pixel.A * Pixel.A * 2) shl 24) or (HOVER_COLOR and $00FFFFFF);
+        Inc(Pixel);
+      end;
+
+//      Buffer.FillRectS(HoverRect, clRed32);
+      StretchTransfer(Buffer, HoverRect, ClipRect, HoverBitmap, HoverBitmap.BoundsRect, Bitmap.Resampler, Bitmap.DrawMode, Bitmap.OnPixelCombine);
+    finally
+      HoverBitmap.Free;
+    end;
+  end;
+
+  StretchTransfer(Buffer, DstRect, ClipRect, Bitmap, SrcRect, Bitmap.Resampler, Bitmap.DrawMode, Bitmap.OnPixelCombine);
+end;
+
+procedure TClickableLayer.SetCurrentState(const Value: TRegionState);
+begin
+  if (FCurrentState = Value) then
+    exit;
+  FCurrentState := Value;
+  Changed;
+end;
+
+procedure TClickableLayer.Click;
+begin
+  CurrentState := rsClick;
+  try
+
+    inherited;
+
+    if Assigned(FAction) then
+      FAction;
+
+  finally
+    CurrentState := rsNormal;
+  end;
 end;
 
 { TClickableRegion }

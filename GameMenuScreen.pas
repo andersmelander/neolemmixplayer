@@ -3,6 +3,7 @@ unit GameMenuScreen;
 interface
 
 uses
+  Generics.Collections,
   StrUtils, Classes, SysUtils, Dialogs, Controls, ExtCtrls, Forms, Windows, ShellApi,
   Types, UMisc, Math,
   GameBaseMenuScreen,
@@ -12,7 +13,9 @@ uses
   LemNeoParser,
   LemStrings,
   LemTypes,
-  GR32, GR32_Resamplers;
+  GR32,
+  GR32_Resamplers,
+  GR32_Layers;
 
 type
   TGameMenuPositionData = record
@@ -69,6 +72,9 @@ type
       fScrollerTextList: TStringList;
 
       fFinishedMakingSigns: Boolean;
+
+      FLayerLogo: TBitmapLayer;
+
 
       procedure MakeAutoSectionGraphic(Dst: TBitmap32);
 
@@ -138,6 +144,10 @@ uses
 constructor TGameMenuScreen.Create(aOwner: TComponent);
 begin
   inherited;
+
+  FLayerLogo := TBitmapLayer(ScreenImg.Layers.Add(TBitmapLayer));
+  FLayerLogo.Scaled := True;
+  TCustomResamplerClass(ScreenImg.Bitmap.Resampler.ClassType).Create(FLayerLogo.Bitmap);
 
   ScrollerEraseBuffer := TBitmap32.Create;
 
@@ -303,18 +313,16 @@ end;
 
 procedure TGameMenuScreen.DrawLogo;
 var
-  LogoBMP: TBitmap32;
+  r: TFloatRect;
 begin
-  LogoBMP := TBitmap32.Create;
-  try
-    GetGraphic('logo.png', LogoBMP);
-    LogoBMP.DrawTo(ScreenImg.Bitmap, (ScreenImg.Bitmap.Width - LogoBMP.Width) div 2, LayoutInfo.LogoY - LogoBMP.Height div 2);
-  finally
-    LogoBMP.Free;
-  end;
+  GetGraphic('logo.png', FLayerLogo.Bitmap);
+  r := FloatRect(0, 0, FLayerLogo.Bitmap.Width, FLayerLogo.Bitmap.Height);
+  r.Offset((ScreenImg.Bitmap.Width - r.Width) / 2, LayoutInfo.LogoY - r.Height / 2);
+  FLayerLogo.Location := r;
 end;
 
 procedure TGameMenuScreen.MakePanels;
+
   function MakePosition(aHorzOffset: Single; aVertOffset: Single): TPoint;
   begin
     Result.X := (ScreenImg.Bitmap.Width div 2) + Round(aHorzOffset * LayoutInfo.CardSpacingHorz);
@@ -322,16 +330,32 @@ procedure TGameMenuScreen.MakePanels;
   end;
 
 var
+  Layer: TClickableLayer;
+  p: TPoint;
+  r: TFloatRect;
   NewRegion: TClickableRegion;
   BMP: TBitmap32;
 begin
   BMP := TBitmap32.Create;
   try
     // Play
+(*
     GetGraphic('sign_play.png', BMP);
     NewRegion := MakeClickableImageAuto(MakePosition(-1, -0.5), BMP.BoundsRect, BeginGame, BMP);
     NewRegion.ShortcutKeys.Add(VK_RETURN);
     NewRegion.ShortcutKeys.Add(VK_F1);
+*)
+    Layer := TClickableLayer(ScreenImg.Layers.Add(TClickableLayer));
+    GetGraphic('sign_play.png', Layer.Bitmap);
+    Layer.Action := BeginGame;
+    Layer.ShortcutKeys.Add(VK_RETURN);
+    Layer.ShortcutKeys.Add(VK_F1);
+    Layer.Margin := 5;
+    p := MakePosition(-1, -0.5);
+    r := FloatRect(SizedRect(p.X - Layer.Bitmap.Width div 2, p.Y - Layer.Bitmap.Height div 2, Layer.Bitmap.Width, Layer.Bitmap.Height));
+    r.Inflate(Layer.Margin, Layer.Margin);
+    Layer.Location := r;
+    Layer.Scaled := True;
 
     // Level select
     if not GetGraphic('sign_code.png', BMP, True) then // Deprecated
