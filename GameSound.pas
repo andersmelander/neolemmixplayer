@@ -323,6 +323,7 @@ procedure TSoundManager.LoadDefaultSounds;
 begin
   if not fIsBassLoaded then Exit;
 
+  Get('assignfail');
   Get('chain');
   Get('changeop');
   Get('chink');
