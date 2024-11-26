@@ -10,7 +10,7 @@ uses
   GameControl,
   LemSystemMessages,
   PngInterface, LemTypes,
-  LemReplay, LemGame,
+  LemReplay, LemGame, LemStrings,
   SysUtils;
 
 const
@@ -170,7 +170,7 @@ begin
   Dlg := TOpenDialog.Create(self);
   try
     Dlg.Title := 'Select a replay file to load (' + GameParams.CurrentGroupName + ' ' + IntToStr(GameParams.CurrentLevel.GroupIndex + 1) + ', ' + Trim(GameParams.Level.Info.Title) + ')';
-    Dlg.Filter := 'NeoLemmix Replay File (*.nxrp)|*.nxrp';
+    Dlg.Filter := SProgramName + ' Replay File (*.nxrp)|*.nxrp';
     Dlg.FilterIndex := 1;
     if LastReplayDir = '' then
     begin

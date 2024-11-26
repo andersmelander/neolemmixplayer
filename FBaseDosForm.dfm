@@ -10,6 +10,8 @@ object BaseDosForm: TBaseDosForm
   Font.Height = -11
   Font.Name = 'Segoe UI'
   Font.Style = []
+  OldCreateOrder = True
   WindowState = wsMaximized
+  PixelsPerInch = 96
   TextHeight = 13
 end

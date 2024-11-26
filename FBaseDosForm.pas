@@ -5,7 +5,8 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, Gr32,
-  GameControl;
+  GameControl,
+  LemStrings;
 
 type
   {-------------------------------------------------------------------------------
@@ -43,7 +44,7 @@ end;
 constructor TBaseDosForm.Create(aOwner: TComponent);
 begin
   inherited Create(aOwner);
-  Caption := 'NeoLemmix';
+  Caption := SProgramNameFull;
   Color := clBlack;
   BorderStyle := bsNone;
   BorderIcons := [];

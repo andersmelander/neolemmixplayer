@@ -105,7 +105,7 @@ begin
       end;
     end;
 
-  GameParams.MainForm.Caption := 'NeoLemmix';
+  GameParams.MainForm.Caption := SProgramNameFull;
   Application.Title := GameParams.MainForm.Caption;
 
   GameParams.Renderer.BackgroundColor := $000000;

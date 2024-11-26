@@ -364,11 +364,11 @@ begin
   if Obj is TNeoLevelGroup then
   begin
     TargetPath := G.Path;
-    Description := 'NeoLemmix - ' + MakeNameRecursive(G);
+    Description := SProgramName + ' - ' + MakeNameRecursive(G);
   end else if Obj is TNeoLevelEntry then
   begin
     TargetPath := L.Path;
-    Description := 'NeoLemmix - ' + MakeNameRecursive(L.Group) + ' :: ' + L.Title;
+    Description := SProgramName + ' - ' + MakeNameRecursive(L.Group) + ' :: ' + L.Title;
   end else
     Exit;
 
@@ -1054,7 +1054,7 @@ begin
   try
     OpenDlg.Title := 'Select any file in the folder containing replays';
     OpenDlg.InitialDir := AppPath + 'Replay\' + MakeSafeForFilename(GameParams.CurrentLevel.Group.ParentBasePack.Name, false);
-    OpenDlg.Filter := 'NeoLemmix Replay (*.nxrp)|*.nxrp';
+    OpenDlg.Filter := SProgramName + ' Replay (*.nxrp)|*.nxrp';
     OpenDlg.Options := [ofHideReadOnly, ofFileMustExist, ofEnableSizing];
     if not OpenDlg.Execute then
       Exit;

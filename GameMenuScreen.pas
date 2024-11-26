@@ -398,7 +398,7 @@ begin
   else
     PackInfoText := #13 + 'No Pack';
 
-  NLInfoText := 'NeoLemmix Player V' + CurrentVersionString;
+  NLInfoText := SProgramName + ' V' + CurrentVersionString;
   {$ifdef exp}if COMMIT_ID <> '' then NLInfoText := NLInfoText + ':' + Uppercase(COMMIT_ID);{$endif}
 
   MenuFont.DrawTextCentered(ScreenImg.Bitmap, PackInfoText, LayoutInfo.FooterTextY);

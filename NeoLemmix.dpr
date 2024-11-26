@@ -79,7 +79,7 @@ uses
 
 begin
   Application.Initialize;
-  Application.Title := 'NeoLemmix';
+  Application.Title := SProgramName;
   Application.CreateForm(TMainForm, MainForm);
   Application.Run;
 end.

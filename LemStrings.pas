@@ -70,7 +70,8 @@ const
   SFX_REMOVE_SKILLS = 'skill_remove';
 
 resourcestring
-  SProgramName = 'NeoLemmix Player';
+  SProgramName = 'NeoLemmix CE';
+  SProgramNameFull = 'NeoLemmix Community Edition';
   SDummyString = '';
 
 
