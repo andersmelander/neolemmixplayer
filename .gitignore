@@ -8,3 +8,4 @@ bin/
 *.dproj.local
 *.stat
 data/external/styles/version.ini
+LemVersionCommitID.pas
