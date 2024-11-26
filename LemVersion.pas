@@ -25,12 +25,9 @@ function CurrentVersionID: Int64;
 
 implementation
 
-uses
-  LemVersionCID;
-
 function COMMIT_ID: String;
 begin
-  Result := LemVersionCID.COMMIT_ID;
+  Result := '';
 end;
 
 function CurrentVersionString: String;

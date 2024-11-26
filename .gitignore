@@ -4,9 +4,7 @@ bin/
 *.exe
 *.zip
 *.res
-!GetCommitID.exe
 *.identcache
-LemVersionCID.pas
 *.dproj.local
 *.stat
 data/external/styles/version.ini
