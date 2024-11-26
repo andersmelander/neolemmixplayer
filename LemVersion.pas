@@ -9,7 +9,7 @@ uses
 
 const
   FORMAT_VERSION = 12;
-  CORE_VERSION = 14;
+  CORE_VERSION = 15;
   FEATURES_VERSION = 0;
   HOTFIX_VERSION = 0; // or RC version
 
