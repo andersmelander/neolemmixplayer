@@ -438,6 +438,7 @@ type
     function GetHighlitLemming: TLemming;
     function GetTargetLemming: TLemming;
     procedure CheckForNewShadow(aForceRedraw: Boolean = false);
+    procedure PlayAssignFailSound(PlayForHighlit: Boolean = False);
     function StateIsUnplayable: Boolean;
 
   { properties }
@@ -1009,6 +1010,31 @@ begin
   fRenderInterface.Free;
   fSoundList.Free;
   inherited Destroy;
+end;
+
+procedure TLemmingGame.PlayAssignFailSound(PlayForHighlit: Boolean = False);
+var
+  SelectedLemming: TLemming;
+  HighlitLemming: TLemming;
+begin
+  SelectedLemming := fRenderInterface.SelectedLemming;
+  HighlitLemming := GetHighlitLemming;
+
+  if (SelectedLemming <> nil) then
+  begin
+    if  (HasSteelAt(SelectedLemming.LemX, SelectedLemming.LemY)
+    and (RenderInterface.SelectedSkill in [spbMiner, spbDigger])) then
+      CueSoundEffect(SFX_HITS_STEEL, SelectedLemming.Position)
+    else
+      CueSoundEffect(SFX_ASSIGN_FAIL, SelectedLemming.Position);
+  end else if (GetHighlitLemming <> nil) and PlayForHighlit then
+    begin
+    if  (HasSteelAt(HighlitLemming.LemX, HighlitLemming.LemY)
+    and (RenderInterface.SelectedSkill in [spbMiner, spbDigger])) then
+      CueSoundEffect(SFX_HITS_STEEL, HighlitLemming.Position)
+    else
+      CueSoundEffect(SFX_ASSIGN_FAIL, HighlitLemming.Position);
+  end;
 end;
 
 procedure TLemmingGame.PlayMusic;
@@ -5741,11 +5767,17 @@ var
 begin
   Result := False;
 
-  // convert buttontype to skilltype
-  Sel := SkillPanelButtonToAction[fSelectedSkill];
-  if Sel = baNone then Exit;
+  // Prevents overwriting same-frame assignments in ReplayInsert Mode
+  if not (ReplayInsert and ReplayManager.HasAssignmentAt(CurrentIteration)) then
+  begin
+    // Convert buttontype to skilltype
+    Sel := SkillPanelButtonToAction[fSelectedSkill];
+    if Sel = baNone then Exit;
 
-  Result := AssignNewSkill(Sel, IsHighlight);
+    Result := AssignNewSkill(Sel, IsHighlight);
+  end;
+
+  if not Result then PlayAssignFailSound;
 
   if Result then
     CheckForNewShadow;        // probably unneeded now?
@@ -5880,7 +5912,9 @@ begin
         if RightClick and (GetHighlitLemming <> nil) and (SkillPanelButtonToAction[Value] <> baNone) then
         begin
           if ProcessSkillAssignment(true) then
-            fRenderInterface.ForceUpdate := true;
+            fRenderInterface.ForceUpdate := true
+          else
+            PlayAssignFailSound(True);
         end;
       end;
   end;
