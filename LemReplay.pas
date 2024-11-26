@@ -154,8 +154,10 @@ type
       procedure LoadFromStream(aStream: TStream; aInternal: Boolean = false);
       procedure SaveToStream(aStream: TStream; aMarkAsUnmodified: Boolean = false; aInternal: Boolean = false);
       procedure Cut(aLastFrame: Integer; aExpectedSpawnInterval: Integer);
+      function CheckForAction(aList: TReplayItemList; aFrame: Integer): Boolean;
       function HasAnyActionAt(aFrame: Integer): Boolean;
       function HasAssignmentAt(aFrame: Integer): Boolean;
+      function HasRRChangeAt(aFrame: Integer): Boolean;
       function IsThisLatestAction(aAction: TBaseReplayItem): Boolean;
       property PlayerName: String read fPlayerName write fPlayerName;
       property LevelName: String read fLevelName write fLevelName;
@@ -439,41 +441,33 @@ begin
   fIsModified := true;
 end;
 
-function TReplay.HasAnyActionAt(aFrame: Integer): Boolean;
-
-  function CheckForAction(aList: TReplayItemList): Boolean;
-  var
-    i: Integer;
-  begin
-    Result := false;
-    for i := 0 to aList.Count-1 do
-      if aList[i].Frame = aFrame then
-      begin
-        Result := true;
-        Exit;
-      end;
-  end;
+function TReplay.CheckForAction(aList: TReplayItemList; aFrame: Integer): Boolean;
+var
+  i: Integer;
 begin
-  Result := CheckForAction(fAssignments)
-         or CheckForAction(fSpawnIntervalChanges);
+  Result := false;
+  for i := 0 to aList.Count-1 do
+    if aList[i].Frame = aFrame then
+    begin
+      Result := true;
+      Exit;
+    end;
+end;
+
+function TReplay.HasAnyActionAt(aFrame: Integer): Boolean;
+begin
+  Result := CheckForAction(fAssignments, aFrame)
+         or CheckForAction(fSpawnIntervalChanges, aFrame);
 end;
 
 function TReplay.HasAssignmentAt(aFrame: Integer): Boolean;
-
-  function CheckForAssignment(aList: TReplayItemList): Boolean;
-  var
-    i: Integer;
-  begin
-    Result := false;
-    for i := 0 to aList.Count-1 do
-      if aList[i].Frame = aFrame then
-      begin
-        Result := true;
-        Exit;
-      end;
-  end;
 begin
-  Result := CheckForAssignment(fAssignments);
+  Result := CheckForAction(fAssignments, aFrame);
+end;
+
+function TReplay.HasRRChangeAt(aFrame: Integer): Boolean;
+begin
+  Result := CheckForAction(fSpawnIntervalChanges, aFrame);
 end;
 
 function TReplay.IsThisLatestAction(aAction: TBaseReplayItem): Boolean;
