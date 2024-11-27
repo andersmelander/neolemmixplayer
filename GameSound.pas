@@ -34,7 +34,7 @@ uses
   Dialogs,
   Bass,
   LemTypes, // only uses AppPath in new-formats but uses other stuff from LemTypes in backwards-compatible
-  LemStrings, Contnrs, Classes, SysUtils;
+  LemStrings, SharedGlobals, Contnrs, Classes, SysUtils;
 
 type
   TSoundEffectOrigin = (seoStyle, seoDefault, seoPack);
@@ -193,8 +193,10 @@ procedure TSoundManager.ObtainMusicBassChannel;
 begin
   if not fIsBassLoaded then Exit;
 
-  Assert(fMusicChannel = $FFFFFFFF, 'TSoundManager.ObtainMusicBassChannel: A channel already exists!');
+  CustomAssert(fMusicChannel = $FFFFFFFF, 'TSoundManager.ObtainMusicBassChannel: A channel already exists!');
+
   fMusicChannel := BASS_StreamCreateFile(true, fMusicStream.Memory, 0, fMusicStream.Size, BASS_SAMPLE_LOOP);
+
   if fMusicChannel = 0 then // this means we have a module-based file
   begin
     fMusicChannel := BASS_MusicLoad(true, fMusicStream.Memory, 0, fMusicStream.Size, BASS_SAMPLE_LOOP, 0);

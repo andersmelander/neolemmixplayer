@@ -1382,7 +1382,9 @@ var
   Gadget, Gadget2: TGadget;
 begin
   Gadget := Gadgets[GadgetID];
-  Assert(Gadget.ReceiverId <> 65535, 'Telerporter used without receiver'); // note to self or Nepster: change this to use -1 instead?
+
+  CustomAssert(Gadget.ReceiverId <> 65535, 'Telerporter used without receiver'); // note to self or Nepster: change this to use -1 instead?
+
   Gadget2 := Gadgets[Gadget.ReceiverId];
 
   if Gadget.IsFlipPhysics then TurnAround(L);
@@ -2035,7 +2037,7 @@ procedure TLemmingGame.GenerateClonedLem(L: TLemming);
 var
   NewL: TLemming;
 begin
-  Assert(not L.LemIsZombie, 'cloner assigned to zombie');
+  CustomAssert(not L.LemIsZombie, 'cloner assigned to zombie');
 
   NewL := TLemming.Create;
   NewL.Assign(L);
@@ -2559,8 +2561,8 @@ begin
     Inc(i);
 
     // Make sure, that we do not move outside the range of CheckPos.
-    Assert(i <= Length(CheckPos[0]), 'CheckTriggerArea: CheckPos has not enough entries');
-    Assert(i <= Length(CheckPos[1]), 'CheckTriggerArea: CheckPos has not enough entries');
+    CustomAssert(i <= Length(CheckPos[0]), 'CheckTriggerArea: CheckPos has not enough entries');
+    CustomAssert(i <= Length(CheckPos[1]), 'CheckTriggerArea: CheckPos has not enough entries');
 
     // Transition if we are at the end position and need to do one
     // Except if we try to splat and there is water at the lemming position - then let this take precedence.
@@ -2739,7 +2741,7 @@ var
   Gadget: TGadget;
 begin
   // Because ObjectTypeToTrigger defaults to trZombie, looking for this trigger type is nonsense!
-  Assert(TriggerType <> trZombie, 'FindObjectId called for trZombie');
+  CustomAssert(TriggerType <> trZombie, 'FindObjectId called for trZombie');
 
   GadgetID := Gadgets.Count;
   GadgetFound := False;
@@ -2883,8 +2885,8 @@ begin
 
   Gadget := Gadgets[GadgetID];
 
-  Assert((Gadget.ReceiverID >= 0) and (Gadget.ReceiverID < Gadgets.Count), 'ReceiverID for teleporter out of bounds.');
-  Assert(Gadgets[Gadget.ReceiverID].TriggerEffect = DOM_RECEIVER, 'Receiving object for teleporter has wrong trigger effect.');
+  CustomAssert((Gadget.ReceiverID >= 0) and (Gadget.ReceiverID < Gadgets.Count), 'ReceiverID for teleporter out of bounds.');
+  CustomAssert(Gadgets[Gadget.ReceiverID].TriggerEffect = DOM_RECEIVER, 'Receiving object for teleporter has wrong trigger effect.');
 
   Gadget.Triggered := True;
   Gadget.ZombieMode := L.LemIsZombie;
@@ -3106,8 +3108,8 @@ begin
 
   Gadget := Gadgets[GadgetID];
 
-  Assert((Gadget.ReceiverID >= 0) and (Gadget.ReceiverID < Gadgets.Count), 'ReceiverID for portal out of bounds.');
-  Assert(Gadgets[Gadget.ReceiverID].TriggerEffect = DOM_PORTAL, 'Receiving object for portal has wrong trigger effect.');
+  CustomAssert((Gadget.ReceiverID >= 0) and (Gadget.ReceiverID < Gadgets.Count), 'ReceiverID for portal out of bounds.');
+  CustomAssert(Gadgets[Gadget.ReceiverID].TriggerEffect = DOM_PORTAL, 'Receiving object for portal has wrong trigger effect.');
 
   CueSoundEffect(SFX_PORTAL, L.Position);
   L.LemPortalWarpFrame := 1;
@@ -3280,7 +3282,7 @@ begin
   D.Right := D.Left + 16;
   D.Bottom := D.Top + 10;
 
-  Assert(CheckRectCopy(D, S), 'bash rect err');
+  CustomAssert(CheckRectCopy(D, S), 'bash rect err');
 
   BasherMasks.DrawTo(PhysicsMap, D, S);
 
@@ -3311,7 +3313,7 @@ begin
   D.Right := D.Left + 16;
   D.Bottom := D.Top + 10;
 
-  Assert(CheckRectCopy(D, S), 'fence rect err');
+  CustomAssert(CheckRectCopy(D, S), 'fence rect err');
 
   FencerMasks.DrawTo(PhysicsMap, D, S);
 
@@ -3360,7 +3362,7 @@ var
   MaskX, MaskY: Integer;
   S, D: TRect;
 begin
-  Assert((MaskFrame >=0) and (MaskFrame <= 1), 'miner mask error');
+  CustomAssert((MaskFrame >=0) and (MaskFrame <= 1), 'miner mask error');
 
   MaskX := L.LemX + L.LemDx - 8 + AdjustX;
   MaskY := L.LemY + MaskFrame - 12 + AdjustY;
@@ -3381,7 +3383,7 @@ begin
   D.Right := MaskX + RectWidth(S);
   D.Bottom := MaskY + RectHeight(S);
 
-  Assert(CheckRectCopy(D, S), 'miner rect error');
+  CustomAssert(CheckRectCopy(D, S), 'miner rect error');
 
   MinerMasks.DrawTo(PhysicsMap, D, S);
 
@@ -3409,11 +3411,11 @@ begin
       // The additional "+f" are necessary! Delphi's definition of mod returns negative numbers when passing negative numbers.
       // The following code works only if the coordinates are not too negative, so Asserts are added
       f := Level.Info.Width + Gadget.Width;
-      Assert(Gadget.Left + Gadget.Width + f >= 0, 'Animation Object too far left');
+      CustomAssert(Gadget.Left + Gadget.Width + f >= 0, 'Animation Object too far left');
       Gadget.Left := ((Gadget.Left + Gadget.Width + f) mod f) - Gadget.Width;
 
       f := Level.Info.Height + Gadget.Height;
-      Assert(Gadget.Top + Gadget.Height + f >= 0, 'Animation Object too far above');
+      CustomAssert(Gadget.Top + Gadget.Height + f >= 0, 'Animation Object too far above');
       Gadget.Top := ((Gadget.Top + Gadget.Height + f) mod f) - Gadget.Height;
     end;
   end;
@@ -3503,7 +3505,7 @@ procedure TLemmingGame.LayBrick(L: TLemming);
 var
   BrickPosY, n: Integer;
 begin
-  Assert((L.LemNumberOfBricksLeft > 0) and (L.LemNumberOfBricksLeft < 13),
+  CustomAssert((L.LemNumberOfBricksLeft > 0) and (L.LemNumberOfBricksLeft < 13),
             'Number bricks out of bounds');
 
   If L.LemAction = baBuilding then BrickPosY := L.LemY - 1
@@ -3522,7 +3524,7 @@ var
   BrickPosY, n: Integer;
   PixPosX: Integer;
 begin
-  Assert((L.LemNumberOfBricksLeft > 0) and (L.LemNumberOfBricksLeft < 13),
+  CustomAssert((L.LemNumberOfBricksLeft > 0) and (L.LemNumberOfBricksLeft < 13),
             'Number stacker bricks out of bounds');
 
   BrickPosY := L.LemY - 9 + L.LemNumberOfBricksLeft;
@@ -3555,7 +3557,7 @@ var
 begin
   Result := False;
 
-  Assert(PosY >=0, 'Digging at negative Y-coordinate');
+  CustomAssert(PosY >=0, 'Digging at negative Y-coordinate');
 
   For n := -4 to 4 do
   begin
@@ -5427,7 +5429,7 @@ begin
     if MaxFallDist > GroundDist then
     begin
       // Lem has found solid terrain
-      Assert(GroundDist >= 0, 'glider GroundDist negative');
+      CustomAssert(GroundDist >= 0, 'glider GroundDist negative');
       Inc(L.LemY, GroundDist);
       fLemNextAction := baWalking;
     end
@@ -5541,9 +5543,11 @@ begin
 
   if L.LemIsZombie then
   begin
-    Assert(RemMode <> RM_SAVE, 'Zombie removed with RM_SAVE removal type!');
-    Assert(RemMode <> RM_ZOMBIE, 'Zombie removed with RM_ZOMBIE removal type!');
+    CustomAssert(RemMode <> RM_SAVE, 'Zombie removed with RM_SAVE removal type!');
+    CustomAssert(RemMode <> RM_ZOMBIE, 'Zombie removed with RM_ZOMBIE removal type!');
+
     L.LemRemoved := True;
+
     if (RemMode = RM_NEUTRAL) and not Silent then
       CueSoundEffect(SFX_FALLOUT, L.Position);
   end
@@ -6456,7 +6460,7 @@ var
 begin
   Result := False;
 
-  Assert(L.LemTeleporting = True, 'CheckLemTeleporting called for non-teleporting lemming');
+  CustomAssert(L.LemTeleporting = True, 'CheckLemTeleporting called for non-teleporting lemming');
 
   // Search for Teleporter, the lemming is in
   GadgetID := -1;
@@ -6464,7 +6468,7 @@ begin
     Inc(GadgetID);
   until (GadgetID > Gadgets.Count - 1) or (L.LemIndex = Gadgets[GadgetID].TeleLem);
 
-  Assert(GadgetID < Gadgets.Count, 'Teleporter associated to teleporting lemming not found');
+  CustomAssert(GadgetID < Gadgets.Count, 'Teleporter associated to teleporting lemming not found');
 
   Gadget := Gadgets[GadgetID];
   if Gadget.TriggerEffect <> DOM_RECEIVER then Exit;
@@ -6488,7 +6492,7 @@ var
 begin
   Result := False;
 
-  Assert(L.LemPortalWarpFrame > 0, 'CheckLemPortalWarping called for non-warping lemming');
+  CustomAssert(L.LemPortalWarpFrame > 0, 'CheckLemPortalWarping called for non-warping lemming');
 
   Inc(L.LemPortalWarpFrame);
 
@@ -6496,7 +6500,8 @@ begin
   begin
     // Search for Portal, the lemming is in
     GadgetID := FindGadgetID(L.LemX, L.LemY, trPortal);
-    Assert(GadgetID < Gadgets.Count, 'Portal associated to warping lemming not found');
+
+    CustomAssert(GadgetID < Gadgets.Count, 'Portal associated to warping lemming not found');
 
     Gadget := Gadgets[GadgetID];
     if Gadget.TriggerEffect <> DOM_PORTAL then Exit;
@@ -6615,7 +6620,8 @@ begin
       begin
         MoveLemToReceivePoint(LemmingList.List[Gadget.TeleLem], i);
 
-        Assert(Gadget2.TriggerEffect = DOM_RECEIVER, 'Lemming teleported to non-receiver object.');
+        CustomAssert(Gadget2.TriggerEffect = DOM_RECEIVER, 'Lemming teleported to non-receiver object.');
+
         Gadget2.TeleLem := Gadget.TeleLem;
         Gadget2.Triggered := True;
         Gadget2.ZombieMode := Gadget.ZombieMode;
@@ -6688,7 +6694,7 @@ var
   HasSkillButton: Boolean;
   i: Integer;
 begin
-  Assert(aAction in AssignableSkills, 'CheckSkillAvailable for not assignable skill');
+  CustomAssert(aAction in AssignableSkills, 'CheckSkillAvailable for not assignable skill');
 
   HasSkillButton := false;
   for i := 0 to MAX_SKILL_TYPES_PER_LEVEL - 1 do

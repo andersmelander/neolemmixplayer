@@ -21,7 +21,7 @@ unit PngInterface;
 interface
 
 uses
-  Classes, SysUtils, Graphics, GR32;
+  Classes, SysUtils, Graphics, GR32, SharedGlobals;
 
 type
   TPngInterface = class
@@ -171,7 +171,7 @@ var
   PNGWriter: IImageFormatWriter;
 begin
   PNGWriter := ImageFormatManager.Writers.FindWriter('png');
-  Assert(PNGWriter <> nil);
+  CustomAssert(PNGWriter <> nil, 'PNGWriter not initialized correctly');
 
   if not NoAlpha then
     PNGWriter.SaveToStream(Bmp, aStream)

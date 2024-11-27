@@ -188,7 +188,7 @@ var
 const
   TEXT_Y_POSITION = 170;
 begin
-  Assert(GameParams <> nil);
+  CustomAssert(GameParams <> nil, 'GameParams not initialized correctly');
 
   W := TBitmap32.Create;
   ScreenImg.BeginUpdate;
@@ -301,7 +301,7 @@ end;
 
 function TGamePreviewScreen.GetScreenText: string;
 begin
-  Assert(GameParams <> nil);
+  CustomAssert(GameParams <> nil, 'GameParams not initialized correctly');
 
   with GameParams.Level.Info do
   begin

@@ -7,7 +7,7 @@ uses
   Classes, Controls, GR32, GR32_Image, GR32_Layers, GR32_Resamplers,
   GameWindowInterface,
   LemAnimationSet, LemMetaAnimation, LemNeoLevelPack,
-  LemCore, LemLemming, LemGame, LemLevel;
+  LemCore, LemLemming, LemGame, LemLevel, SharedGlobals;
 
 type
   TMinimapClickEvent = procedure(Sender: TObject; const P: TPoint) of object;
@@ -317,7 +317,7 @@ begin
   fLastDrawnStr := StringOfChar(' ', DrawStringLength);
   fNewDrawStr := DrawStringTemplate;
 
-  Assert(Length(fNewDrawStr) = DrawStringLength, 'SkillPanel.Create: InfoString has not the correct length.');
+  CustomAssert(Length(fNewDrawStr) = DrawStringLength, 'SkillPanel.Create: InfoString has not the correct length.');
 
   fRectColor := $FFF0D0D0;
   fHighlitSkill := spbNone;
@@ -862,7 +862,7 @@ begin
 
   // Get array of buttons to draw
   ButtonList := GetButtonList;
-  Assert(Assigned(ButtonList), 'SkillPanel: List of Buttons was nil');
+  CustomAssert(Assigned(ButtonList), 'SkillPanel: List of Buttons was nil');
 
   // Draw empty panel
   DrawBlankPanel(Length(ButtonList));
@@ -967,7 +967,7 @@ begin
     fButtonRects[Button] := Rect(-1, -1, 0, 0);
 
   ButtonList := GetButtonList;
-  Assert(Assigned(ButtonList), 'SkillPanel: List of Buttons was nil');
+  CustomAssert(Assigned(ButtonList), 'SkillPanel: List of Buttons was nil');
 
   // Set only rectangles for non-skill buttons
   // The skill buttons are dealt with in SetSkillIcons
@@ -1402,7 +1402,7 @@ var
 const
   LEN = 4;
 begin
-  Assert(Game.LemmingsToSpawn - Game.SpawnedDead >= 0, 'Negative number of lemmings in hatch displayed');
+  CustomAssert(Game.LemmingsToSpawn - Game.SpawnedDead >= 0, 'Negative number of lemmings in hatch displayed');
   S := IntToStr(Game.LemmingsToSpawn - Game.SpawnedDead);
 
   if Length(S) < LEN then
@@ -1419,7 +1419,7 @@ const
   LEN = 4;
 begin
   LemNum := Game.LemmingsToSpawn + Game.LemmingsActive - Game.SpawnedDead;
-  Assert(LemNum >= 0, 'Negative number of alive lemmings displayed');
+  CustomAssert(LemNum >= 0, 'Negative number of alive lemmings displayed');
 
   S := IntToStr(LemNum);
   if Length(S) < LEN then

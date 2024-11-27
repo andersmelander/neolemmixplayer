@@ -2095,7 +2095,7 @@ var
 
   DrawX, DrawY: Integer;
 begin
-  Assert(Dst = fLayers[rlObjectHelpers], 'Object Helpers not written on their layer');
+  CustomAssert(Dst = fLayers[rlObjectHelpers], 'Object Helpers not written on their layer');
 
   MO := Gadget.MetaObj;
 
@@ -2259,8 +2259,8 @@ var
   numHelpers, indexHelper: Integer;
   DrawX, DrawY: Integer;
 begin
-  Assert(Dst = fLayers[rlObjectHelpers], 'Object Helpers not written on their layer');
-  Assert(Gadget.TriggerEffectBase = DOM_WINDOW, 'Hatch helper icons called for other object type');
+  CustomAssert(Dst = fLayers[rlObjectHelpers], 'Object Helpers not written on their layer');
+  CustomAssert(Gadget.TriggerEffectBase = DOM_WINDOW, 'Hatch helper icons called for other object type');
 
   // Count number of helper icons to be displayed.
   numHelpers := 0;
@@ -2339,8 +2339,7 @@ const
   DRAW_ABOVE_MIN_Y = 19;
   DRAW_ABOVE_MIN_Y_CPM = 28;
 begin
-  Assert(Dst = fLayers[rlObjectHelpers], 'Object Helpers not written on their layer');
-  //Assert(isClearPhysics or L.LemIsZombie, 'Lemmings helpers drawn for non-zombie while not in clear-physics mode'); // why?
+  CustomAssert(Dst = fLayers[rlObjectHelpers], 'Object Helpers not written on their layer');
 
   // Count number of helper icons to be displayed.
   numHelpers := 0;
