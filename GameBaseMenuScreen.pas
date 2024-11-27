@@ -42,23 +42,30 @@ type
 type
   TClickableLayer = class(TBitmapLayer)
   private type
-    TShortcuts = TList<Word>;
+    TShortcuts = TList<TShortCut>;
   private
     FAction: TRegionAction;
-    FShortcuts: TShortcuts;
+    FShortCuts: TShortcuts;
     FCurrentState: TRegionState;
     FMargin: integer;
     procedure SetCurrentState(const Value: TRegionState);
+    function GetShortCuts: TShortcuts;
+    function GetHasShortCuts: boolean;
   protected
     procedure Click; override;
     function DoHitTest(X, Y: Integer): Boolean; override;
+    procedure KeyDown(var Key: Word; Shift: TShiftState); override;
     procedure Paint(Buffer: TBitmap32); override;
   public
     constructor Create(ALayerCollection: TLayerCollection); override;
     destructor Destroy; override;
 
+    function CanHandleShortCut(ShortCut: TShortcut): boolean;
+    function HandleShortCut(ShortCut: TShortcut): boolean;
+
     property Action: TRegionAction read FAction write FAction;
-    property ShortcutKeys: TShortcuts read FShortcuts;
+    property ShortcutKeys: TShortcuts read GetShortCuts;
+    property HasShortcutKeys: boolean read GetHasShortCuts;
     property CurrentState: TRegionState read FCurrentState write SetCurrentState;
     property Margin: integer read FMargin write FMargin;
   end;
@@ -179,6 +186,7 @@ type
 implementation
 
 uses
+  Vcl.Menus,
   LemGame, LemReplay,
   FMain, FNeoLemmixLevelSelect, FNeoLemmixConfig,
   PngInterface,
@@ -221,7 +229,7 @@ begin
   OnKeyUp := Form_KeyUp;
   OnMouseDown := Form_MouseDown;
   OnMouseMove := Form_MouseMove;
-  ScreenImg.OnMouseDown := Img_MouseDown;
+  ScreenImg.OnMouseUp := Img_MouseUp;
   ScreenImg.OnMouseMove := Img_MouseMove;
 
   {$ifdef exp}{$ifndef rc}
@@ -552,6 +560,14 @@ begin
         Exit;
       end;
 
+  for i := 0 to ScreenImg.Layers.Count-1 do
+    if (ScreenImg.Layers[i] is TClickableLayer) then
+      if (TClickableLayer(ScreenImg.Layers[i]).HandleShortCut(Key)) then
+      begin
+        Key := 0; // TODO : This is pointless; Key isn't var parameter
+        Exit;
+      end;
+
   OnKeyPress(Key);
 end;
 
@@ -759,6 +775,16 @@ begin
     Result := False;
   end;
 
+  // Work around for alpha premultiply bug in linear sampler
+(*
+  var Pixel := PColor32Entry(aDst.Bits);
+  for var i := 0 to aDst.Width*aDst.Height-1 do
+  begin
+    if (Pixel.A = 0) then
+      Pixel.ARGB := 0;
+    Inc(Pixel);
+  end;
+*)
   aDst.DrawMode := dmBlend;
 end;
 
@@ -971,7 +997,7 @@ end;
 constructor TClickableLayer.Create(ALayerCollection: TLayerCollection);
 begin
   inherited;
-  FShortcuts := TShortcuts.Create;
+
   MouseEvents := True;
   AlphaHit := True;
 
@@ -980,7 +1006,7 @@ end;
 
 destructor TClickableLayer.Destroy;
 begin
-  FShortcuts.Free;
+  FShortCuts.Free;
   inherited;
 end;
 
@@ -999,15 +1025,64 @@ begin
   end;
 end;
 
+function TClickableLayer.GetHasShortCuts: boolean;
+begin
+  Result := (FShortCuts <> nil) and (FShortCuts.Count > 0);
+end;
+
+function TClickableLayer.GetShortCuts: TShortcuts;
+begin
+  if (FShortCuts = nil) then
+    FShortCuts := TShortcuts.Create;
+
+  Result := FShortCuts;
+end;
+
+function TClickableLayer.HandleShortCut(ShortCut: TShortcut): boolean;
+begin
+  Result := CanHandleShortCut(ShortCut);
+  if (Result) then
+    Click;
+end;
+
+function TClickableLayer.CanHandleShortCut(ShortCut: TShortcut): boolean;
+var
+  i: integer;
+begin
+  Result := False;
+
+  if (HasShortcutKeys) then
+  begin
+    for i := 0 to FShortCuts.Count-1 do
+      if (ShortCut = FShortCuts[i]) then
+      begin
+        Result := True;
+        break;
+      end;
+  end;
+end;
+
+procedure TClickableLayer.KeyDown(var Key: Word; Shift: TShiftState);
+var
+  ShortCut: TShortCut;
+begin
+  inherited;
+
+  ShortCut := Vcl.Menus.ShortCut(Key, Shift);
+
+  if (HandleShortCut(ShortCut)) then
+    Key := 0; // Handled
+end;
+
 procedure TClickableLayer.Paint(Buffer: TBitmap32);
 var
   SrcRect, DstRect, ClipRect, TempRect: TRect;
   ImageRect: TRect;
   HoverBitmap: TBitmap32;
-  ScaleX, ScaleY: TFloat;
+  GlowColor: TColor32;
 const
-  HOVER_COLOR = $FFA0A0A0;
-  CLICK_COLOR = $FF404040;
+  HOVER_COLOR: TColor32 = $00A0A0A0; // White-ish
+  CLICK_COLOR: TColor32 = $00A0A040; // Yellow-ish
 begin
   if (Bitmap = nil) or (Bitmap.Empty) then
     Exit;
@@ -1033,31 +1108,46 @@ begin
     GR32.IntersectRect(ClipRect, ClipRect, ImageRect);
   end;
 
-  if (FCurrentState = rsHover) then
+  if (FCurrentState in [rsHover, rsClick]) then
   begin
+    (*
+    ** Draw a "hover glow" below the button bitmap
+    *)
     HoverBitmap := TBitmap32.Create;
     try
+      // Draw the button at the center of the hover bitmap...
       HoverBitmap.SetSize(Bitmap.Width+2*Margin, Bitmap.Height+2*Margin);
       HoverBitmap.Clear(clNone32);
       BlockTransfer(HoverBitmap, Margin, Margin, HoverBitmap.BoundsRect, Bitmap, Bitmap.BoundsRect, dmOpaque);
 
+      // ...and blur it to produce a glow mask
       Blur32(HoverBitmap, Margin);
 
+      // Replace the glow mask with a single glow color
+      if (FCurrentState = rsHover) then
+        GlowColor := HOVER_COLOR and $00FFFFFF
+      else
+        GlowColor := CLICK_COLOR and $00FFFFFF;
       var Pixel := PColor32Entry(HoverBitmap.Bits);
       for var i := 0 to HoverBitmap.Width*HoverBitmap.Height-1 do
       begin
+        // Tweak the alpha to make the glow more substantial
         if (Pixel.A <> 0) then
-          Pixel.ARGB := (Min(255, Pixel.A * Pixel.A * 2) shl 24) or (HOVER_COLOR and $00FFFFFF);
+          Pixel.ARGB := TColor32(Min(255, Pixel.A * Pixel.A * 2) shl 24) or GlowColor;
         Inc(Pixel);
       end;
 
-//      Buffer.FillRectS(HoverRect, clRed32);
+      // Blur again to soften the result
+      Blur32(HoverBitmap, Margin);
+
+      // Draw the glow
       StretchTransfer(Buffer, HoverRect, ClipRect, HoverBitmap, HoverBitmap.BoundsRect, Bitmap.Resampler, Bitmap.DrawMode, Bitmap.OnPixelCombine);
     finally
       HoverBitmap.Free;
     end;
   end;
 
+  // Draw the button
   StretchTransfer(Buffer, DstRect, ClipRect, Bitmap, SrcRect, Bitmap.Resampler, Bitmap.DrawMode, Bitmap.OnPixelCombine);
 end;
 
