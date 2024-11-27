@@ -117,7 +117,7 @@ type
       procedure Form_KeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
       procedure Form_MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
       procedure Form_MouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
-      procedure Img_MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer; Layer: TCustomLayer);
+      procedure Img_MouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer; Layer: TCustomLayer);
       procedure Img_MouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer; Layer: TCustomLayer);
 
       procedure HandleKeyboardInput(Key: Word);
@@ -843,7 +843,7 @@ begin
   HandleMouseMove;
 end;
 
-procedure TGameBaseMenuScreen.Img_MouseDown(Sender: TObject;
+procedure TGameBaseMenuScreen.Img_MouseUp(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer; Layer: TCustomLayer);
 begin
   HandleMouseClick(Button);
