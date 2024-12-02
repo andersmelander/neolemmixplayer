@@ -45,13 +45,6 @@ type
     private
       LayoutInfo: TGameMenuPositionData;
 
-      ScrollerEraseBuffer: TBitmap32;
-
-      ScrollerLemmings: TBitmap32;
-      ScrollerReel: TBitmap32;
-      ScrollerReelSegmentWidth: Integer;
-      ScrollerText: TBitmap32;
-
       fDisableScroller: Boolean;
       fLastReelUpdateTickCount: UInt64;
       fReelFrame: Integer;
@@ -66,14 +59,13 @@ type
       fUpdateCheckThread: TDownloadThread;
       fVersionInfo: TStringList;
 
-      fGroupSignCenter: TPoint;
-      fGroupGraphic: TBitmap32;
-
       fScrollerTextList: TStringList;
 
-      fFinishedMakingSigns: Boolean;
-
-      FLayerLogo: TBitmapLayer;
+      FLayerGroup: TBitmapLayer;
+      FLayerWorkerLemminLeft: TAnimatedFrameLayer;
+      FLayerWorkerLemminRight: TAnimatedFrameLayer;
+      FLayerScroller: TBannerLayer;
+      FLayerBannerText: TBannerTextLayer;
 
 
       procedure MakeAutoSectionGraphic(Dst: TBitmap32);
@@ -90,7 +82,6 @@ type
       procedure DrawReel;
       procedure DrawReelText;
       procedure DrawWorkerLemmings;
-      function GetWorkerLemmingRect(aRightLemming: Boolean): TRect;
 
       procedure UpdateReel;
       procedure UpdateReelIteration;
@@ -102,12 +93,14 @@ type
       procedure PrevGroup;
       procedure NextGroup;
       procedure UpdateGroupSign(aRedraw: Boolean = True);
-      procedure RedrawGroupSign;
 
       procedure ShowSetupMenu;
       procedure DoCleanInstallCheck;
       procedure InitiateUpdateCheck;
       procedure HandleUpdateCheckResult;
+
+      procedure ForceReelBackward;
+      procedure ForceReelForward;
 
       procedure ApplicationIdle(Sender: TObject; var Done: Boolean);
       procedure DisableIdle;
@@ -117,12 +110,10 @@ type
     protected
       procedure BuildScreen; override;
       procedure CloseScreen(aNextScreen: TGameScreenType); override;
-      procedure AfterRedrawClickables; override;
 
       procedure DoAfterConfig; override;
 
       function GetBackgroundSuffix: String; override;
-      procedure OnMouseClick(aPoint: TPoint; aButton: TMouseButton); override;
     public
       constructor Create(aOwner: TComponent); override;
       destructor Destroy; override;
@@ -145,19 +136,7 @@ constructor TGameMenuScreen.Create(aOwner: TComponent);
 begin
   inherited;
 
-  FLayerLogo := TBitmapLayer(ScreenImg.Layers.Add(TBitmapLayer));
-  FLayerLogo.Scaled := True;
-  TCustomResamplerClass(ScreenImg.Bitmap.Resampler.ClassType).Create(FLayerLogo.Bitmap);
-
-  ScrollerEraseBuffer := TBitmap32.Create;
-
-  ScrollerLemmings := TBitmap32.Create;
-  ScrollerReel := TBitmap32.Create;
-  ScrollerText := TBitmap32.Create;
-
   fVersionInfo := TStringList.Create;
-
-  fGroupGraphic := TBitmap32.Create;
 
   fScrollerTextList := TStringList.Create;
   GameParams.MainForm.Caption := SProgramNameFull;
@@ -165,41 +144,11 @@ end;
 
 destructor TGameMenuScreen.Destroy;
 begin
-  ScrollerEraseBuffer.Free;
-
-  ScrollerLemmings.Free;
-  ScrollerReel.Free;
-  ScrollerText.Free;
-
   fVersionInfo.Free;
-
-  fGroupGraphic.Free;
 
   fScrollerTextList.Free;
 
   inherited;
-end;
-
-procedure TGameMenuScreen.OnMouseClick(aPoint: TPoint; aButton: TMouseButton);
-var
-  OldForceDir: Integer;
-begin
-  inherited;
-
-  OldForceDir := fReelForceDirection;
-
-  if Types.PtInRect(GetWorkerLemmingRect(False), aPoint) then
-    fReelForceDirection := 1
-  else if Types.PtInRect(GetWorkerLemmingRect(True), aPoint) then
-    fReelForceDirection := -1
-  else
-    BeginGame;
-
-  if fReelForceDirection <> OldForceDir then
-  begin
-    fReelFreezeIterations := 0;
-    fSwitchedTextSinceForce := False;
-  end;
 end;
 
 procedure TGameMenuScreen.ApplicationIdle(Sender: TObject; var Done: Boolean);
@@ -277,8 +226,6 @@ begin
 
   LoadLayoutData;
 
-  UpdateGroupSign(False);
-
   DrawLogo;
   MakePanels;
   MakeFooterText;
@@ -313,12 +260,18 @@ end;
 
 procedure TGameMenuScreen.DrawLogo;
 var
+  Layer: TBitmapLayer;
   r: TFloatRect;
 begin
-  GetGraphic('logo.png', FLayerLogo.Bitmap);
-  r := FloatRect(0, 0, FLayerLogo.Bitmap.Width, FLayerLogo.Bitmap.Height);
+  Layer := ScreenImg.Layers.Add<TBitmapLayer>;
+  Layer.Scaled := True;
+  TCustomResamplerClass(ScreenImg.Bitmap.Resampler.ClassType).Create(Layer.Bitmap);
+
+  GetGraphic('logo.png', Layer.Bitmap);
+
+  r := FloatRect(0, 0, Layer.Bitmap.Width, Layer.Bitmap.Height);
   r.Offset((ScreenImg.Bitmap.Width - r.Width) / 2, LayoutInfo.LogoY - r.Height / 2);
-  FLayerLogo.Location := r;
+  Layer.Location := r;
 end;
 
 procedure TGameMenuScreen.MakePanels;
@@ -329,76 +282,100 @@ procedure TGameMenuScreen.MakePanels;
     Result.Y := LayoutInfo.CardsCenterY + Round(aVertOffset * LayoutInfo.CardSpacingVert);
   end;
 
+  function AddButton(const AFilenames: TArray<string>; AAction: TRegionAction; const AShortCuts: TArray<TShortCut> = [];
+    AGlowSize: integer = 5; AParent: TClickableLayer = nil): TClickableLayer;
 var
-  Layer: TClickableLayer;
+    i: integer;
+    ShortCut: TShortCut;
+  begin
+    Result := ScreenImg.Layers.Add<TClickableLayer>;
+
+    for i := 0 to High(AFilenames) do
+      if (GetGraphic(AFilenames[i], Result.Bitmap, (i < High(AFilenames)))) then
+        break;
+
+    Result.Action := AAction;
+
+    for ShortCut in AShortCuts do
+      Result.ShortcutKeys.Add(ShortCut);
+
+    Result.GlowSize := AGlowSize;
+    Result.Scaled := True;
+    Result.Parent := AParent;
+  end;
+
+var
+  Layer, ParentLayer: TClickableLayer;
   p: TPoint;
   r: TFloatRect;
-  NewRegion: TClickableRegion;
-  BMP: TBitmap32;
 begin
-  BMP := TBitmap32.Create;
-  try
     // Play
-(*
-    GetGraphic('sign_play.png', BMP);
-    NewRegion := MakeClickableImageAuto(MakePosition(-1, -0.5), BMP.BoundsRect, BeginGame, BMP);
-    NewRegion.ShortcutKeys.Add(VK_RETURN);
-    NewRegion.ShortcutKeys.Add(VK_F1);
-*)
-    Layer := TClickableLayer(ScreenImg.Layers.Add(TClickableLayer));
-    GetGraphic('sign_play.png', Layer.Bitmap);
-    Layer.Action := BeginGame;
-    Layer.ShortcutKeys.Add(VK_RETURN);
-    Layer.ShortcutKeys.Add(VK_F1);
-    Layer.Margin := 5;
+  Layer := AddButton(['sign_play.png'], BeginGame, [VK_RETURN, VK_F1]);
     p := MakePosition(-1, -0.5);
     r := FloatRect(SizedRect(p.X - Layer.Bitmap.Width div 2, p.Y - Layer.Bitmap.Height div 2, Layer.Bitmap.Width, Layer.Bitmap.Height));
-    r.Inflate(Layer.Margin, Layer.Margin);
+  r.Inflate(Layer.GlowSize, Layer.GlowSize);
     Layer.Location := r;
-    Layer.Scaled := True;
 
     // Level select
-    if not GetGraphic('sign_code.png', BMP, True) then // Deprecated
-      GetGraphic('sign_level_select.png', BMP);
-    NewRegion := MakeClickableImageAuto(MakePosition(0, -0.5), BMP.BoundsRect, DoLevelSelect, BMP);
-    NewRegion.ShortcutKeys.Add(VK_F2);
+  Layer := AddButton(['sign_code.png', 'sign_level_select.png'], DoLevelSelect, [VK_F2]);
+  p := MakePosition(0, -0.5);
+  r := FloatRect(SizedRect(p.X - Layer.Bitmap.Width div 2, p.Y - Layer.Bitmap.Height div 2, Layer.Bitmap.Width, Layer.Bitmap.Height));
+  r.Inflate(Layer.GlowSize, Layer.GlowSize);
+  Layer.Location := r;
+
+  p := MakePosition(1.0, -0.5);
+  begin
 
     // Group sign
-    fGroupSignCenter := MakePosition(1, -0.5);
-    GetGraphic('sign_group.png', BMP);
-    NewRegion := MakeClickableImageAuto(fGroupSignCenter, BMP.BoundsRect, NextGroup, BMP);
-    NewRegion.DrawInFrontWhenHighlit := False;
+    ParentLayer := AddButton(['sign_group.png'], NextGroup);
+    r := FloatRect(SizedRect(p.X - ParentLayer.Bitmap.Width div 2, p.Y - ParentLayer.Bitmap.Height div 2, ParentLayer.Bitmap.Width, ParentLayer.Bitmap.Height));
+    r.Inflate(ParentLayer.GlowSize, ParentLayer.GlowSize);
+    ParentLayer.Location := r;
 
-    DrawAllClickables(True); // for the next step's sake
+    FLayerGroup := ScreenImg.Layers.Add<TBitmapLayer>;
+    UpdateGroupSign; // Load bitmap so we get its size
+    FLayerGroup.Location := FloatRect(SizedRect(
+      p.X + LayoutInfo.GroupGraphicOffsetX - FLayerGroup.Bitmap.Width div 2,
+      p.Y + LayoutInfo.GroupGraphicOffsetY - FLayerGroup.Bitmap.Height div 2,
+      FLayerGroup.Bitmap.Width, FLayerGroup.Bitmap.Height));
+    FLayerGroup.Scaled := True;
+    FLayerGroup.LayerOptions := Layer.LayerOptions and (not LOB_MOUSE_EVENTS);
 
     // Group sign buttons
-    GetGraphic('sign_group_up.png', BMP);
-    NewRegion := MakeClickableImageAuto(Types.Point(fGroupSignCenter.X + LayoutInfo.GroupArrowsOffsetX, fGroupSignCenter.Y + LayoutInfo.GroupArrowUpOffsetY),
-                                        BMP.BoundsRect, NextGroup, BMP, 3);
-    NewRegion.ShortcutKeys.Add(VK_UP);
+    Layer := AddButton(['sign_group_up.png'], NextGroup, [VK_UP], 3, ParentLayer);
+    Layer.ColorClick := $FF404040;
+    r := FloatRect(SizedRect(
+      p.X + LayoutInfo.GroupArrowsOffsetX - Layer.Bitmap.Width div 2,
+      p.Y + LayoutInfo.GroupArrowUpOffsetY - Layer.Bitmap.Height div 2,
+      Layer.Bitmap.Width, Layer.Bitmap.Height));
+    r.Inflate(Layer.GlowSize, Layer.GlowSize);
+    Layer.Location := r;
 
-    GetGraphic('sign_group_down.png', BMP);
-    NewRegion := MakeClickableImageAuto(Types.Point(fGroupSignCenter.X + LayoutInfo.GroupArrowsOffsetX, fGroupSignCenter.Y + LayoutInfo.GroupArrowDownOffsetY),
-                                        BMP.BoundsRect, PrevGroup, BMP, 3);
-    NewRegion.ShortcutKeys.Add(VK_DOWN);
+    Layer := AddButton(['sign_group_down.png'], PrevGroup, [VK_DOWN], 3, ParentLayer);
+    Layer.ColorClick := $FF404040;
+    r := FloatRect(SizedRect(
+      p.X + LayoutInfo.GroupArrowsOffsetX - Layer.Bitmap.Width div 2,
+      p.Y + LayoutInfo.GroupArrowDownOffsetY - Layer.Bitmap.Height div 2,
+      Layer.Bitmap.Width, Layer.Bitmap.Height));
+    r.Inflate(Layer.GlowSize, Layer.GlowSize);
+    Layer.Location := r;
+
+  end;
 
     // Config
-    GetGraphic('sign_config.png', BMP);
-    NewRegion := MakeClickableImageAuto(MakePosition(-0.5, 0.5), BMP.BoundsRect, ShowConfigMenu, BMP);
-    NewRegion.ShortcutKeys.Add(VK_F3);
+  Layer := AddButton(['sign_config.png'], ShowConfigMenu, [VK_F3]);
+  p := MakePosition(-0.5, 0.5);
+  r := FloatRect(SizedRect(p.X - Layer.Bitmap.Width div 2, p.Y - Layer.Bitmap.Height div 2, Layer.Bitmap.Width, Layer.Bitmap.Height));
+  r.Inflate(Layer.GlowSize, Layer.GlowSize);
+  Layer.Location := r;
 
     // Exit
-    GetGraphic('sign_quit.png', BMP);
-    NewRegion := MakeClickableImageAuto(MakePosition(0.5, 0.5), BMP.BoundsRect, ExitGame, BMP);
-    NewRegion.ShortcutKeys.Add(VK_ESCAPE);
-
-    fFinishedMakingSigns := True;
-
-    DrawAllClickables;
-  finally
-    BMP.Free;
+  Layer := AddButton(['sign_quit.png'], ExitGame, [VK_ESCAPE]);
+  p := MakePosition(0.5, 0.5);
+  r := FloatRect(SizedRect(p.X - Layer.Bitmap.Width div 2, p.Y - Layer.Bitmap.Height div 2, Layer.Bitmap.Width, Layer.Bitmap.Height));
+  r.Inflate(Layer.GlowSize, Layer.GlowSize);
+  Layer.Location := r;
   end;
-end;
 
 procedure TGameMenuScreen.MakeFooterText;
 var
@@ -484,37 +461,84 @@ begin
   end;
 end;
 
-procedure TGameMenuScreen.LoadScrollerGraphics;
-var
-  BMP: TBitmap32;
-  x: Integer;
-  EraseSrcRect: TRect;
-  MaxHeight: Integer;
+procedure TGameMenuScreen.ForceReelForward;
 begin
-  BMP := TBitmap32.Create;
+  if (fReelForceDirection = 1) then
+    exit;
+
+  fReelForceDirection := 1;
+  fReelFreezeIterations := 0;
+  fSwitchedTextSinceForce := false;
+end;
+
+procedure TGameMenuScreen.ForceReelBackward;
+begin
+  if (fReelForceDirection = -1) then
+    exit;
+
+  fReelForceDirection := -1;
+  fReelFreezeIterations := 0;
+  fSwitchedTextSinceForce := false;
+end;
+
+procedure TGameMenuScreen.LoadScrollerGraphics;
+  var
+  ScrollerLemmings: TBitmap32;
+  r: TRect;
+begin
+  FLayerScroller := ScreenImg.Layers.Add<TBannerLayer>;
+  FLayerBannerText := ScreenImg.Layers.Add<TBannerTextLayer>;
+  FLayerWorkerLemminLeft := ScreenImg.Layers.Add<TAnimatedFrameLayer>;
+  FLayerWorkerLemminRight := ScreenImg.Layers.Add<TAnimatedFrameLayer>;
+
+  ScrollerLemmings := TBitmap32.Create;
   try
     GetGraphic('scroller_lemmings.png', ScrollerLemmings);
-    GetGraphic('scroller_segment.png', BMP);
 
-    ScrollerReelSegmentWidth := BMP.Width;
-    ScrollerReel.SetSize(LayoutInfo.ScrollerWidth + ScrollerReelSegmentWidth, BMP.Height);
+    // Split the bitmap into a left and a right strip
 
-    x := 0;
-    while x < ScrollerReel.Width do
-    begin
-      BMP.DrawTo(ScrollerReel, x, 0);
-      x := x + BMP.Width;
+    FLayerWorkerLemminLeft.Bitmap.SetSize(ScrollerLemmings.Width div 2, ScrollerLemmings.Height);
+    r := FLayerWorkerLemminLeft.Bitmap.BoundsRect;
+    BlockTransfer(FLayerWorkerLemminLeft.Bitmap, 0, 0, FLayerWorkerLemminLeft.Bitmap.BoundsRect, ScrollerLemmings, r, dmOpaque);
+
+    FLayerWorkerLemminRight.Bitmap.SetSizeFrom(FLayerWorkerLemminLeft.Bitmap);
+    r := FLayerWorkerLemminRight.Bitmap.BoundsRect;
+    GR32.OffsetRect(r, FLayerWorkerLemminRight.Bitmap.Width, 0);
+    BlockTransfer(FLayerWorkerLemminRight.Bitmap, 0, 0, FLayerWorkerLemminRight.Bitmap.BoundsRect, ScrollerLemmings, r, dmOpaque);
+  finally
+    ScrollerLemmings.Free;
     end;
 
-    MaxHeight := Max(BMP.Height, ScrollerLemmings.Height div LayoutInfo.ScrollerLemmingFrames);
-    MaxHeight := Max(MaxHeight, CHARACTER_HEIGHT);
+  FLayerWorkerLemminLeft.Scaled := True;
+  // Ensure we have a whole number of frames
+  FLayerWorkerLemminLeft.FrameCount := FLayerWorkerLemminLeft.Bitmap.Height div (FLayerWorkerLemminLeft.Bitmap.Height div LayoutInfo.ScrollerLemmingFrames);
+  FLayerWorkerLemminLeft.Bitmap.DrawMode := dmBlend;
+  FLayerWorkerLemminLeft.Action := ForceReelForward;
 
-    EraseSrcRect := Rect(0, LayoutInfo.ScrollerY, ScreenImg.Width, LayoutInfo.ScrollerY + MaxHeight);
-    ScrollerEraseBuffer.SetSize(EraseSrcRect.Width, EraseSrcRect.Height);
-    ScreenImg.Bitmap.DrawTo(ScrollerEraseBuffer, 0, 0, EraseSrcRect);
-  finally
-    BMP.Free;
-  end;
+  FLayerWorkerLemminRight.Scaled := True;
+  FLayerWorkerLemminRight.FrameCount := FLayerWorkerLemminLeft.FrameCount;
+  FLayerWorkerLemminRight.Bitmap.DrawMode := dmBlend;
+  FLayerWorkerLemminRight.Action := ForceReelBackward;
+
+  FLayerWorkerLemminLeft.Location := SizedRect((ScreenImg.Bitmap.Width - LayoutInfo.ScrollerWidth) div 2 - FLayerWorkerLemminLeft.FrameWidth, LayoutInfo.ScrollerY,
+    FLayerWorkerLemminLeft.FrameWidth, FLayerWorkerLemminLeft.FrameHeight);
+  FLayerWorkerLemminLeft.Visible := True;
+
+  FLayerWorkerLemminRight.Location := SizedRect((ScreenImg.Bitmap.Width + LayoutInfo.ScrollerWidth) div 2, LayoutInfo.ScrollerY,
+    FLayerWorkerLemminRight.FrameWidth, FLayerWorkerLemminRight.FrameHeight);
+  FLayerWorkerLemminRight.Visible := True;
+
+  GetGraphic('scroller_segment.png', FLayerScroller.Bitmap);
+  FLayerScroller.Location := FloatRect(
+    FLayerWorkerLemminLeft.Location.Right, FLayerWorkerLemminLeft.Location.Top,
+    FLayerWorkerLemminRight.Location.Left, FLayerWorkerLemminRight.Location.Bottom);
+  FLayerScroller.Scaled := True;
+  FLayerScroller.Visible := True;
+
+  FLayerBannerText.Location := FLayerScroller.Location;
+  FLayerBannerText.Scaled := True;
+  FLayerBannerText.Visible := True;
+
 end;
 
 procedure TGameMenuScreen.PrepareScrollerTextList;
@@ -584,17 +608,18 @@ begin
       Dec(fReelTextPos);
     end;
 
-    if (ScrollerText.Width <= LayoutInfo.ScrollerWidth) and (fReelTextPos = (LayoutInfo.ScrollerWidth - ScrollerText.Width) div 2) then
+    if (FLayerBannerText.Bitmap.Width <= LayoutInfo.ScrollerWidth) and (fReelTextPos = (LayoutInfo.ScrollerWidth - FLayerBannerText.Bitmap.Width) div 2) then
       if fReelForceDirection = 0 then
-        fReelFreezeIterations := TEXT_FREEZE_BASE_ITERATIONS + (ScrollerText.Width div TEXT_FREEZE_WIDTH_DIV)
-      else if fSwitchedTextSinceForce then
+        fReelFreezeIterations := TEXT_FREEZE_BASE_ITERATIONS + (FLayerBannerText.Bitmap.Width div TEXT_FREEZE_WIDTH_DIV)
+      else
+      if fSwitchedTextSinceForce then
       begin
-        fReelFreezeIterations := TEXT_FREEZE_BASE_ITERATIONS + TEXT_FREEZE_END_FORCE_EXTRA + (ScrollerText.Width div TEXT_FREEZE_WIDTH_DIV);
+        fReelFreezeIterations := TEXT_FREEZE_BASE_ITERATIONS + TEXT_FREEZE_END_FORCE_EXTRA + (FLayerBannerText.Bitmap.Width div TEXT_FREEZE_WIDTH_DIV);
         fReelForceDirection := 0;
       end;
 
 
-    if (fReelTextPos <= -ScrollerText.Width) or (fReelTextPos >= LayoutInfo.ScrollerWidth) then
+    if (fReelTextPos <= -FLayerBannerText.Bitmap.Width) or (fReelTextPos >= LayoutInfo.ScrollerWidth) then
       PrepareNextReelText;
   end;
 end;
@@ -631,15 +656,24 @@ begin
   end;
 
   SizeRect := MenuFont.GetTextSize(S);
-  ScrollerText.SetSize(SizeRect.Width, SizeRect.Height + 4);
-  ScrollerText.Clear(0);
-  ScrollerText.DrawMode := dmBlend;
-  MenuFont.DrawText(ScrollerText, S, 0, 4);
 
-  if (fReelForceDirection < 0) then
-    fReelTextPos := -ScrollerText.Width
-  else
-    fReelTextPos := LayoutInfo.ScrollerWidth;
+  FLayerBannerText.BeginUpdate;
+  try
+    FLayerBannerText.Bitmap.SetSize(SizeRect.Width, SizeRect.Height);
+    FLayerBannerText.Bitmap.Clear(0);
+    FLayerBannerText.Bitmap.DrawMode := dmBlend;
+
+    MenuFont.DrawText(FLayerBannerText.Bitmap, S, 0, 0);
+
+    if (fReelForceDirection < 0) then
+        fReelTextPos := -FLayerBannerText.Bitmap.Width
+    else
+      fReelTextPos := LayoutInfo.ScrollerWidth;
+
+    FLayerBannerText.Offset := fReelTextPos;
+  finally
+    FLayerBannerText.EndUpdate;
+  end;
 
   fLastReelUpdateTickCount := GetTickCount64;
   fSwitchedTextSinceForce := True;
@@ -647,75 +681,29 @@ end;
 
 procedure TGameMenuScreen.DrawScroller;
 begin
-  ScrollerEraseBuffer.DrawTo(ScreenImg.Bitmap, 0, LayoutInfo.ScrollerY);
-
   DrawReel;
   DrawReelText;
   DrawWorkerLemmings;
 end;
 
 procedure TGameMenuScreen.DrawReel;
-var
-  SrcRect: TRect;
 begin
-  SrcRect := SizedRect(fReelFrame mod ScrollerReelSegmentWidth, 0, LayoutInfo.ScrollerWidth, ScrollerReel.Height);
-  ScrollerReel.DrawTo(ScreenImg.Bitmap, (ScreenImg.Bitmap.Width - LayoutInfo.ScrollerWidth) div 2, LayoutInfo.ScrollerY, SrcRect);
+  FLayerScroller.OffsetX := fReelFrame;
 end;
 
 procedure TGameMenuScreen.DrawReelText;
-var
-  SrcRect, DstRect: TRect;
-  SizeDiff: Integer;
 begin
-  SrcRect := ScrollerText.BoundsRect;
-  DstRect := SrcRect;
-
-  Types.OffsetRect(DstRect, ((ScreenImg.Bitmap.Width - LayoutInfo.ScrollerWidth) div 2) + fReelTextPos, LayoutInfo.ScrollerY);
-
-  if DstRect.Left < (ScreenImg.Bitmap.Width - LayoutInfo.ScrollerWidth) div 2 then
-  begin
-    SizeDiff := ((ScreenImg.Bitmap.Width - LayoutInfo.ScrollerWidth) div 2) - DstRect.Left;
-    DstRect.Left := DstRect.Left + SizeDiff;
-    SrcRect.Left := SrcRect.Left + SizeDiff;
-  end;
-
-  if DstRect.Right >= (ScreenImg.Bitmap.Width + LayoutInfo.ScrollerWidth) div 2 then
-  begin
-    SizeDiff := DstRect.Right - ((ScreenImg.Bitmap.Width + LayoutInfo.ScrollerWidth) div 2);
-    DstRect.Right := DstRect.Right - SizeDiff;
-    SrcRect.Right := SrcRect.Right - SizeDiff;
-  end;
-
-  if SrcRect.Width > 0 then
-    ScrollerText.DrawTo(ScreenImg.Bitmap, DstRect, SrcRect);
+  FLayerBannerText.Offset := fReelTextPos;
 end;
 
 procedure TGameMenuScreen.DrawWorkerLemmings;
 var
-  SrcRect, DstRect: TRect;
   Frame: Integer;
 begin
   Frame := (fReelFrame div 4) mod LayoutInfo.ScrollerLemmingFrames;
 
-  SrcRect := Rect(0, 0, ScrollerLemmings.Width div 2, ScrollerLemmings.Height div LayoutInfo.ScrollerLemmingFrames);
-  Types.OffsetRect(SrcRect, 0, SrcRect.Height * Frame);
-
-  DstRect := GetWorkerLemmingRect(False);
-  ScrollerLemmings.DrawTo(ScreenImg.Bitmap, DstRect, SrcRect);
-
-  Types.OffsetRect(SrcRect, SrcRect.Width, 0);
-  DstRect := GetWorkerLemmingRect(True);
-  ScrollerLemmings.DrawTo(ScreenImg.Bitmap, DstRect, SrcRect);
-end;
-
-function TGameMenuScreen.GetWorkerLemmingRect(aRightLemming: Boolean): TRect;
-begin
-  if aRightLemming then
-    Result := SizedRect((ScreenImg.Bitmap.Width + LayoutInfo.ScrollerWidth) div 2, LayoutInfo.ScrollerY,
-                        ScrollerLemmings.Width div 2, ScrollerLemmings.Height div LayoutInfo.ScrollerLemmingFrames)
-  else
-    Result := SizedRect((ScreenImg.Bitmap.Width - LayoutInfo.ScrollerWidth) div 2 - (ScrollerLemmings.Width div 2), LayoutInfo.ScrollerY,
-                        ScrollerLemmings.Width div 2, ScrollerLemmings.Height div LayoutInfo.ScrollerLemmingFrames);
+  FLayerWorkerLemminLeft.Frame := Frame;
+  FLayerWorkerLemminRight.Frame := Frame;
 end;
 
 procedure TGameMenuScreen.BeginGame;
@@ -731,12 +719,20 @@ end;
 
 procedure TGameMenuScreen.PrevGroup;
 begin
+  // Repaint and wait a bit so user has time to see our UI eye-candy
+  Update;
+  Sleep(100);
+
   GameParams.PrevGroup;
   UpdateGroupSign;
 end;
 
 procedure TGameMenuScreen.NextGroup;
 begin
+  // Repaint and wait a bit so user has time to see our UI eye-candy
+  Update;
+  Sleep(100);
+
   GameParams.NextGroup;
   UpdateGroupSign;
 end;
@@ -746,8 +742,8 @@ var
   TempBmp: TBitmap32;
   Sca: Double;
 begin
-  if not GetGraphic('group_graphic.png', fGroupGraphic, True, True) then
-    if not GetGraphic('rank_graphic.png', fGroupGraphic, True, True) then
+  if not GetGraphic('group_graphic.png', FLayerGroup.Bitmap, True, True) then
+    if not GetGraphic('rank_graphic.png', FLayerGroup.Bitmap, True, True) then
     begin
       TempBmp := TBitmap32.Create;
       try
@@ -758,13 +754,13 @@ begin
         else
           Sca := Min(LayoutInfo.GroupGraphicAutoMaxWidth / TempBmp.Width, LayoutInfo.GroupGraphicAutoMaxHeight / TempBmp.Height);
 
-        fGroupGraphic.SetSize(Round(TempBmp.Width * Sca), Round(TempBmp.Height * Sca));
-        fGroupGraphic.Clear(0);
+        FLayerGroup.Bitmap.SetSize(Round(TempBmp.Width * Sca), Round(TempBmp.Height * Sca));
+        FLayerGroup.Bitmap.Clear(0);
 
         if Sca <> 1 then
           TLinearResampler.Create(TempBmp);
 
-        TempBmp.DrawTo(fGroupGraphic, fGroupGraphic.BoundsRect);
+        TempBmp.DrawTo(FLayerGroup.Bitmap, FLayerGroup.Bitmap.BoundsRect);
       finally
         TempBmp.Free;
       end;
@@ -772,21 +768,6 @@ begin
 
   if aRedraw then
     DrawAllClickables;
-end;
-
-procedure TGameMenuScreen.RedrawGroupSign;
-begin
-  fGroupGraphic.DrawTo(ScreenImg.Bitmap,
-                       fGroupSignCenter.X + LayoutInfo.GroupGraphicOffsetX - (fGroupGraphic.Width div 2),
-                       fGroupSignCenter.Y + LayoutInfo.GroupGraphicOffsetY - (fGroupGraphic.Height div 2));
-end;
-
-procedure TGameMenuScreen.AfterRedrawClickables;
-begin
-  inherited;
-
-  if fFinishedMakingSigns then
-    RedrawGroupSign;
 end;
 
 function TGameMenuScreen.GetBackgroundSuffix: String;

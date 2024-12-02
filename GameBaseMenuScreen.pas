@@ -43,17 +43,27 @@ type
   TClickableLayer = class(TBitmapLayer)
   private type
     TShortcuts = TList<TShortCut>;
+  private const
+    HOVER_COLOR: TColor32 = $00A0A0A0; // White-ish
+    CLICK_COLOR: TColor32 = $00A0A040; // Yellow-ish
   private
     FAction: TRegionAction;
     FShortCuts: TShortcuts;
     FCurrentState: TRegionState;
-    FMargin: integer;
+    FSavedState: TRegionState;
+    FGlowSize: integer;
+    FColorClick: TColor32;
+    FColorHover: TColor32;
+    FHotCount: integer;
+    FParent: TClickableLayer;
     procedure SetCurrentState(const Value: TRegionState);
     function GetShortCuts: TShortcuts;
     function GetHasShortCuts: boolean;
   protected
     procedure Click; override;
     function DoHitTest(X, Y: Integer): Boolean; override;
+    procedure MouseEnter; override;
+    procedure MouseLeave; override;
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
     procedure Paint(Buffer: TBitmap32); override;
   public
@@ -63,13 +73,71 @@ type
     function CanHandleShortCut(ShortCut: TShortcut): boolean;
     function HandleShortCut(ShortCut: TShortcut): boolean;
 
+    property Parent: TClickableLayer read FParent write FParent;
     property Action: TRegionAction read FAction write FAction;
     property ShortcutKeys: TShortcuts read GetShortCuts;
     property HasShortcutKeys: boolean read GetHasShortCuts;
     property CurrentState: TRegionState read FCurrentState write SetCurrentState;
-    property Margin: integer read FMargin write FMargin;
+    property GlowSize: integer read FGlowSize write FGlowSize;
+    property ColorHover: TColor32 read FColorHover write FColorHover;
+    property ColorClick: TColor32 read FColorClick write FColorClick;
   end;
 
+type
+  TAnimatedFrameLayer = class(TBitmapLayer)
+  private
+    FFrame: integer;
+    FFrameCount: integer;
+    FAction: TRegionAction;
+    procedure SetFrame(Value: integer);
+    procedure SetFrameCount(const Value: integer);
+    function GetFrameHeight: integer;
+    function GetFrameWidth: integer;
+  protected
+    procedure Click; override;
+    procedure Paint(Buffer: TBitmap32); override;
+  public
+    constructor Create(ALayerCollection: TLayerCollection); override;
+
+    property Action: TRegionAction read FAction write FAction;
+
+    property FrameCount: integer read FFrameCount write SetFrameCount;
+    property Frame: integer read FFrame write SetFrame;
+
+    property FrameWidth: integer read GetFrameWidth;
+    property FrameHeight: integer read GetFrameHeight;
+  end;
+
+type
+  TBannerLayer = class(TBitmapLayer)
+  private
+    FOffsetX: integer;
+    FOffsetY: integer;
+    procedure SetOffsetX(Value: integer);
+    procedure SetOffsetY(Value: integer);
+  protected
+    procedure Paint(Buffer: TBitmap32); override;
+  public
+    constructor Create(ALayerCollection: TLayerCollection); override;
+
+    property OffsetX: integer read FOffsetX write SetOffsetX;
+    property OffsetY: integer read FOffsetY write SetOffsetY;
+  end;
+
+type
+  TBannerTextLayer = class(TBitmapLayer)
+  private
+    FOffset: integer;
+    procedure SetOffset(Value: integer);
+  protected
+    procedure Paint(Buffer: TBitmap32); override;
+  public
+    constructor Create(ALayerCollection: TLayerCollection); override;
+
+    property Offset: integer read FOffset write SetOffset;
+  end;
+
+type
   TClickableRegion = class
     private
       fBitmaps: TBitmap32;
@@ -775,8 +843,8 @@ begin
     Result := False;
   end;
 
-  // Work around for alpha premultiply bug in linear sampler
-(*
+  // Work around for alpha premultiply bug in GR32 linear sampler
+//(*
   var Pixel := PColor32Entry(aDst.Bits);
   for var i := 0 to aDst.Width*aDst.Height-1 do
   begin
@@ -784,7 +852,7 @@ begin
       Pixel.ARGB := 0;
     Inc(Pixel);
   end;
-*)
+//*)
   aDst.DrawMode := dmBlend;
 end;
 
@@ -900,6 +968,8 @@ var
 
   PopupResult: Integer;
 begin
+  Update;
+
   if GameParams.TestModeLevel <> nil then Exit;
 
   OldLevel := GameParams.CurrentLevel;
@@ -934,6 +1004,8 @@ var
   ConfigDlg: TFormNXConfig;
   OldFullScreen, OldHighResolution, ResetWindowSize, ResetWindowPos: Boolean;
 begin
+  Update;
+
   OldFullScreen := GameParams.FullScreen;
   OldHighResolution := GameParams.HighResolution;
 
@@ -1000,6 +1072,8 @@ begin
 
   MouseEvents := True;
   AlphaHit := True;
+  FColorHover := HOVER_COLOR;
+  FColorClick := CLICK_COLOR;
 
   TCustomResamplerClass(TCustomImage32(LayerCollection.Owner).Bitmap.Resampler.ClassType).Create(Bitmap);
 end;
@@ -1013,16 +1087,6 @@ end;
 function TClickableLayer.DoHitTest(X, Y: Integer): Boolean;
 begin
   Result := inherited;
-
-  case FCurrentState of
-    rsNormal:
-      if (Result) then
-        CurrentState := rsHover;
-
-    rsHover:
-      if (not Result) then
-        CurrentState := rsNormal;
-  end;
 end;
 
 function TClickableLayer.GetHasShortCuts: boolean;
@@ -1074,15 +1138,44 @@ begin
     Key := 0; // Handled
 end;
 
+procedure TClickableLayer.MouseEnter;
+begin
+  inherited;
+
+  Inc(FHotCount);
+
+  if (FHotCount = 1) then
+  begin
+    CurrentState := rsHover;
+    FSavedState := rsHover;
+
+    if (FParent <> nil) then
+      FParent.MouseEnter;
+  end;
+end;
+
+procedure TClickableLayer.MouseLeave;
+begin
+  inherited;
+
+  if (FHotCount = 1) then
+  begin
+    CurrentState := rsNormal;
+    FSavedState := rsNormal;
+
+    if (FParent <> nil) then
+      FParent.MouseLeave;
+  end;
+
+  Dec(FHotCount);
+end;
+
 procedure TClickableLayer.Paint(Buffer: TBitmap32);
 var
   SrcRect, DstRect, ClipRect, TempRect: TRect;
   ImageRect: TRect;
   HoverBitmap: TBitmap32;
   GlowColor: TColor32;
-const
-  HOVER_COLOR: TColor32 = $00A0A0A0; // White-ish
-  CLICK_COLOR: TColor32 = $00A0A040; // Yellow-ish
 begin
   if (Bitmap = nil) or (Bitmap.Empty) then
     Exit;
@@ -1090,7 +1183,7 @@ begin
   var HoverRect := MakeRect(GetAdjustedRect(Location));
 
   var BitmapRect := Location;
-  BitmapRect.Inflate(-Margin, -Margin);
+  BitmapRect.Inflate(-GlowSize, -GlowSize);
 
   DstRect := MakeRect(GetAdjustedRect(BitmapRect));
 
@@ -1116,18 +1209,18 @@ begin
     HoverBitmap := TBitmap32.Create;
     try
       // Draw the button at the center of the hover bitmap...
-      HoverBitmap.SetSize(Bitmap.Width+2*Margin, Bitmap.Height+2*Margin);
+      HoverBitmap.SetSize(Bitmap.Width+2*GlowSize, Bitmap.Height+2*GlowSize);
       HoverBitmap.Clear(clNone32);
-      BlockTransfer(HoverBitmap, Margin, Margin, HoverBitmap.BoundsRect, Bitmap, Bitmap.BoundsRect, dmOpaque);
+      BlockTransfer(HoverBitmap, GlowSize, GlowSize, HoverBitmap.BoundsRect, Bitmap, Bitmap.BoundsRect, dmOpaque);
 
       // ...and blur it to produce a glow mask
-      Blur32(HoverBitmap, Margin);
+      Blur32(HoverBitmap, GlowSize);
 
       // Replace the glow mask with a single glow color
       if (FCurrentState = rsHover) then
-        GlowColor := HOVER_COLOR and $00FFFFFF
+        GlowColor := FColorHover and $00FFFFFF
       else
-        GlowColor := CLICK_COLOR and $00FFFFFF;
+        GlowColor := FColorClick and $00FFFFFF;
       var Pixel := PColor32Entry(HoverBitmap.Bits);
       for var i := 0 to HoverBitmap.Width*HoverBitmap.Height-1 do
       begin
@@ -1137,8 +1230,8 @@ begin
         Inc(Pixel);
       end;
 
-      // Blur again to soften the result
-      Blur32(HoverBitmap, Margin);
+      // Blur again, just a tiny bit, to soften the result
+      Blur32(HoverBitmap, 2);
 
       // Draw the glow
       StretchTransfer(Buffer, HoverRect, ClipRect, HoverBitmap, HoverBitmap.BoundsRect, Bitmap.Resampler, Bitmap.DrawMode, Bitmap.OnPixelCombine);
@@ -1161,6 +1254,7 @@ end;
 
 procedure TClickableLayer.Click;
 begin
+  FSavedState := CurrentState;
   CurrentState := rsClick;
   try
 
@@ -1170,7 +1264,7 @@ begin
       FAction;
 
   finally
-    CurrentState := rsNormal;
+    CurrentState := FSavedState;
   end;
 end;
 
@@ -1245,6 +1339,210 @@ begin
     rsHover: Types.OffsetRect(Result, fBitmaps.Width div 3, 0);
     rsClick: Types.OffsetRect(Result, fBitmaps.Width div 3 * 2, 0);
   end;
+end;
+
+{ TAnimatedFrameLayer }
+
+constructor TAnimatedFrameLayer.Create(ALayerCollection: TLayerCollection);
+begin
+  inherited;
+
+  MouseEvents := True;
+  AlphaHit := True;
+
+  TCustomResamplerClass(TCustomImage32(LayerCollection.Owner).Bitmap.Resampler.ClassType).Create(Bitmap);
+end;
+
+procedure TAnimatedFrameLayer.Click;
+begin
+  inherited;
+
+  if Assigned(FAction) then
+    FAction;
+end;
+
+function TAnimatedFrameLayer.GetFrameHeight: integer;
+begin
+  Result := Bitmap.Height div FrameCount;
+end;
+
+function TAnimatedFrameLayer.GetFrameWidth: integer;
+begin
+  Result := Bitmap.Width;
+end;
+
+procedure TAnimatedFrameLayer.Paint(Buffer: TBitmap32);
+var
+  FrameHeight: integer;
+  SrcRect, DstRect, ClipRect, TempRect: TRect;
+  ImageRect: TRect;
+begin
+  if (Bitmap = nil) or (Bitmap.Empty) then
+    Exit;
+
+  if (Frame = -1) then
+    Exit;
+
+  DstRect := MakeRect(GetAdjustedLocation);
+  ClipRect := Buffer.ClipRect;
+  GR32.IntersectRect(TempRect, ClipRect, DstRect);
+  if GR32.IsRectEmpty(TempRect) then
+    Exit;
+
+  FrameHeight := Bitmap.Height div FrameCount;
+  SrcRect := MakeRect(0, 0, Bitmap.Width, FrameHeight);
+  OffsetRect(SrcRect, 0, Frame * FrameHeight);
+
+  if Cropped and (LayerCollection.Owner is TCustomImage32) then
+  begin
+    if (DstRect.Width < 0.5) or (DstRect.Height < 0.5) then
+      Exit;
+    ImageRect := TCustomImage32(LayerCollection.Owner).GetBitmapRect;
+    GR32.IntersectRect(ClipRect, ClipRect, ImageRect);
+  end;
+
+  StretchTransfer(Buffer, DstRect, ClipRect, Bitmap, SrcRect, Bitmap.Resampler, Bitmap.DrawMode, Bitmap.OnPixelCombine);
+end;
+
+procedure TAnimatedFrameLayer.SetFrame(Value: integer);
+begin
+  Value := EnsureRange(Value, -1, FrameCount-1);
+
+  if (Value = FFrame) then
+    exit;
+
+  FFrame := Value;
+  Changed;
+end;
+
+procedure TAnimatedFrameLayer.SetFrameCount(const Value: integer);
+begin
+  FFrameCount := Max(0, Value);
+  Frame := -1;
+end;
+
+{ TBannerLayer }
+
+constructor TBannerLayer.Create(ALayerCollection: TLayerCollection);
+begin
+  inherited;
+
+  TCustomResamplerClass(TCustomImage32(LayerCollection.Owner).Bitmap.Resampler.ClassType).Create(Bitmap);
+end;
+
+procedure TBannerLayer.Paint(Buffer: TBitmap32);
+var
+  r: TFloatRect;
+  UpdateRect: TRect;
+  BitmapRect: TRect;
+  ClipRect: TRect;
+  ScaleX, ScaleY: TFloat;
+  TileX, TileY: Integer;
+  TileCountX, TileCountY: Integer;
+  Tile: TRect;
+begin
+  if (Bitmap.Empty) then
+    exit;
+
+  // Area in buffer covered by layer
+  UpdateRect := GetUpdateRect;
+  IntersectRect(ClipRect, UpdateRect, Buffer.ClipRect);
+
+  // Area in buffer covered by bitmap (i.e. a single tile)
+  r := Location;
+  r.Width := Bitmap.Width;
+  r.Height := Bitmap.Height;
+  BitmapRect := MakeRect(GetAdjustedRect(r), rrOutside);
+
+
+  if (OffsetX > 0) or (OffsetY > 0) then
+  begin
+    LayerCollection.GetViewportScale(ScaleX, ScaleY);
+    OffsetRect(BitmapRect, Round(-OffsetX * ScaleX), Round(-OffsetY * ScaleY));
+  end;
+
+
+  TileCountX := Ceil(Location.Width / Bitmap.Width);
+  TileCountY := Ceil(Location.Height / Bitmap.Height);
+
+  Tile := BitmapRect;
+  for TileY := 0 to TileCountY do
+  begin
+    for TileX := 0 to TileCountX do
+    begin
+      StretchTransfer(Buffer, Tile, ClipRect, Bitmap, Bitmap.BoundsRect, Bitmap.Resampler, Bitmap.DrawMode, Bitmap.OnPixelCombine);
+      GR32.OffsetRect(Tile, BitmapRect.Width, 0);
+    end;
+
+    Tile.Left := BitmapRect.Left;
+    Tile.Right := BitmapRect.Right;
+
+    GR32.OffsetRect(Tile, 0, BitmapRect.Height);
+  end;
+end;
+
+procedure TBannerLayer.SetOffsetX(Value: integer);
+begin
+  if (Bitmap.Width <> 0) then
+    Value := Value mod Bitmap.Width
+  else
+    Value := 0;
+
+  if (Value = FOffsetX) then
+    exit;
+
+  FOffsetX := Value;
+  Changed;
+end;
+
+procedure TBannerLayer.SetOffsetY(Value: integer);
+begin
+  if (Bitmap.Height <> 0) then
+    Value := Value mod Bitmap.Height
+  else
+    Value := 0;
+
+  if (Value = FOffsetY) then
+    exit;
+
+  FOffsetY := Value;
+  Changed;
+end;
+
+{ TBannerTextLayer }
+
+constructor TBannerTextLayer.Create(ALayerCollection: TLayerCollection);
+begin
+  inherited;
+
+  TCustomResamplerClass(TCustomImage32(LayerCollection.Owner).Bitmap.Resampler.ClassType).Create(Bitmap);
+end;
+
+procedure TBannerTextLayer.Paint(Buffer: TBitmap32);
+var
+  r: TFloatRect;
+  UpdateRect: TRect;
+  BitmapRect: TRect;
+begin
+  if (Bitmap.Empty) then
+    exit;
+
+  UpdateRect := GetUpdateRect;
+  BitmapRect := MakeRect(0, 0, Round(Location.Width), Round(Location.Height));
+  OffsetRect(BitmapRect, -Offset, 0);
+
+  StretchTransfer(Buffer, UpdateRect, Buffer.ClipRect, Bitmap, BitmapRect, Bitmap.Resampler, Bitmap.DrawMode, Bitmap.OnPixelCombine);
+end;
+
+procedure TBannerTextLayer.SetOffset(Value: integer);
+begin
+  Value := EnsureRange(Value, -Bitmap.Width, Trunc(Location.Width));
+
+  if (Value = FOffset) then
+    exit;
+
+  FOffset := Value;
+  Changed;
 end;
 
 end.
