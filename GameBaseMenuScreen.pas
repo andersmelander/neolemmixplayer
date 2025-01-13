@@ -1,5 +1,7 @@
 unit GameBaseMenuScreen;
 
+{-$define TILE_BACKGROUND}
+
 interface
 
 uses
@@ -349,21 +351,42 @@ begin
 end;
 
 procedure TGameBaseMenuScreen.InitializeImage;
+{$ifdef TILE_BACKGROUND}
+var
+  r: TRect;
+{$endif}
 begin
-  with ScreenImg do
-  begin
-    Bitmap.SetSize(INTERNAL_SCREEN_WIDTH, INTERNAL_SCREEN_HEIGHT);
-    DrawBackground;
+{$ifdef TILE_BACKGROUND}
+{$else}
+{$endif}
 
-    BoundsRect := Rect(0, 0, ClientWidth, ClientHeight);
+  ScreenImg.Align := alClient;
 
-    ScreenImg.Align := alClient;
-    ScreenImg.ScaleMode := smResize;
-    ScreenImg.BitmapAlign := baCenter;
+{$ifdef TILE_BACKGROUND}
 
-    if GameParams.LinearResampleMenu then
-      TLinearResampler.Create(ScreenImg.Bitmap);
-  end;
+  if not GetGraphic('background_' + GetBackgroundSuffix + '.png', ScreenImg.Bitmap, true) then
+    GetGraphic('background.png', ScreenImg.Bitmap, true);
+
+  ScreenImg.ScaleMode := smScale;
+  ScreenImg.BitmapAlign := baTile;
+
+  r := Rect(0, 0, INTERNAL_SCREEN_WIDTH-1, INTERNAL_SCREEN_HEIGHT-1);
+  OffsetRect(r, (ScreenImg.Width - INTERNAL_SCREEN_WIDTH) div 2, (ScreenImg.Height - INTERNAL_SCREEN_HEIGHT) div 2);
+  GameRect := r;
+
+{$else}
+
+  ScreenImg.Bitmap.SetSize(INTERNAL_SCREEN_WIDTH, INTERNAL_SCREEN_HEIGHT);
+  DrawBackground;
+
+  ScreenImg.ScaleMode := smResize;
+  ScreenImg.BitmapAlign := baCenter;
+
+  GameRect := ScreenImg.Bitmap.BoundsRect;
+{$endif}
+
+  if GameParams.LinearResampleMenu then
+    TLinearResampler.Create(ScreenImg.Bitmap);
 end;
 
 procedure TGameBaseMenuScreen.MainFormResized;

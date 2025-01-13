@@ -25,6 +25,7 @@ type
     fScreenImg           : TImage32;
     fScreenIsClosing     : Boolean;
     fCloseDelay          : Integer;
+    FGameRect: TRect;
     procedure CNKeyDown(var Message: TWMKeyDown); message CN_KEYDOWN;
   protected
     procedure CloseScreen(aNextScreen: TGameScreenType); virtual;
@@ -32,6 +33,8 @@ type
     property CloseDelay: Integer read fCloseDelay write fCloseDelay;
 
     function LoadReplay: Boolean;
+
+    property GameRect: TRect read FGameRect write FGameRect;
   public
     constructor Create(aOwner: TComponent); override;
     destructor Destroy; override;

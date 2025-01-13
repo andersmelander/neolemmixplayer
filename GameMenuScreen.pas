@@ -270,7 +270,7 @@ begin
   GetGraphic('logo.png', Layer.Bitmap);
 
   r := FloatRect(0, 0, Layer.Bitmap.Width, Layer.Bitmap.Height);
-  r.Offset((ScreenImg.Bitmap.Width - r.Width) / 2, LayoutInfo.LogoY - r.Height / 2);
+  r.Offset((GameRect.Width - r.Width) / 2, LayoutInfo.LogoY - r.Height / 2);
   Layer.Location := r;
 end;
 
@@ -278,7 +278,7 @@ procedure TGameMenuScreen.MakePanels;
 
   function MakePosition(aHorzOffset: Single; aVertOffset: Single): TPoint;
   begin
-    Result.X := (ScreenImg.Bitmap.Width div 2) + Round(aHorzOffset * LayoutInfo.CardSpacingHorz);
+    Result.X := (GameRect.Width div 2) + Round(aHorzOffset * LayoutInfo.CardSpacingHorz);
     Result.Y := LayoutInfo.CardsCenterY + Round(aVertOffset * LayoutInfo.CardSpacingVert);
   end;
 
@@ -520,11 +520,11 @@ begin
   FLayerWorkerLemminRight.Bitmap.DrawMode := dmBlend;
   FLayerWorkerLemminRight.Action := ForceReelBackward;
 
-  FLayerWorkerLemminLeft.Location := SizedRect((ScreenImg.Bitmap.Width - LayoutInfo.ScrollerWidth) div 2 - FLayerWorkerLemminLeft.FrameWidth, LayoutInfo.ScrollerY,
+  FLayerWorkerLemminLeft.Location := SizedRect((GameRect.Width - LayoutInfo.ScrollerWidth) div 2 - FLayerWorkerLemminLeft.FrameWidth, LayoutInfo.ScrollerY,
     FLayerWorkerLemminLeft.FrameWidth, FLayerWorkerLemminLeft.FrameHeight);
   FLayerWorkerLemminLeft.Visible := True;
 
-  FLayerWorkerLemminRight.Location := SizedRect((ScreenImg.Bitmap.Width + LayoutInfo.ScrollerWidth) div 2, LayoutInfo.ScrollerY,
+  FLayerWorkerLemminRight.Location := SizedRect((GameRect.Width + LayoutInfo.ScrollerWidth) div 2, LayoutInfo.ScrollerY,
     FLayerWorkerLemminRight.FrameWidth, FLayerWorkerLemminRight.FrameHeight);
   FLayerWorkerLemminRight.Visible := True;
 
