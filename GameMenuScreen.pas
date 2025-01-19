@@ -383,6 +383,10 @@ var
   NLInfoText: String;
 
   HasAuthor: Boolean;
+var
+  Layer: TBitmapLayer;
+  r: TRect;
+  s: string;
 begin
   if GameParams.CurrentLevel <> nil then
   begin
@@ -407,8 +411,24 @@ begin
   NLInfoText := SProgramName + ' V' + CurrentVersionString;
   {$ifdef exp}if COMMIT_ID <> '' then NLInfoText := NLInfoText + ':' + Uppercase(COMMIT_ID);{$endif}
 
-  MenuFont.DrawTextCentered(ScreenImg.Bitmap, PackInfoText, LayoutInfo.FooterTextY);
-  MenuFont.DrawTextCentered(ScreenImg.Bitmap, NLInfoText, LayoutInfo.FooterTextY + (3 * CHARACTER_HEIGHT));
+
+  s := PackInfoText+#13#13+NLInfoText;
+  r := MenuFont.GetTextSize(s);
+  GR32.OffsetRect(r, (ScreenImg.Bitmap.Width - r.Width) div 2, LayoutInfo.FooterTextY);
+
+  Layer := ScreenImg.Layers.Add<TBitmapLayer>;
+  Layer.Scaled := True;
+  Layer.Location := r;
+  Layer.Bitmap.SetSize(r.Width, r.Height);
+  Layer.Bitmap.Clear(0);
+  Layer.Bitmap.DrawMode := dmBlend;
+
+  MenuFont.DrawTextCentered(Layer.Bitmap, s, 0);
+  Layer.Visible := True;
+
+//  MenuFont.DrawTextCentered(ScreenImg.Bitmap, PackInfoText, LayoutInfo.FooterTextY);
+//  MenuFont.DrawTextCentered(ScreenImg.Bitmap, NLInfoText, LayoutInfo.FooterTextY + (3 * CHARACTER_HEIGHT));
+
 end;
 
 procedure TGameMenuScreen.LoadLayoutData;
