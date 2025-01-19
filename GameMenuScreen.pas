@@ -384,9 +384,8 @@ var
 
   HasAuthor: Boolean;
 var
-  Layer: TBitmapLayer;
+  Layer: TTextLayer;
   r: TRect;
-  s: string;
 begin
   if GameParams.CurrentLevel <> nil then
   begin
@@ -411,19 +410,13 @@ begin
   NLInfoText := SProgramName + ' V' + CurrentVersionString;
   {$ifdef exp}if COMMIT_ID <> '' then NLInfoText := NLInfoText + ':' + Uppercase(COMMIT_ID);{$endif}
 
-
-  s := PackInfoText+#13#13+NLInfoText;
-  r := MenuFont.GetTextSize(s);
-  GR32.OffsetRect(r, (ScreenImg.Bitmap.Width - r.Width) div 2, LayoutInfo.FooterTextY);
-
-  Layer := ScreenImg.Layers.Add<TBitmapLayer>;
+  Layer := ScreenImg.Layers.Add<TTextLayer>;
   Layer.Scaled := True;
-  Layer.Location := r;
-  Layer.Bitmap.SetSize(r.Width, r.Height);
-  Layer.Bitmap.Clear(0);
-  Layer.Bitmap.DrawMode := dmBlend;
-
-  MenuFont.DrawTextCentered(Layer.Bitmap, s, 0);
+  r := ScreenImg.Bitmap.BoundsRect;
+  r.Top := LayoutInfo.FooterTextY;
+  Layer.Location := MakeRect(r);
+  Layer.Text := PackInfoText+#13#13+NLInfoText;
+  Layer.MenuFont := MenuFont;
   Layer.Visible := True;
 
 //  MenuFont.DrawTextCentered(ScreenImg.Bitmap, PackInfoText, LayoutInfo.FooterTextY);

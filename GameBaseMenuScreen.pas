@@ -140,6 +140,26 @@ type
   end;
 
 type
+  TTextLayer = class(TPositionedLayer)
+  private
+    FText: string;
+    FMenuFont: TMenuFont;
+    FTextBitmap: TBitmap32;
+    FTextRect: TRect;
+    FValid: boolean;
+    procedure SetText(Value: string);
+    procedure SetMenuFont(const Value: TMenuFont);
+  protected
+    procedure Paint(Buffer: TBitmap32); override;
+  public
+    constructor Create(ALayerCollection: TLayerCollection); override;
+    destructor Destroy; override;
+
+    property Text: string read FText write SetText;
+    property MenuFont: TMenuFont read FMenuFont write SetMenuFont;
+  end;
+
+type
   TClickableRegion = class
     private
       fBitmaps: TBitmap32;
@@ -1564,6 +1584,73 @@ begin
     exit;
 
   FOffset := Value;
+  Changed;
+end;
+
+{ TTextLayer }
+
+constructor TTextLayer.Create(ALayerCollection: TLayerCollection);
+begin
+  inherited;
+
+  FTextBitmap := TBitmap32.Create;
+  TLinearResampler.Create(FTextBitmap);
+end;
+
+destructor TTextLayer.Destroy;
+begin
+  FTextBitmap.Free;
+  inherited;
+end;
+
+procedure TTextLayer.Paint(Buffer: TBitmap32);
+var
+  r: TRect;
+begin
+  if (FMenuFont = nil) then
+    exit;
+
+  if (FText = '') then
+    exit;
+
+  if (not FValid) then
+  begin
+    FTextRect := FMenuFont.GetTextSize(FText);
+
+    FTextBitmap.SetSize(FTextRect.Width, FTextRect.Height);
+    FTextBitmap.Clear(0);
+
+    FMenuFont.DrawTextCentered(FTextBitmap, FText, 0);
+
+    FValid := True;
+  end;
+
+  r := FTextRect;
+  r.Offset(Round((Location.Width - r.Width) / 2), Round(Location.Top));
+  r := MakeRect(GetAdjustedRect(r));
+
+  StretchTransfer(Buffer, r, Buffer.ClipRect, FTextBitmap, FTextBitmap.BoundsRect, FTextBitmap.Resampler, dmBlend);
+end;
+
+procedure TTextLayer.SetMenuFont(const Value: TMenuFont);
+begin
+  if (Value = FMenuFont) then
+    exit;
+
+  FMenuFont := Value;
+  FValid := False;
+
+  Changed;
+end;
+
+procedure TTextLayer.SetText(Value: string);
+begin
+  if (Value = FText) then
+    exit;
+
+  FText := Value;
+  FValid := False;
+
   Changed;
 end;
 
