@@ -1203,7 +1203,7 @@ begin
   if (Bitmap = nil) or (Bitmap.Empty) then
     Exit;
 
-  var HoverRect := MakeRect(GetAdjustedRect(Location));
+  var HoverRect := MakeRect(GetAdjustedLocation);
 
   var BitmapRect := Location;
   BitmapRect.Inflate(-GlowSize, -GlowSize);
@@ -1468,14 +1468,14 @@ begin
     exit;
 
   // Area in buffer covered by layer
-  UpdateRect := GetUpdateRect;
+  UpdateRect := MakeRect(GetAdjustedLocation);
   IntersectRect(ClipRect, UpdateRect, Buffer.ClipRect);
 
   // Area in buffer covered by bitmap (i.e. a single tile)
   r := Location;
   r.Width := Bitmap.Width;
   r.Height := Bitmap.Height;
-  BitmapRect := MakeRect(GetAdjustedRect(r), rrOutside);
+  BitmapRect := MakeRect(GetAdjustedRect(r));
 
 
   if (OffsetX > 0) or (OffsetY > 0) then
@@ -1485,8 +1485,8 @@ begin
   end;
 
 
-  TileCountX := Ceil(Location.Width / Bitmap.Width);
-  TileCountY := Ceil(Location.Height / Bitmap.Height);
+  TileCountX := Ceil(UpdateRect.Width / BitmapRect.Width);
+  TileCountY := Ceil(UpdateRect.Height / BitmapRect.Height);
 
   Tile := BitmapRect;
   for TileY := 0 to TileCountY do
@@ -1543,14 +1543,13 @@ end;
 
 procedure TBannerTextLayer.Paint(Buffer: TBitmap32);
 var
-  r: TFloatRect;
   UpdateRect: TRect;
   BitmapRect: TRect;
 begin
   if (Bitmap.Empty) then
     exit;
 
-  UpdateRect := GetUpdateRect;
+  UpdateRect := MakeRect(GetAdjustedLocation);
   BitmapRect := MakeRect(0, 0, Round(Location.Width), Round(Location.Height));
   OffsetRect(BitmapRect, -Offset, 0);
 
