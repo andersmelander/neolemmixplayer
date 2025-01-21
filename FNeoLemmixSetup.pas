@@ -5,7 +5,7 @@ interface
 uses
   Math,
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ComCtrls;
+  Dialogs, StdCtrls, ComCtrls, Vcl.Imaging.pngimage, Vcl.ExtCtrls;
 
 type
   TFNLSetup = class(TForm)
@@ -24,6 +24,7 @@ type
     ebUserName: TEdit;
     lblOnline: TLabel;
     cbOnline: TComboBox;
+    imgFloater: TImage;
     procedure FormCreate(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure btnExitClick(Sender: TObject);
