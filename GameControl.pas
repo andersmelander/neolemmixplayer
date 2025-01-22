@@ -70,6 +70,7 @@ type
     moAutoReplaySave,
     moEnableOnline,
     moCheckUpdates,
+    moLoadNextUnsolvedLevel,
     moNoAutoReplayMode,
     moReplayAfterRestart,
     moPauseAfterBackwards,
@@ -216,11 +217,12 @@ type
 
     procedure ElevateSaveCriticality(aCriticality: TGameParamsSaveCriticality);
 
-    property CurrentLevel: TNeoLevelEntry read fCurrentLevel;
+    property CurrentLevel: TNeoLevelEntry read fCurrentLevel write fCurrentLevel;
 
     property AutoSaveReplay: Boolean Index moAutoReplaySave read GetOptionFlag write SetOptionFlag;
     property EnableOnline: boolean Index moEnableOnline read GetOptionFlag write SetOptionFlag;
     property CheckUpdates: boolean Index moCheckUpdates read GetOptionFlag write SetOptionFlag;
+    property LoadNextUnsolvedLevel: boolean Index moLoadNextUnsolvedLevel read GetOptionFlag write SetOptionFlag;
     property NoAutoReplayMode: boolean Index moNoAutoReplayMode read GetOptionFlag write SetOptionFlag;
     property ReplayAfterRestart: boolean Index moReplayAfterRestart read GetOptionFlag write SetOptionFlag;
     property PauseAfterBackwardsSkip: boolean Index moPauseAfterBackwards read GetOptionFlag write SetOptionFlag;
@@ -479,6 +481,7 @@ begin
   SL.Add('# Online Options');
   SaveBoolean('EnableOnline', EnableOnline);
   SaveBoolean('UpdateCheck', CheckUpdates);
+  SaveBoolean('LoadNextUnsolvedLevel', LoadNextUnsolvedLevel);
 
   SL.Add('');
   SL.Add('# Technical Options');
@@ -630,6 +633,7 @@ begin
 
     EnableOnline := LoadBoolean('EnableOnline', EnableOnline);
     CheckUpdates := LoadBoolean('UpdateCheck', CheckUpdates);
+    LoadNextUnsolvedLevel := LoadBoolean('LoadNextUnsolvedLevel', LoadNextUnsolvedLevel);
 
     DisableWineWarnings := LoadBoolean('DisableWineWarnings', DisableWineWarnings);
     FileCaching := LoadBoolean('FileCaching', FileCaching);
@@ -725,9 +729,8 @@ begin
       CurLevelGroup := fCurrentLevel.Group;
     end;
     fCurrentLevel := CurLevelGroup.Levels[0];
-  end else begin
+  end else
     fCurrentLevel := CurLevelGroup.Levels[CurLevelIndex + 1];
-  end;
 
   ShownText := false;
 end;

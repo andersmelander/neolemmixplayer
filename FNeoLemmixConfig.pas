@@ -62,7 +62,7 @@ type
     cbHideHelpers: TCheckBox;
     cbNoSkillQueue: TCheckBox;
     cbReplayAfterRestart: TCheckBox;
-    rgGameLoading: TRadioGroup;
+    rgGameLoadingOptions: TRadioGroup;
     gbVolume: TGroupBox;
     gbReplayOptions: TGroupBox;
     gbHelperOptions: TGroupBox;
@@ -259,6 +259,12 @@ begin
     cbUpdateCheck.Checked := GameParams.CheckUpdates and GameParams.EnableOnline;
     cbUpdateCheck.Enabled := GameParams.EnableOnline;
 
+    if GameParams.LoadNextUnsolvedLevel then
+      rgGameLoadingOptions.ItemIndex := 0
+    else
+      rgGameLoadingOptions.ItemIndex := 1;
+
+
     //// Page 2 (Interface Options) ////
     // Checkboxes
     cbPauseAfterBackwards.Checked := GameParams.PauseAfterBackwardsSkip;
@@ -326,6 +332,8 @@ begin
 
   GameParams.EnableOnline := cbEnableOnline.Checked;
   GameParams.CheckUpdates := cbUpdateCheck.Checked;
+
+  GameParams.LoadNextUnsolvedLevel := rgGameLoadingOptions.ItemIndex = 0;
 
   //// Page 2 (Interface Options) ////
   // Checkboxes

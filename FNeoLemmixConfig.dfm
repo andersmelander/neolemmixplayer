@@ -27,7 +27,7 @@ object FormNXConfig: TFormNXConfig
     Top = 0
     Width = 382
     Height = 499
-    ActivePage = TabSheet2
+    ActivePage = TabSheet1
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 0
     object TabSheet1: TTabSheet
@@ -175,7 +175,7 @@ object FormNXConfig: TFormNXConfig
         TabOrder = 2
         OnClick = btnStylesClick
       end
-      object rgGameLoading: TRadioGroup
+      object rgGameLoadingOptions: TRadioGroup
         Left = 19
         Top = 390
         Width = 336

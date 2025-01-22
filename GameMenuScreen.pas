@@ -258,6 +258,10 @@ procedure TGameMenuScreen.BuildScreen;
 begin
   inherited;
 
+  // If user has chosen to always load next unsolved level, load it whenever the menu screen is active
+  if GameParams.LoadNextUnsolvedLevel then
+    GameParams.CurrentLevel := GameParams.CurrentLevel.Group.ParentBasePack.FirstUnbeatenLevelRecursive;
+
   CleanUpIngameStuff;
 
   LoadLayoutData;
