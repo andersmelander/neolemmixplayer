@@ -10,4 +10,4 @@ mklink /H bin\NLPackerDefaultData.ini data\external\NLPackerDefaultData.ini
 
 if not exist "bin\levels" mkdir "bin\levels"
 mklink /J "bin\levels\Test Levels" "data\external\levels\Test Levels"
-mklink /J "bin\levels\MazuLems" "data\external\levels\MazuLems"
+mklink /J "bin\levels\DMA Lemmings Compilation" "data\external\levels\DMA Lemmings Compilation"
