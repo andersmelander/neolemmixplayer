@@ -616,6 +616,10 @@ begin
     if PostviewSaveReplayPattern = '' then PostviewSaveReplayPattern := DEFAULT_REPLAY_PATTERN_POSTVIEW;
 
     AutoReplayMode := LoadBoolean('AutoReplay', AutoReplayMode);
+    // Bookmark - Preserve deprecated option (this can be removed later)
+    if SL.Values['AutoReplay'] = '' then
+      AutoReplayMode := not LoadBoolean('NoAutoReplay', AutoReplayMode);
+
     ReplayAfterRestart := LoadBoolean('ReplayAfterRestart', ReplayAfterRestart);
     PauseAfterBackwardsSkip := LoadBoolean('PauseAfterBackwardsSkip', PauseAfterBackwardsSkip);
     NoBackgrounds := LoadBoolean('NoBackgrounds', NoBackgrounds);
