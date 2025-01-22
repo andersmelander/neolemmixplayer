@@ -75,6 +75,7 @@ type
     moNoBackgrounds,
     moHideShadows,
     moHideHelpers,
+    moNoSkillQueue,
     moDisableWineWarnings,
     moHighResolution,
     moLinearResampleMenu,
@@ -223,6 +224,7 @@ type
     property NoBackgrounds: boolean Index moNoBackgrounds read GetOptionFlag write SetOptionFlag;
     property HideShadows: boolean Index moHideShadows read GetOptionFlag write SetOptionFlag;
     property HideHelpers: boolean Index moHideHelpers read GetOptionFlag write SetOptionFlag;
+    property NoSkillQueue: boolean Index moNoSkillQueue read GetOptionFlag write SetOptionFlag;
     property DisableWineWarnings: boolean Index moDisableWineWarnings read GetOptionFlag write SetOptionFlag;
     property HighResolution: boolean Index moHighResolution read GetOptionFlag write SetOptionFlag;
     property LinearResampleMenu: boolean Index moLinearResampleMenu read GetOptionFlag write SetOptionFlag;
@@ -431,6 +433,7 @@ begin
   SaveBoolean('ForceDefaultLemmings', ForceDefaultLemmings);
   SaveBoolean('HideShadows', HideShadows);
   SaveBoolean('HideHelpers', HideHelpers);
+  SaveBoolean('NoSkillQueue', NoSkillQueue);
   SaveBoolean('CompactSkillPanel', CompactSkillPanel);
   SaveBoolean('HighQualityMinimap', MinimapHighQuality);
   SaveBoolean('EdgeScrolling', EdgeScroll);
@@ -611,6 +614,7 @@ begin
     ForceDefaultLemmings := LoadBoolean('ForceDefaultLemmings', ForceDefaultLemmings);
     HideShadows := LoadBoolean('HideShadows', HideShadows);
     HideHelpers := LoadBoolean('HideHelpers', HideHelpers);
+    NoSkillQueue := LoadBoolean('NoSkillQueue', NoSkillQueue);
     CompactSkillPanel := LoadBoolean('CompactSkillPanel', CompactSkillPanel);
     MinimapHighQuality := LoadBoolean('HighQualityMinimap', MinimapHighQuality);
     EdgeScroll := LoadBoolean('EdgeScrolling', EdgeScroll);

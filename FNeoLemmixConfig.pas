@@ -265,6 +265,7 @@ begin
     cbForceDefaultLemmings.Checked := GameParams.ForceDefaultLemmings;
     cbHideShadows.Checked := GameParams.HideShadows;
     cbHideHelpers.Checked := GameParams.HideHelpers;
+    cbNoSkillQueue.Checked := GameParams.NoSkillQueue;
     cbEdgeScrolling.Checked := GameParams.EdgeScroll;
     cbSpawnInterval.Checked := GameParams.SpawnInterval;
     cbHideAdvanced.Checked := GameParams.HideAdvancedOptions;
@@ -331,6 +332,7 @@ begin
   GameParams.ForceDefaultLemmings := cbForceDefaultLemmings.Checked;
   GameParams.HideShadows := cbHideShadows.Checked;
   GameParams.HideHelpers := cbHideHelpers.Checked;
+  GameParams.NoSkillQueue := cbNoSkillQueue.Checked;
   GameParams.EdgeScroll := cbEdgeScrolling.Checked;
   GameParams.SpawnInterval := cbSpawnInterval.Checked;
   GameParams.HideAdvancedOptions := cbHideAdvanced.Checked;
