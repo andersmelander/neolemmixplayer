@@ -102,6 +102,7 @@ type
 const
   DEF_MISCOPTIONS = [
     moAutoReplaySave,
+    moAutoReplayMode,
     moReplayAfterRestart,
     moPauseAfterBackwards,
     moLinearResampleMenu,
