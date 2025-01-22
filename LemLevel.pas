@@ -170,12 +170,12 @@ uses
 procedure TLevelInfo.Clear;
 begin
   SpawnInterval     := 53;
-  SpawnIntervalLocked := false;
+  SpawnIntervalLocked := False;
   LemmingsCount   := 1;
   ZombieCount     := 0;
   NeutralCount    := 0;
   RescueCount     := 1;
-  HasTimeLimit    := false;
+  HasTimeLimit    := False;
   TimeLimit       := 0;
 
   fSkillset       := [];
@@ -183,7 +183,7 @@ begin
 
   ScreenStartX  := 0;
   ScreenStartY := 0;
-  ScreenStartAuto := true;
+  ScreenStartAuto := True;
 
   Width           := 320;
   Height          := 160;
@@ -223,7 +223,7 @@ begin
   fTerrains := TTerrains.Create;
   fTerrainGroups := TTerrainGroups.Create;
   fPreplacedLemmings := TPreplacedLemmingList.Create;
-  fTalismans := TObjectList<TTalisman>.Create(true);
+  fTalismans := TObjectList<TTalisman>.Create(True);
   fPreText := TStringList.Create;
   fPostText := TStringList.Create;
 end;
@@ -296,8 +296,8 @@ begin
   // Skillset - if skill not in skillset, or same / lesser amount provided, set to none
   //            also do this if requirement is higher than or equal to total skills limit
   // Also gather some info for total skills to use.
-  EverySkillZero := true;
-  AtLeastOneSkillInfinite := false;
+  EverySkillZero := True;
+  AtLeastOneSkillInfinite := False;
   TotalAvailableSkills := 0;
   for Skill := Low(TSkillPanelButton) to LAST_SKILL_BUTTON do
   begin
@@ -308,10 +308,10 @@ begin
         aTalisman.SkillLimit[Skill] := -1;
 
       if aTalisman.SkillLimit[Skill] <> 0 then
-        EverySkillZero := false;
+        EverySkillZero := False;
 
       if Info.SkillCount[Skill] > 99 then
-        AtLeastOneSkillInfinite := true;
+        AtLeastOneSkillInfinite := True;
 
       if aTalisman.SkillLimit[Skill] < 0 then
         TotalAvailableSkills := TotalAvailableSkills + Info.SkillCount[Skill] + GetPickupSkillCount(Skill)
@@ -334,7 +334,7 @@ begin
 
   // Special cases to look for with skills, or else build default text
 
-  MadeSkillRestrictionText := false;
+  MadeSkillRestrictionText := False;
 
   SkillTypeCount := 0;
   AllowedSkillTypeCount := 0;
@@ -354,7 +354,7 @@ begin
     if ((aTalisman.TotalSkillLimit = 0) or (aTalisman.SkillTypeLimit = 0)) and (SkillTypeCount > 0) then
     begin
       ReqText := ReqText + ' without any skills';
-      MadeSkillRestrictionText := true;
+      MadeSkillRestrictionText := True;
     end;
   end;
 
@@ -409,7 +409,7 @@ begin
           end;
         end;
 
-      MadeSkillRestrictionText := true;
+      MadeSkillRestrictionText := True;
     end;
   end;
 
@@ -423,7 +423,7 @@ begin
       // First, we check: Do all limited skills have the same limit?
       FirstLimitedSkillLimit := -1;
       LimitedSkillCount := 0;
-      FoundNonMatch := false;
+      FoundNonMatch := False;
       for Skill := Low(TSkillPanelButton) to LAST_SKILL_BUTTON do
         if aTalisman.SkillLimit[Skill] > 0 then
         begin
@@ -431,7 +431,7 @@ begin
             FirstLimitedSkillLimit := aTalisman.SkillLimit[Skill]
           else if aTalisman.SkillLimit[Skill] <> FirstLimitedSkillLimit then
           begin
-            FoundNonMatch := true;
+            FoundNonMatch := True;
             Break;
           end;
 
@@ -449,7 +449,7 @@ begin
           begin
             if (Info.SkillCount[Skill] > 99) or (Info.SkillCount[Skill] + GetPickupSkillCount(Skill) >= aTalisman.SkillLimit[Skill]) then
             begin
-              FoundNonMatch := true;
+              FoundNonMatch := True;
               Break;
             end;
           end;
@@ -457,7 +457,7 @@ begin
         if not FoundNonMatch then
         begin
           ReqText := ReqText + ' using no more than ' + IntToStr(FirstLimitedSkillLimit) + ' of each skill';
-          MadeSkillRestrictionText := true;
+          MadeSkillRestrictionText := True;
         end;
       end;
     end;
@@ -498,7 +498,7 @@ begin
             ReqText := ReqText + ',';
         end;
 
-      MadeSkillRestrictionText := true;
+      MadeSkillRestrictionText := True;
     end;
 
     if ProhibitedSkills > 0 then
@@ -527,7 +527,7 @@ begin
             ReqText := ReqText + ',';
         end;
 
-      MadeSkillRestrictionText := true;
+      MadeSkillRestrictionText := True;
     end;
   end;
 
@@ -568,7 +568,7 @@ function TLevel.GetHasAnyFallbacks: Boolean;
 var
   i: Integer;
 begin
-  Result := true;
+  Result := True;
 
   if Info.Background = 'default:fallback' then
     Exit;
@@ -581,7 +581,7 @@ begin
     if Terrains[i].Identifier = 'default:fallback' then
       Exit;
 
-  Result := false;
+  Result := False;
 end;
 
 function TLevel.GetPickupSkillCount(aSkill: TSkillPanelButton): Integer;
@@ -644,7 +644,7 @@ begin
     HorzStart := Info.Width div 2;
     VertStart := Info.Height div 2;
     TargetDX := 0;
-    TargetVertShift := false;
+    TargetVertShift := False;
 
     for i := 0 to fInteractiveObjects.Count-1 do
     begin
@@ -707,7 +707,7 @@ begin
 
       TryPosition(O.Left + MO.TriggerLeft[O.Flip, O.Invert, O.Rotate],
                   O.Top + MO.TriggerTop[O.Flip, O.Invert, O.Rotate],
-                  ThisDX, true);
+                  ThisDX, True);
     end;
 
     for i := 0 to ExitIndexes.Count-1 do
@@ -717,13 +717,13 @@ begin
 
       TryPosition(O.Left + MO.TriggerLeft[O.Flip, O.Invert, O.Rotate] + (MO.TriggerWidth[O.Flip, O.Invert, O.Rotate] div 2),
                   O.Top + MO.TriggerTop[O.Flip, O.Invert, O.Rotate] + (MO.TriggerHeight[O.Flip, O.Invert, O.Rotate] div 2),
-                  0, false);
+                  0, False);
     end;
 
     for i := 0 to PreplacedLemmingIndexes.Count-1 do
     begin
       L := fPreplacedLemmings[PreplacedLemmingIndexes[i]];
-      TryPosition(L.X, L.Y, L.Dx, false);
+      TryPosition(L.X, L.Y, L.Dx, False);
     end;
 
     if TargetDX <> 0 then
@@ -823,10 +823,10 @@ procedure TLevel.LoadGeneralInfo(aSection: TParserSection);
     aString := Lowercase(aString);
     if (aString = '') or (aString = 'infinite') then
     begin
-      Info.HasTimeLimit := false;
+      Info.HasTimeLimit := False;
       Info.TimeLimit := 0;
     end else begin
-      Info.HasTimeLimit := true;
+      Info.HasTimeLimit := True;
       Info.TimeLimit := StrToIntDef(aString, 1);
     end;
   end;
@@ -1263,12 +1263,12 @@ begin
   begin
     if not (S in Info.Skillset) then Continue;
     if Info.SkillCount[S] > 0 then Continue;
-    FoundSkill := false;
+    FoundSkill := False;
     for i := 0 to InteractiveObjects.Count-1 do
     begin
       if PieceManager.Objects[InteractiveObjects[i].Identifier].TriggerEffect <> DOM_PICKUP then Continue;
       if InteractiveObjects[i].Skill <> Integer(S) then Continue;
-      FoundSkill := true;
+      FoundSkill := True;
       Break;
     end;
     if not FoundSkill then Info.Skillset := Info.Skillset - [S];
@@ -1278,12 +1278,12 @@ begin
   
 
   // 2. Calculate ZombieCount and NeutralCount, precise spawn order, and finalised lemming count
-  FoundWindow := false;
+  FoundWindow := False;
   SetLength(WindowLemmingCount, InteractiveObjects.Count);
   for i := 0 to InteractiveObjects.Count-1 do
     if (PieceManager.Objects[InteractiveObjects[i].Identifier].TriggerEffect = DOM_WINDOW) then
     begin
-      FoundWindow := true;
+      FoundWindow := True;
       if InteractiveObjects[i].LemmingCap > 0 then
         WindowLemmingCount[i] := InteractiveObjects[i].LemmingCap
       else

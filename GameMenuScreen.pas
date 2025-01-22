@@ -95,7 +95,7 @@ type
 
       procedure PrevGroup;
       procedure NextGroup;
-      procedure UpdateGroupSign(aRedraw: Boolean = true);
+      procedure UpdateGroupSign(aRedraw: Boolean = True);
       procedure RedrawGroupSign;
 
       procedure ShowSetupMenu;
@@ -177,9 +177,9 @@ begin
 
   OldForceDir := fReelForceDirection;
 
-  if Types.PtInRect(GetWorkerLemmingRect(false), aPoint) then
+  if Types.PtInRect(GetWorkerLemmingRect(False), aPoint) then
     fReelForceDirection := 1
-  else if Types.PtInRect(GetWorkerLemmingRect(true), aPoint) then
+  else if Types.PtInRect(GetWorkerLemmingRect(True), aPoint) then
     fReelForceDirection := -1
   else
     BeginGame;
@@ -187,7 +187,7 @@ begin
   if fReelForceDirection <> OldForceDir then
   begin
     fReelFreezeIterations := 0;
-    fSwitchedTextSinceForce := false;
+    fSwitchedTextSinceForce := False;
   end;
 end;
 
@@ -197,7 +197,7 @@ begin
   begin
     DisableIdle;
 
-    fCleanInstallFail := false;
+    fCleanInstallFail := False;
     ShowMessage('It appears you have installed this version of NeoLemmix over ' +
                 'an older major version. It is recommended that you perform a ' +
                 'clean install of NeoLemmix whenever updating to a new major ' +
@@ -210,7 +210,7 @@ begin
   begin
     DisableIdle;
 
-    GameParams.LoadedConfig := true;
+    GameParams.LoadedConfig := True;
     ShowSetupMenu;
 
     EnableIdle;
@@ -228,7 +228,7 @@ begin
   end else if not fDisableScroller then
     UpdateReel;
 
-  Done := false;
+  Done := False;
   Sleep(1);
 end;
 
@@ -266,7 +266,7 @@ begin
 
   LoadLayoutData;
 
-  UpdateGroupSign(false);
+  UpdateGroupSign(False);
 
   DrawLogo;
   MakePanels;
@@ -287,7 +287,7 @@ begin
     fReelTextIndex := -1;
     PrepareNextReelText;
   end else
-    fDisableScroller := true;
+    fDisableScroller := True;
 
   EnableIdle;
 end;
@@ -295,9 +295,9 @@ end;
 procedure TGameMenuScreen.CleanupIngameStuff;
 begin
   if Assigned(GlobalGame) then
-    GlobalGame.ReplayManager.Clear(true);
+    GlobalGame.ReplayManager.Clear(True);
 
-  GameParams.ShownText := false;
+  GameParams.ShownText := False;
 end;
 
 procedure TGameMenuScreen.DrawLogo;
@@ -333,7 +333,7 @@ begin
     NewRegion.ShortcutKeys.Add(VK_F1);
 
     // Level select
-    if not GetGraphic('sign_code.png', BMP, true) then // Deprecated
+    if not GetGraphic('sign_code.png', BMP, True) then // Deprecated
       GetGraphic('sign_level_select.png', BMP);
     NewRegion := MakeClickableImageAuto(MakePosition(0, -0.5), BMP.BoundsRect, DoLevelSelect, BMP);
     NewRegion.ShortcutKeys.Add(VK_F2);
@@ -342,9 +342,9 @@ begin
     fGroupSignCenter := MakePosition(1, -0.5);
     GetGraphic('sign_group.png', BMP);
     NewRegion := MakeClickableImageAuto(fGroupSignCenter, BMP.BoundsRect, NextGroup, BMP);
-    NewRegion.DrawInFrontWhenHighlit := false;
+    NewRegion.DrawInFrontWhenHighlit := False;
 
-    DrawAllClickables(true); // for the next step's sake
+    DrawAllClickables(True); // for the next step's sake
 
     // Group sign buttons
     GetGraphic('sign_group_up.png', BMP);
@@ -367,7 +367,7 @@ begin
     NewRegion := MakeClickableImageAuto(MakePosition(0.5, 0.5), BMP.BoundsRect, ExitGame, BMP);
     NewRegion.ShortcutKeys.Add(VK_ESCAPE);
 
-    fFinishedMakingSigns := true;
+    fFinishedMakingSigns := True;
 
     DrawAllClickables;
   finally
@@ -585,7 +585,7 @@ begin
   begin
     if i = fScrollerTextList.Count then
     begin
-      fDisableScroller := true;
+      fDisableScroller := True;
       Exit;
     end;
 
@@ -617,7 +617,7 @@ begin
     fReelTextPos := LayoutInfo.ScrollerWidth;
 
   fLastReelUpdateTickCount := GetTickCount64;
-  fSwitchedTextSinceForce := true;
+  fSwitchedTextSinceForce := True;
 end;
 
 procedure TGameMenuScreen.DrawScroller;
@@ -675,11 +675,11 @@ begin
   SrcRect := Rect(0, 0, ScrollerLemmings.Width div 2, ScrollerLemmings.Height div LayoutInfo.ScrollerLemmingFrames);
   Types.OffsetRect(SrcRect, 0, SrcRect.Height * Frame);
 
-  DstRect := GetWorkerLemmingRect(false);
+  DstRect := GetWorkerLemmingRect(False);
   ScrollerLemmings.DrawTo(ScreenImg.Bitmap, DstRect, SrcRect);
 
   Types.OffsetRect(SrcRect, SrcRect.Width, 0);
-  DstRect := GetWorkerLemmingRect(true);
+  DstRect := GetWorkerLemmingRect(True);
   ScrollerLemmings.DrawTo(ScreenImg.Bitmap, DstRect, SrcRect);
 end;
 
@@ -721,8 +721,8 @@ var
   TempBmp: TBitmap32;
   Sca: Double;
 begin
-  if not GetGraphic('group_graphic.png', fGroupGraphic, true, true) then
-    if not GetGraphic('rank_graphic.png', fGroupGraphic, true, true) then
+  if not GetGraphic('group_graphic.png', fGroupGraphic, True, True) then
+    if not GetGraphic('rank_graphic.png', fGroupGraphic, True, True) then
     begin
       TempBmp := TBitmap32.Create;
       try
@@ -805,7 +805,7 @@ var
   OldFullScreen: Boolean;
   OldHighRes: Boolean;
 begin
-  F := TFNLSetup.Create(self);
+  F := TFNLSetup.Create(Self);
   try
     OldFullScreen := GameParams.FullScreen;
     OldHighRes := GameParams.HighResolution;
@@ -813,7 +813,7 @@ begin
     F.ShowModal;
 
     // And apply the settings chosen
-    ApplyConfigChanges(OldFullScreen, OldHighRes, false, false);
+    ApplyConfigChanges(OldFullScreen, OldHighRes, False, False);
   finally
     F.Free;
   end;
@@ -842,7 +842,7 @@ begin
 
         if (FMVer < FORMAT_VERSION) or
            ((FMVer = FORMAT_VERSION) and (CVer < CORE_VERSION)) then
-          fCleanInstallFail := true;
+          fCleanInstallFail := True;
       end;
     end;
 
@@ -870,7 +870,7 @@ end;
 
 procedure TGameMenuScreen.InitiateUpdateCheck;
 begin
-  GameParams.DoneUpdateCheck := true;
+  GameParams.DoneUpdateCheck := True;
   if not GameParams.CheckUpdates then Exit;
 
   fUpdateCheckThread := DownloadInThread(VERSION_FILE, fVersionInfo);
@@ -896,7 +896,7 @@ begin
   try
     try
       SL.Delimiter := '.';
-      SL.StrictDelimiter := true;
+      SL.StrictDelimiter := True;
       SL.DelimitedText := NewVersionStr;
 
       if SL.Count < 4 then
@@ -910,7 +910,7 @@ begin
 
       if (NewestID > CurrentVersionID){$ifdef exp} or (NewestID = CurrentVersionID){$endif} then
       begin
-        case RunCustomPopup(self, 'Update', 'A NeoLemmix update, V' + OrigVersionStr + ', is available. Do you want to download it?',
+        case RunCustomPopup(Self, 'Update', 'A NeoLemmix update, V' + OrigVersionStr + ', is available. Do you want to download it?',
           'Go to NeoLemmix website|Remind me later') of
           1: begin
                URL := 'https://www.neolemmix.com/?page=neolemmix';
@@ -923,10 +923,10 @@ begin
       begin
         // Add cursor stuff here
 
-        case RunCustomPopup(self, 'Styles Update', 'Styles updates are available. Do you want to download them?',
+        case RunCustomPopup(Self, 'Styles Update', 'Styles updates are available. Do you want to download them?',
           'Open Style Manager|Remind me later') of
           1: begin
-               F := TFManageStyles.Create(self);
+               F := TFManageStyles.Create(Self);
                try
                  F.ShowModal;
                finally

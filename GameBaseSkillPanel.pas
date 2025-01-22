@@ -234,7 +234,7 @@ begin
 
   // Some general settings for the panel
   Color := $000000;
-  ParentBackground := false;
+  ParentBackground := False;
 
   fLastClickFrameskip := GetTickCount;
 
@@ -618,7 +618,7 @@ var
         dst.PixelS[X + oX, Y] := BrickColor;
   end;
 
-  procedure Outline(dst: TBitmap32; isRecursive: Boolean = false);
+  procedure Outline(dst: TBitmap32; isRecursive: Boolean = False);
   var
     x, y: Integer;
     oX, oY: Integer;
@@ -654,7 +654,7 @@ var
     TempBmp.DrawTo(dst);
 
     if GameParams.HighResolution and not isRecursive then
-      Outline(dst, true);
+      Outline(dst, True);
   end;
 begin
   // Load the erasing icon and selection outline first
@@ -975,16 +975,16 @@ begin
   begin
     if ButtonList[i] in [spbDirLeft, spbDirRight] then
     begin
-      fButtonRects[spbDirLeft] := HalfButtonRect(i, true);
-      fButtonRects[spbDirRight] := HalfButtonRect(i, false);
+      fButtonRects[spbDirLeft] := HalfButtonRect(i, True);
+      fButtonRects[spbDirRight] := HalfButtonRect(i, False);
     end else if ButtonList[i] in [spbBackOneFrame, spbForwardOneFrame] then
     begin
-      fButtonRects[spbBackOneFrame] := HalfButtonRect(i, true);
-      fButtonRects[spbForwardOneFrame] := HalfButtonRect(i, false);
+      fButtonRects[spbBackOneFrame] := HalfButtonRect(i, True);
+      fButtonRects[spbForwardOneFrame] := HalfButtonRect(i, False);
     end else if ButtonList[i] in [spbClearPhysics, spbLoadReplay] then
     begin
-      fButtonRects[spbClearPhysics] := HalfButtonRect(i, true);
-      fButtonRects[spbLoadReplay] := HalfButtonRect(i, false);
+      fButtonRects[spbClearPhysics] := HalfButtonRect(i, True);
+      fButtonRects[spbLoadReplay] := HalfButtonRect(i, False);
     end else if ButtonList[i] > spbNone then
       fButtonRects[ButtonList[i]] := ButtonRect(i);
   end;
@@ -1253,21 +1253,21 @@ begin
       begin
         if Game.LemmingsToSpawn + Game.LemmingsActive - Game.SpawnedDead < Level.Info.RescueCount - Game.LemmingsSaved then
         begin
-          SpecialCombine := true;
+          SpecialCombine := True;
           fCombineHueShift := -1 / 3;
         end else if (lkNeutral in LemmingKinds) then
         begin
-          SpecialCombine := true;
+          SpecialCombine := True;
 
           if lkNormal in LemmingKinds then
             fCombineHueShift := -1 / 6
           else
             fCombineHueShift := 1 / 6;
         end else
-          SpecialCombine := false;
+          SpecialCombine := False;
       end else if Level.Info.HasTimeLimit and (i > TimeLimitStartIndex) and (i <= TimeLimitStartIndex + 5) then
       begin
-        SpecialCombine := true;
+        SpecialCombine := True;
 
         if Game.IsOutOfTime then
           fCombineHueShift := 1 / 2
@@ -1276,7 +1276,7 @@ begin
         else
           fCombineHueShift := -1 / 6;
       end else
-        SpecialCombine := false;
+        SpecialCombine := False;
 
       if SpecialCombine then
       begin
@@ -1310,12 +1310,12 @@ begin
     // Highlight selected button
     if fHighlitSkill <> Game.RenderInterface.SelectedSkill then
     begin
-      DrawButtonSelector(fHighlitSkill, false);
-      DrawButtonSelector(Game.RenderInterface.SelectedSkill, true);
+      DrawButtonSelector(fHighlitSkill, False);
+      DrawButtonSelector(Game.RenderInterface.SelectedSkill, True);
     end;
 
     // Skill numbers
-    if self.fShowUsedSkills then
+    if Self.fShowUsedSkills then
     begin
       for i := Low(TSkillPanelButton) to LAST_SKILL_BUTTON do
         DrawSkillCount(i, Game.SkillsUsed[i]);
@@ -1546,7 +1546,7 @@ begin
 
         if GameParams.Hotkeys.CheckForKey(lka_Highlight) or (Button = mbRight) then
         begin
-          Game.SetSelectedSkill(i, True, true);
+          Game.SetSelectedSkill(i, True, True);
           fGameWindow.GotoSaveState(Game.CurrentIteration, 0, Game.CurrentIteration - 85);
         end else
           Game.SetSelectedSkill(i, True);
@@ -1595,11 +1595,11 @@ begin
         if fSelectDx = -1 then
         begin
           fSelectDx := 0;
-          DrawButtonSelector(spbDirLeft, false);
+          DrawButtonSelector(spbDirLeft, False);
         end else begin
           fSelectDx := -1;
-          DrawButtonSelector(spbDirLeft, true);
-          DrawButtonSelector(spbDirRight, false);
+          DrawButtonSelector(spbDirLeft, True);
+          DrawButtonSelector(spbDirRight, False);
         end;
       end;
     spbDirRight:
@@ -1607,11 +1607,11 @@ begin
         if fSelectDx = 1 then
         begin
           fSelectDx := 0;
-          DrawButtonSelector(spbDirRight, false);
+          DrawButtonSelector(spbDirRight, False);
         end else begin
           fSelectDx := 1;
-          DrawButtonSelector(spbDirLeft, false);
-          DrawButtonSelector(spbDirRight, true);
+          DrawButtonSelector(spbDirLeft, False);
+          DrawButtonSelector(spbDirRight, True);
         end;
       end;
     spbLoadReplay: fGameWindow.LoadReplay;
@@ -1626,11 +1626,11 @@ procedure TBaseSkillPanel.ImgMouseMove(Sender: TObject;
 begin
   if fGameWindow.DoSuspendCursor then Exit;
 
-  Game.HitTestAutoFail := true;
+  Game.HitTestAutoFail := True;
   Game.HitTest;
   fGameWindow.SetCurrentCursor;
 
-  MinimapScrollFreeze := false;
+  MinimapScrollFreeze := False;
 end;
 
 procedure TBaseSkillPanel.ImgMouseUp(Sender: TObject; Button: TMouseButton;
@@ -1644,7 +1644,7 @@ procedure TBaseSkillPanel.MinimapMouseDown(Sender: TObject; Button: TMouseButton
     Shift: TShiftState; X, Y: Integer; Layer: TCustomLayer);
 begin
   if GameParams.EdgeScroll then fGameWindow.ApplyMouseTrap;
-  fMinimapScrollFreeze := true;
+  fMinimapScrollFreeze := True;
 
   if Assigned(fOnMinimapClick) then
     fOnMinimapClick(Self, MousePosMinimap(X, Y));
@@ -1657,7 +1657,7 @@ var
 begin
   if fGameWindow.DoSuspendCursor then Exit;
 
-  Game.HitTestAutoFail := true;
+  Game.HitTestAutoFail := True;
   Game.HitTest;
   fGameWindow.SetCurrentCursor;
 
@@ -1674,7 +1674,7 @@ end;
 procedure TBaseSkillPanel.MinimapMouseUp(Sender: TObject; Button: TMouseButton;
     Shift: TShiftState; X, Y: Integer; Layer: TCustomLayer);
 begin
-  fMinimapScrollFreeze := false;
+  fMinimapScrollFreeze := False;
   DrawMinimap;
 end;
 
@@ -1729,7 +1729,7 @@ begin
   fMinimapImage.Top := MinimapRect.Top * NewZoom;
   fMinimapImage.Scale := NewZoom;
 
-  fSetInitialZoom := true;
+  fSetInitialZoom := True;
 end;
 
 function TBaseSkillPanel.GetZoom: Integer;

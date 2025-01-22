@@ -47,7 +47,7 @@ type
     private
       function GetItem(Index: Integer): TPreplacedLemming;
     public
-      constructor Create(aOwnsObjects: Boolean = true);
+      constructor Create(aOwnsObjects: Boolean = True);
       function Add: TPreplacedLemming;
       function Insert(Index: Integer): TPreplacedLemming;
       procedure Assign(aSrc: TPreplacedLemmingList);
@@ -165,15 +165,15 @@ begin
   fX := 0;
   fY := 0;
   fDx := 1;
-  fIsSlider := false;
-  fIsClimber := false;
-  fIsSwimmer := false;
-  fIsFloater := false;
-  fIsGlider := false;
-  fIsDisarmer := false;
-  fIsBlocker := false;
-  fIsZombie := false;
-  fIsNeutral := false;
+  fIsSlider := False;
+  fIsClimber := False;
+  fIsSwimmer := False;
+  fIsFloater := False;
+  fIsGlider := False;
+  fIsDisarmer := False;
+  fIsBlocker := False;
+  fIsZombie := False;
+  fIsNeutral := False;
 end;
 
 procedure TPreplacedLemming.Assign(aSrc: TPreplacedLemming);
@@ -195,7 +195,7 @@ end;
 
 { TPreplacedLemmingList }
 
-constructor TPreplacedLemmingList.Create(aOwnsObjects: Boolean = true);
+constructor TPreplacedLemmingList.Create(aOwnsObjects: Boolean = True);
 begin
   inherited Create(aOwnsObjects);
 end;
@@ -270,7 +270,7 @@ begin
   case Index of
     1: Result := LemIsSwimmer;
     2: Result := LemIsDisarmer;
-    else Result := false;
+    else Result := False;
   end;
 end;
 

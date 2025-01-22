@@ -100,7 +100,7 @@ type
 
     procedure PrepareTerrainBitmap(Bmp: TBitmap32; DrawingFlags: Byte);
     procedure PrepareTerrainBitmapForPhysics(Bmp: TBitmap32; DrawingFlags: Byte; IsSteel: Boolean);
-    procedure PrepareGadgetBitmap(Bmp: TBitmap32; IsOnlyOnTerrain: Boolean; IsZombie: Boolean = false; IsNeutral: Boolean = false);
+    procedure PrepareGadgetBitmap(Bmp: TBitmap32; IsOnlyOnTerrain: Boolean; IsZombie: Boolean = False; IsNeutral: Boolean = False);
 
     procedure DrawTriggerAreaRectOnLayer(TriggerRect: TRect);
 
@@ -126,15 +126,15 @@ type
 
     procedure SetInterface(aInterface: TRenderInterface);
 
-    procedure DrawLevel(aDst: TBitmap32; aClearPhysics: Boolean = false); overload;
-    procedure DrawLevel(aDst: TBitmap32; aRegion: TRect; aClearPhysics: Boolean = false); overload;
+    procedure DrawLevel(aDst: TBitmap32; aClearPhysics: Boolean = False); overload;
+    procedure DrawLevel(aDst: TBitmap32; aRegion: TRect; aClearPhysics: Boolean = False); overload;
 
     procedure LoadHelperImages;
 
     function FindGadgetMetaInfo(O: TGadgetModel): TGadgetMetaAccessor;
     function FindMetaTerrain(T: TTerrain): TMetaTerrain;
 
-    procedure PrepareGameRendering(aLevel: TLevel; NoOutput: Boolean = false);
+    procedure PrepareGameRendering(aLevel: TLevel; NoOutput: Boolean = False);
 
     // Composite pieces (terrain grouping)
     procedure PrepareCompositePieceBitmaps(aTerrains: TTerrains; aLowRes: TBitmap32; aHighRes: TBitmap32);
@@ -144,15 +144,15 @@ type
     procedure DrawTerrain(Dst: TBitmap32; T: TTerrain; HighRes: Boolean); overload;
 
     // Object rendering
-    procedure DrawAllGadgets(Gadgets: TGadgetList; DrawHelper: Boolean = True; UsefulOnly: Boolean = false);
+    procedure DrawAllGadgets(Gadgets: TGadgetList; DrawHelper: Boolean = True; UsefulOnly: Boolean = False);
     procedure DrawObjectHelpers(Dst: TBitmap32; Gadget: TGadget);
     procedure DrawHatchSkillHelpers(Dst: TBitmap32; Gadget: TGadget; DrawOtherHelper: Boolean);
-    procedure DrawLemmingHelpers(Dst: TBitmap32; L: TLemming; IsClearPhysics: Boolean = true);
+    procedure DrawLemmingHelpers(Dst: TBitmap32; L: TLemming; IsClearPhysics: Boolean = True);
 
     // Lemming rendering
-    procedure DrawLemmings(UsefulOnly: Boolean = false);
+    procedure DrawLemmings(UsefulOnly: Boolean = False);
     procedure DrawLemmingLaser(aLemming: TLemming);
-    procedure DrawThisLemming(aLemming: TLemming; UsefulOnly: Boolean = false);
+    procedure DrawThisLemming(aLemming: TLemming; UsefulOnly: Boolean = False);
     procedure DrawLemmingCountdown(aLemming: TLemming);
     procedure DrawLemmingParticles(L: TLemming);
 
@@ -281,7 +281,7 @@ end;
 
 // Lemming Drawing
 
-procedure TRenderer.DrawLemmings(UsefulOnly: Boolean = false);
+procedure TRenderer.DrawLemmings(UsefulOnly: Boolean = False);
 var
   i: Integer;
   SelectedLemming, HighlitLemming: TLemming;
@@ -349,7 +349,7 @@ begin
     DrawThisLemming(LemmingList[i], UsefulOnly);
 end;
 
-procedure TRenderer.DrawThisLemming(aLemming: TLemming; UsefulOnly: Boolean = false);
+procedure TRenderer.DrawThisLemming(aLemming: TLemming; UsefulOnly: Boolean = False);
 var
   SrcRect, DstRect: TRect;
   SrcAnim: TBitmap32;
@@ -409,7 +409,7 @@ begin
   if fRenderInterface <> nil then
     Selected := aLemming = fRenderInterface.SelectedLemming
   else
-    Selected := false;
+    Selected := False;
 
   UsefulOnly := UsefulOnly and Selected; // Not sure why this is needed. Probably "UsefulOnly" is a bad variable name.
 
@@ -419,9 +419,9 @@ begin
 
   // Get the animation and meta-animation
   if aLemming.LemDX > 0 then
-    i := AnimationIndices[aLemming.LemAction, false]
+    i := AnimationIndices[aLemming.LemAction, False]
   else
-    i := AnimationIndices[aLemming.LemAction, true];
+    i := AnimationIndices[aLemming.LemAction, True];
   SrcAnim := fAni.LemmingAnimations[i];
   SrcMetaAnim := fAni.MetaLemmingAnimations[i];
 
@@ -491,7 +491,7 @@ begin
   if Selected then
   begin
     DrawLemmingPoint;
-    fLayers.fIsEmpty[rlTriggers] := false;
+    fLayers.fIsEmpty[rlTriggers] := False;
   end;
 end;
 
@@ -561,37 +561,37 @@ begin
 
     fLayers[rlLemmings].LineS(Origin.X, Origin.Y,
       Target.X, Target.Y,
-      LaserColors[0], true);
+      LaserColors[0], True);
     fLayers[rlLemmings].LineS(Origin.X, Origin.Y - 1,
       Target.X - aLemming.LemDX, Target.Y,
-      LaserColors[0], true);
+      LaserColors[0], True);
     fLayers[rlLemmings].LineS(Origin.X + aLemming.LemDX, Origin.Y,
       Target.X, Target.Y + 1,
-      LaserColors[0], true);
+      LaserColors[0], True);
     fLayers[rlLemmings].LineS(Origin.X, Origin.Y - 2,
       Target.X - (aLemming.LemDX * 2), Target.Y,
-      LaserColors[1], true);
+      LaserColors[1], True);
     fLayers[rlLemmings].LineS(Origin.X + (aLemming.LemDX * 2), Origin.Y,
       Target.X, Target.Y + 2,
-      LaserColors[1], true);
+      LaserColors[1], True);
     fLayers[rlLemmings].LineS(Origin.X, Origin.Y - 3,
       Target.X - (aLemming.LemDX * 3), Target.Y,
-      LaserColors[2], true);
+      LaserColors[2], True);
     fLayers[rlLemmings].LineS(Origin.X + (aLemming.LemDX * 3), Origin.Y,
       Target.X, Target.Y + 3,
-      LaserColors[2], true);
+      LaserColors[2], True);
     fLayers[rlLemmings].LineS(Origin.X, Origin.Y - 4,
       Target.X - (aLemming.LemDX * 4), Target.Y,
-      LaserColors[3], true);
+      LaserColors[3], True);
     fLayers[rlLemmings].LineS(Origin.X + (aLemming.LemDX * 4), Origin.Y,
       Target.X, Target.Y + 4,
-      LaserColors[3], true);
+      LaserColors[3], True);
     fLayers[rlLemmings].LineS(Origin.X, Origin.Y - 5,
       Target.X - (aLemming.LemDX * 5), Target.Y,
-      LaserColors[4], true);
+      LaserColors[4], True);
     fLayers[rlLemmings].LineS(Origin.X + (aLemming.LemDX * 5), Origin.Y,
       Target.X, Target.Y + 5,
-      LaserColors[4], true);
+      LaserColors[4], True);
   end else begin
 
     LaserColors[0] := WHITE_COLOR;
@@ -614,19 +614,19 @@ begin
 
     fLayers[rlLemmings].LineS(Origin.X, Origin.Y,
       Target.X, Target.Y,
-      LaserColors[0], true);
+      LaserColors[0], True);
     fLayers[rlLemmings].LineS(Origin.X, Origin.Y - 1,
       Target.X - aLemming.LemDX, Target.Y,
-      LaserColors[1], true);
+      LaserColors[1], True);
     fLayers[rlLemmings].LineS(Origin.X + aLemming.LemDX, Origin.Y,
       Target.X, Target.Y + 1,
-      LaserColors[1], true);
+      LaserColors[1], True);
     fLayers[rlLemmings].LineS(Origin.X, Origin.Y - 2,
       Target.X - (aLemming.LemDX * 2), Target.Y,
-      LaserColors[2], true);
+      LaserColors[2], True);
     fLayers[rlLemmings].LineS(Origin.X + (aLemming.LemDX * 2), Origin.Y,
       Target.X, Target.Y + 2,
-      LaserColors[2], true);
+      LaserColors[2], True);
   end;
 
   if aLemming.LemLaserHit then
@@ -730,7 +730,7 @@ begin
   Result := fAni.Recolorer;
 end;
 
-procedure TRenderer.DrawLevel(aDst: TBitmap32; aClearPhysics: Boolean = false);
+procedure TRenderer.DrawLevel(aDst: TBitmap32; aClearPhysics: Boolean = False);
 var
   aRegionRect: TRect;
 begin
@@ -742,7 +742,7 @@ begin
   DrawLevel(aDst, aRegionRect, aClearPhysics);
 end;
 
-procedure TRenderer.DrawLevel(aDst: TBitmap32; aRegion: TRect; aClearPhysics: Boolean = false);
+procedure TRenderer.DrawLevel(aDst: TBitmap32; aRegion: TRect; aClearPhysics: Boolean = False);
 begin
   fLayers.PhysicsMap := fPhysicsMap; // can we assign this just once somewhere? very likely.
   if PtInRect(fPhysicsMap.BoundsRect, fRenderInterface.MousePos) then
@@ -817,10 +817,10 @@ begin
         )
       ) then
   begin
-    DoProjection := true;
+    DoProjection := True;
 
     if IsCloneShadow and (fRenderInterface.ProjectionType = 1) then
-      DoProjection := false;
+      DoProjection := False;
 
     if (fRenderInterface.ProjectionType = 2) then
     begin
@@ -830,15 +830,15 @@ begin
                    else
                      fRenderInterface.SimulateTransitionLem(CopyL, baToWalking);
         spbShimmier: fRenderInterface.SimulateTransitionLem(CopyL, baReaching);
-        spbSlider: CopyL.LemIsSlider := true;
-        spbClimber: CopyL.LemIsClimber := true;
-        spbSwimmer: CopyL.LemIsSwimmer := true;
-        spbFloater: CopyL.LemIsFloater := true;
-        spbGlider: CopyL.LemIsGlider := true;
-        spbDisarmer: CopyL.LemIsDisarmer := true;
-        spbBomber: DoProjection := false;
-        spbStoner: DoProjection := false;
-        spbBlocker: DoProjection := false;
+        spbSlider: CopyL.LemIsSlider := True;
+        spbClimber: CopyL.LemIsClimber := True;
+        spbSwimmer: CopyL.LemIsSwimmer := True;
+        spbFloater: CopyL.LemIsFloater := True;
+        spbGlider: CopyL.LemIsGlider := True;
+        spbDisarmer: CopyL.LemIsDisarmer := True;
+        spbBomber: DoProjection := False;
+        spbStoner: DoProjection := False;
+        spbBlocker: DoProjection := False;
         spbCloner: CopyL.LemDX := -CopyL.LemDX;
         spbNone: ; // Do nothing
         else fRenderInterface.SimulateTransitionLem(CopyL, SkillPanelButtonToAction[SelectedSkill]);
@@ -852,7 +852,7 @@ begin
       CopyL.Assign(L); // Reset to initial state
     end;
   end else
-    DoProjection := false;
+    DoProjection := False;
 
   if (not GameParams.HideShadows) or fUsefulOnly then
   begin
@@ -932,7 +932,7 @@ begin
     spbCloner:
       begin
         CopyL.LemDX := -CopyL.LemDX;
-        DrawShadows(CopyL, ActionToSkillPanelButton[CopyL.LemAction], SelectedSkill, true);
+        DrawShadows(CopyL, ActionToSkillPanelButton[CopyL.LemAction], SelectedSkill, True);
       end;
 
     spbLaserer:
@@ -956,8 +956,8 @@ var
 const
   MAX_FRAME_COUNT = 510; // 30 in-game seconds
 begin
-  fLayers.fIsEmpty[rlLowShadows] := false;
-  fLayers.fIsEmpty[rlHighShadows] := false;
+  fLayers.fIsEmpty[rlLowShadows] := False;
+  fLayers.fIsEmpty[rlHighShadows] := False;
   FrameCount := 0;
   LemPosArray := nil;
 
@@ -994,8 +994,8 @@ var
 const
   MAX_FRAME_COUNT = 2000;
 begin
-  fLayers.fIsEmpty[rlLowShadows] := false;
-  fLayers.fIsEmpty[rlHighShadows] := false;
+  fLayers.fIsEmpty[rlLowShadows] := False;
+  fLayers.fIsEmpty[rlHighShadows] := False;
   FrameCount := 0;
   LemPosArray := nil;
 
@@ -1031,7 +1031,7 @@ var
 const
   MAX_FRAME_COUNT = 2000;
 begin
-  fLayers.fIsEmpty[rlLowShadows] := false;
+  fLayers.fIsEmpty[rlLowShadows] := False;
   FrameCount := 0;
   LemPosArray := nil;
 
@@ -1100,7 +1100,7 @@ var
   SavePhysicsMap: TBitmap32;
 begin
   fLayers.fIsEmpty[rlLowShadows] := False;
-  DoneThisCycle := false;
+  DoneThisCycle := False;
 
   // Make a deep copy of the PhysicsMap
   SavePhysicsMap := TBitmap32.Create;
@@ -1114,9 +1114,9 @@ begin
       for i := 0 to 5 do
         SetLowShadowPixel(L.LemX + i*L.LemDx, L.LemY - 1);
 
-      DoneThisCycle := true;
+      DoneThisCycle := True;
     end else if L.LemPhysicsFrame = 0 then
-      DoneThisCycle := false;
+      DoneThisCycle := False;
 
     // Simulate next frame advance for lemming
     fRenderInterface.SimulateLem(L);
@@ -1248,7 +1248,7 @@ begin
 end;
 
 procedure TRenderer.DrawFencerShadow(L: TLemming);
-// Like with the Fencer code itself, this is an almost exact copy of the Basher shadow code,
+// Like with the Fencer code itSelf, this is an almost exact copy of the Basher shadow code,
 // and probably needs some work.
 const
   FencerEnd: array[0..5, 0..1] of Integer = (
@@ -1817,7 +1817,7 @@ var
     begin
       aDst.SetSize(MIN_TERRAIN_GROUP_WIDTH, MIN_TERRAIN_GROUP_HEIGHT);
       aDst.Clear(0);
-      Result := false;
+      Result := False;
     end else begin
       IsSteelGroup := PieceManager.Terrains[aTerrains[FirstNonErase].Identifier].IsSteel;
 
@@ -1826,7 +1826,7 @@ var
            (PieceManager.Terrains[aTerrains[i].Identifier].IsSteel <> IsSteelGroup) then
           raise Exception.Create('TRenderer.PrepareCompositePieceBitmap received a group with a mix of steel and nonsteel pieces!');
 
-      Result := true;
+      Result := True;
     end;
   end;
 
@@ -1844,7 +1844,7 @@ var
     // is needed later, we do so, but for now we just want a size that's 100%
     // for sure able to fit the composite piece.
 
-    HasFoundNonEraserTerrain := false;
+    HasFoundNonEraserTerrain := False;
     DataBoundsRect := Rect(0, 0, 0, 0); // in case all pieces are erasers
 
     for i := 0 to aTerrains.Count-1 do
@@ -1878,7 +1878,7 @@ var
         DataBoundsRect := TRect.Union(DataBoundsRect, ThisTerrainRect)
       else begin
         DataBoundsRect := ThisTerrainRect;
-        HasFoundNonEraserTerrain := true;
+        HasFoundNonEraserTerrain := True;
       end;
     end;
 
@@ -1968,13 +1968,13 @@ procedure TRenderer.PrepareCompositePieceBitmaps(aTerrains: TTerrains; aLowRes: 
     end;
   end;
 begin
-  PrepareCompositePieceBitmap(aTerrains, aLowRes, false);
+  PrepareCompositePieceBitmap(aTerrains, aLowRes, False);
   if GameParams.HighResolution then
-    PrepareCompositePieceBitmap(aTerrains, aHighRes, true);
+    PrepareCompositePieceBitmap(aTerrains, aHighRes, True);
   Crop;
 end;
 
-procedure TRenderer.PrepareGadgetBitmap(Bmp: TBitmap32; IsOnlyOnTerrain: Boolean; IsZombie: Boolean = false; IsNeutral: Boolean = false);
+procedure TRenderer.PrepareGadgetBitmap(Bmp: TBitmap32; IsOnlyOnTerrain: Boolean; IsZombie: Boolean = False; IsNeutral: Boolean = False);
 begin
   Bmp.DrawMode := dmCustom;
 
@@ -1997,7 +1997,7 @@ end;
 
 procedure TRenderer.DrawTerrain(Dst: TBitmap32; T: TTerrain; HighRes: Boolean);
 begin
-  InternalDrawTerrain(Dst, T, false, HighRes);
+  InternalDrawTerrain(Dst, T, False, HighRes);
 end;
 
 procedure TRenderer.InternalDrawTerrain(Dst: TBitmap32; T: TTerrain; IsPhysicsDraw: Boolean; IsHighRes: Boolean);
@@ -2332,7 +2332,7 @@ begin
 end;
 
 
-procedure TRenderer.DrawLemmingHelpers(Dst: TBitmap32; L: TLemming; IsClearPhysics: Boolean = true);
+procedure TRenderer.DrawLemmingHelpers(Dst: TBitmap32; L: TLemming; IsClearPhysics: Boolean = True);
 var
   numHelpers, indexHelper: Integer;
   DrawX, DrawY, DirDrawY: Integer;
@@ -2418,7 +2418,7 @@ var
   function GetDigitTargetLayer: TBitmap32;
   begin
     Result := fLayers[rlObjectHelpers];
-    fLayers.fIsEmpty[rlObjectHelpers] := false;
+    fLayers.fIsEmpty[rlObjectHelpers] := False;
   end;
 
   procedure DrawNumberWithCountdownDigits(X, Y: Integer; aDigitString: String; aAlignment: Integer = -1); // negative = left; zero = center; positive = right
@@ -2575,19 +2575,19 @@ begin
   DrawPoint.X := DrawPoint.X - (BMP.Width div 2 div ResMod);
   DrawPoint.Y := DrawPoint.Y - (BMP.Height div 2 div ResMod);
   BMP.DrawTo(fLayers[rlObjectHelpers], DrawPoint.X * ResMod, DrawPoint.Y * ResMod);
-  fLayers.fIsEmpty[rlObjectHelpers] := false;
+  fLayers.fIsEmpty[rlObjectHelpers] := False;
 end;
 
 function TRenderer.IsUseful(Gadget: TGadget): Boolean;
 begin
-  Result := true;
+  Result := True;
   if not fUsefulOnly then Exit;
 
   if Gadget.TriggerEffect in [DOM_NONE, DOM_BACKGROUND, DOM_PAINT] then
-    Result := false;
+    Result := False;
 
   if (Gadget.TriggerEffect in [DOM_TELEPORT, DOM_RECEIVER]) and (Gadget.PairingId < 0) then
-    Result := false;
+    Result := False;
 end;
 
 procedure TRenderer.LoadHelperImages;
@@ -2639,7 +2639,7 @@ var
            rlGadgetsLow: Result := Gadget.IsNoOverwrite and not Gadget.IsOnlyOnTerrain;
            rlOnTerrainGadgets: Result := Gadget.IsOnlyOnTerrain and not Gadget.IsNoOverwrite;
            rlGadgetsHigh: Result := not (Gadget.IsNoOverwrite xor Gadget.IsOnlyOnTerrain);
-           else Result := false;
+           else Result := False;
          end;
   end;
 
@@ -2655,7 +2655,7 @@ var
       ProcessDrawFrame(Gadget, fLayers[rlBackground])
     else begin
       ProcessDrawFrame(Gadget, Dst);
-      fLayers.fIsEmpty[aLayer] := false;
+      fLayers.fIsEmpty[aLayer] := False;
       DrawTriggerArea(Gadget);
     end;
   end;
@@ -2681,7 +2681,7 @@ begin
   end;
 end;
 
-procedure TRenderer.DrawAllGadgets(Gadgets: TGadgetList; DrawHelper: Boolean = True; UsefulOnly: Boolean = false);
+procedure TRenderer.DrawAllGadgets(Gadgets: TGadgetList; DrawHelper: Boolean = True; UsefulOnly: Boolean = False);
   function IsCursorOnGadget(Gadget: TGadget): Boolean;
   begin
     // Magic numbers are needed due to some offset of MousePos wrt. the center of the cursor.
@@ -2713,8 +2713,8 @@ begin
   if not fLayers.fIsEmpty[rlTriggers] then fLayers[rlTriggers].Clear(0);
   if not fLayers.fIsEmpty[rlObjectHelpers] then fLayers[rlObjectHelpers].Clear(0);
 
-  fLayers.fIsEmpty[rlTriggers] := true;
-  fLayers.fIsEmpty[rlObjectHelpers] := true;
+  fLayers.fIsEmpty[rlTriggers] := True;
+  fLayers.fIsEmpty[rlObjectHelpers] := True;
 
   DrawGadgetsOnLayer(rlBackgroundObjects);
   DrawGadgetsOnLayer(rlGadgetsLow);
@@ -2740,7 +2740,7 @@ begin
     fLayers.fIsEmpty[rlObjectHelpers] := False;
 
     if DrawPreassignedHelper then
-      DrawHatchSkillHelpers(fLayers[rlObjectHelpers], Gadget, false);
+      DrawHatchSkillHelpers(fLayers[rlObjectHelpers], Gadget, False);
 
     if DrawOtherHatchHelper then
       DrawObjectHelpers(fLayers[rlObjectHelpers], Gadget);
@@ -2800,7 +2800,7 @@ begin
 
       // otherwise, draw its helper
       DrawObjectHelpers(fLayers[rlObjectHelpers], Gadget);
-      fLayers.fIsEmpty[rlObjectHelpers] := false;
+      fLayers.fIsEmpty[rlObjectHelpers] := False;
 
       // if it's a teleporter or receiver, draw all paired helpers too
       if (Gadget.TriggerEffect in [DOM_TELEPORT, DOM_RECEIVER]) and (Gadget.PairingId <> -1) then
@@ -2896,7 +2896,7 @@ begin
     end;
   end;
 
-  fLayers.fIsEmpty[rlTriggers] := false;
+  fLayers.fIsEmpty[rlTriggers] := False;
 end;
 
 
@@ -2913,7 +2913,7 @@ begin
   fBgColor := $00000000;
   fAni := TBaseAnimationSet.Create;
   fPreviewGadgets := TGadgetList.Create;
-  fTempLemmingList := TLemmingList.Create(false);
+  fTempLemmingList := TLemmingList.Create(False);
 
   fLaserGraphic := TBitmap32.Create;
   fLaserGraphic.DrawMode := dmCustom;
@@ -3126,7 +3126,7 @@ begin
       for i := 0 to Terrains.Count-1 do
       begin
         T.Assign(Terrains[i]);
-        InternalDrawTerrain(TempWorld, T, true, false);
+        InternalDrawTerrain(TempWorld, T, True, False);
       end;
 
       GeneratePhysicsMapFromInfoMap;
@@ -3178,7 +3178,7 @@ var
     end
   end;
 
-  procedure LoadBackgroundImage(IsFallback: Boolean = false);
+  procedure LoadBackgroundImage(IsFallback: Boolean = False);
   var
     Collection, Piece: String;
     SplitPos: Integer;
@@ -3199,7 +3199,7 @@ var
     if FileExists(AppPath + SFStyles + Collection + SFPiecesBackgroundsHighRes + Piece + '.png') then
     begin
       TPngInterface.LoadPngFile((AppPath + SFStyles + Collection + SFPiecesBackgrounds + Piece + '.png'), BgImg);
-      NeedUpscale := false;
+      NeedUpscale := False;
     end else if FileExists(AppPath + SFStyles + Collection + SFPiecesBackgrounds + Piece + '.png') then
       TPngInterface.LoadPngFile((AppPath + SFStyles + Collection + SFPiecesBackgrounds + Piece + '.png'), BgImg)
     else if not IsFallback then
@@ -3218,7 +3218,7 @@ begin
   if RenderInfoRec.Level = nil then Exit;
 
   fDisableBackground := not DoBackground;
-  fDoneBackgroundDraw := false;
+  fDoneBackgroundDraw := False;
 
   // Background layer
   fBgColor := Theme.Colors[BACKGROUND_COLOR] and $FFFFFF;
@@ -3283,7 +3283,7 @@ begin
   begin
     World.SetSize(fLayers.Width * ResMod, fLayers.Height * ResMod);
     fLayers.PhysicsMap := fPhysicsMap;
-    fLayers.CombineTo(World, World.BoundsRect, false, fTransparentBackground);
+    fLayers.CombineTo(World, World.BoundsRect, False, fTransparentBackground);
   end;
 end;
 
@@ -3331,7 +3331,7 @@ end;
 var
   LastErrorLemmingSprites: String;
 
-procedure TRenderer.PrepareGameRendering(aLevel: TLevel; NoOutput: Boolean = false);
+procedure TRenderer.PrepareGameRendering(aLevel: TLevel; NoOutput: Boolean = False);
 begin
 
   if GameParams.HighResolution <> fHelpersAreHighRes then

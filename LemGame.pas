@@ -239,7 +239,7 @@ type
     procedure AddConstructivePixel(X, Y: Integer; Color: TColor32);
     function CalculateNextLemmingCountdown: Integer;
     // The next few procedures are for checking the behavior of lems in trigger areas!
-    procedure CheckTriggerArea(L: TLemming; IsPostTeleportCheck: Boolean = false);
+    procedure CheckTriggerArea(L: TLemming; IsPostTeleportCheck: Boolean = False);
       function GetGadgetCheckPositions(L: TLemming): TArrayArrayInt;
       function HasTriggerAt(X, Y: Integer; TriggerType: TTriggerTypes; L: TLemming = nil): Boolean;
       function FindGadgetID(X, Y: Integer; TriggerType: TTriggerTypes): Word;
@@ -263,7 +263,7 @@ type
 
     function CheckForOverlappingField(L: TLemming): Boolean;
     procedure CheckForQueuedAction;
-    procedure CheckForReplayAction(PausedRRCheck: Boolean = false);
+    procedure CheckForReplayAction(PausedRRCheck: Boolean = False);
     procedure CheckLemmings;
     function CheckLemTeleporting(L: TLemming): Boolean;
     function CheckLemPortalWarping(L: TLemming): Boolean;
@@ -289,7 +289,7 @@ type
     procedure RecordNuke(aInsert: Boolean);
     procedure RecordSpawnInterval(aSI: Integer);
     procedure RecordSkillAssignment(L: TLemming; aSkill: TBasicLemmingAction);
-    procedure RemoveLemming(L: TLemming; RemMode: Integer = 0; Silent: Boolean = false);
+    procedure RemoveLemming(L: TLemming; RemMode: Integer = 0; Silent: Boolean = False);
     procedure RemovePixelAt(X, Y: Integer);
     procedure ReplaySkillAssignment(aReplayItem: TReplaySkillAssignment);
 
@@ -361,7 +361,7 @@ type
     function HandleLasering(L: TLemming) : Boolean;
 
   { interaction }
-    function AssignNewSkill(Skill: TBasicLemmingAction; IsHighlight: Boolean = False; IsReplayAssignment: Boolean = false): Boolean;
+    function AssignNewSkill(Skill: TBasicLemmingAction; IsHighlight: Boolean = False; IsReplayAssignment: Boolean = False): Boolean;
     procedure GenerateClonedLem(L: TLemming);
     function GetPriorityLemming(out PriorityLem: TLemming;
                                   NewSkillOrig: TBasicLemmingAction;
@@ -424,10 +424,10 @@ type
     function CheckIfLegalSI(aSI: Integer): Boolean;
     procedure Finish(aReason: Integer);
     procedure Cheat;
-    procedure HitTest(Autofail: Boolean = false);
-    function ProcessSkillAssignment(IsHighlight: Boolean = false): Boolean;
+    procedure HitTest(Autofail: Boolean = False);
+    function ProcessSkillAssignment(IsHighlight: Boolean = False): Boolean;
     function ProcessHighlightAssignment: Boolean;
-    procedure RegainControl(Force: Boolean = false);
+    procedure RegainControl(Force: Boolean = False);
     procedure EnsureCorrectReplayDetails;
     procedure SetGameResult;
     procedure SetSelectedSkill(Value: TSkillPanelButton; MakeActive: Boolean = True; RightClick: Boolean = False);
@@ -437,7 +437,7 @@ type
     function CheckFinishedTest: Boolean;
     function GetHighlitLemming: TLemming;
     function GetTargetLemming: TLemming;
-    procedure CheckForNewShadow(aForceRedraw: Boolean = false);
+    procedure CheckForNewShadow(aForceRedraw: Boolean = False);
     procedure PlayAssignFailSound(PlayForHighlit: Boolean = False);
     function StateIsUnplayable: Boolean;
 
@@ -598,8 +598,8 @@ end;
 constructor TLemmingGameSavedState.Create;
 begin
   inherited;
-  LemmingList := TLemmingList.Create(true);
-  Gadgets := TGadgetList.Create(true);
+  LemmingList := TLemmingList.Create(True);
+  Gadgets := TGadgetList.Create(True);
   TerrainLayer := TBitmap32.Create;
   PhysicsMap := TBitmap32.Create;
   ZombieMap := TByteMap.Create;
@@ -627,17 +627,17 @@ var
     HALF_MINUTE_IN_FRAMES = 17 * 30;
     TEN_SECONDS_IN_FRAMES = 17 * 10;
   begin
-    Result := false;
+    Result := False;
     if Items[aStateIndex].CurrentIteration = 0 then
-      Result := true;
+      Result := True;
     if Items[aStateIndex].CurrentIteration mod MINUTE_IN_FRAMES = 0 then
-      Result := true;
+      Result := True;
     if (Items[aStateIndex].CurrentIteration mod HALF_MINUTE_IN_FRAMES = 0)
     and (aCurrentIteration - Items[aStateIndex].CurrentIteration <= MINUTE_IN_FRAMES * 3) then
-      Result := true;
+      Result := True;
     if (Items[aStateIndex].CurrentIteration mod TEN_SECONDS_IN_FRAMES = 0)
     and (aCurrentIteration - Items[aStateIndex].CurrentIteration <= MINUTE_IN_FRAMES) then
-      Result := true;
+      Result := True;
   end;
 begin
   // What we want to save:
@@ -805,7 +805,7 @@ var
     SaveReq: Integer;
     i: TSkillPanelButton;
   begin
-    Result := false;
+    Result := False;
 
     if aTalisman.RescueCount >= 0 then
       SaveReq := aTalisman.RescueCount
@@ -828,7 +828,7 @@ var
     if (TotalSkills > aTalisman.TotalSkillLimit) and (aTalisman.TotalSkillLimit >= 0) then Exit;
     if (TotalSkillTypes > aTalisman.SkillTypeLimit) and (aTalisman.SkillTypeLimit >= 0) then Exit;
 
-    Result := true;
+    Result := True;
   end;
 begin
   if not fReplayManager.IsThisUsersReplay then
@@ -838,10 +838,10 @@ begin
   begin
     if CheckTalisman(Level.Talismans[i]) then
     begin
-      fTalismanReceived := true;
+      fTalismanReceived := True;
       if not GameParams.CurrentLevel.TalismanStatus[Level.Talismans[i].ID] then
-        fNewTalismanReceived := true;
-      GameParams.CurrentLevel.TalismanStatus[Level.Talismans[i].ID] := true;
+        fNewTalismanReceived := True;
+      GameParams.CurrentLevel.TalismanStatus[Level.Talismans[i].ID] := True;
     end;
   end;
 end;
@@ -855,14 +855,14 @@ function TLemmingGame.CheckFinishedTest;
 var
   i: Integer;
 begin
-  Result := false;
+  Result := False;
   if not Checkpass then Exit;
 
   for i := 0 to Level.Talismans.Count-1 do
     if not GameParams.CurrentLevel.TalismanStatus[Level.Talismans[i].ID] then
       Exit;
 
-  Result := true;
+  Result := True;
 end;
 
 function TLemmingGame.GetLevelWidth: Integer;
@@ -987,7 +987,7 @@ begin
   P := AppPath;
 
   ButtonsRemain := 0;
-  fHitTestAutoFail := false;
+  fHitTestAutoFail := False;
 
   fSimulationDepth := 0;
   fSoundList := TList<string>.Create();
@@ -1065,7 +1065,7 @@ begin
     LoadMask(FencerMasks, 'fencer.png', CombineMaskPixelsNeutral);
     LoadMask(MinerMasks, 'miner.png', CombineMaskPixelsNeutral);
     LoadMask(LaserMask, 'laser.png', CombineMaskPixelsNeutral);
-    fMasksLoaded := true;
+    fMasksLoaded := True;
   end;
 
   PhysicsMap := Renderer.PhysicsMap;
@@ -1125,7 +1125,7 @@ begin
   LemmingList.Clear;
   if Level.Info.LevelID <> fReplayManager.LevelID then //not aReplay then
   begin
-    fReplayManager.Clear(true);
+    fReplayManager.Clear(True);
     fReplayManager.LevelName := Level.Info.Title;
     fReplayManager.LevelAuthor := Level.Info.Author;
     fReplayManager.LevelGame := GameParams.BaseLevelPack.Name;
@@ -1198,12 +1198,12 @@ begin
   if InitialSkill <> spbNone then
     SetSelectedSkill(InitialSkill, True); // default
 
-  fTalismanReceived := false;
-  fNewTalismanReceived := false;
+  fTalismanReceived := False;
+  fNewTalismanReceived := False;
 
   MessageQueue.Clear;
 
-  ReplayInsert := false;
+  ReplayInsert := False;
 
   Playing := True;
 
@@ -1237,11 +1237,11 @@ begin
         Transition(L, baWalking);
 
       if L.LemAction = baFalling then
-        L.LemInitialFall := true;
+        L.LemInitialFall := True;
 
       if Lem.IsZombie then
       begin
-        RemoveLemming(L, RM_ZOMBIE, true);
+        RemoveLemming(L, RM_ZOMBIE, True);
         Dec(fSpawnedDead);
       end;
 
@@ -1383,7 +1383,7 @@ var
 begin
   Gadget := Gadgets[GadgetID];
 
-  CustomAssert(Gadget.ReceiverId <> 65535, 'Telerporter used without receiver'); // note to self or Nepster: change this to use -1 instead?
+  CustomAssert(Gadget.ReceiverId <> 65535, 'Telerporter used without receiver'); // note to Self or Nepster: change this to use -1 instead?
 
   Gadget2 := Gadgets[Gadget.ReceiverId];
 
@@ -1591,23 +1591,23 @@ begin
     baVaporizing : L.LemExplosionTimer := 0;
     baBuilding   : begin
                      L.LemNumberOfBricksLeft := 12;
-                     L.LemConstructivePositionFreeze := false;
+                     L.LemConstructivePositionFreeze := False;
                    end;
     baPlatforming: begin
                      L.LemNumberOfBricksLeft := 12;
-                     L.LemConstructivePositionFreeze := false;
+                     L.LemConstructivePositionFreeze := False;
                    end;
     baStacking   : L.LemNumberOfBricksLeft := 8;
     baOhnoing,
     baStoning    : begin
                      CueSoundEffect(SFX_OHNO, L.Position);
-                     L.LemIsSlider := false;
-                     L.LemIsClimber := false;
-                     L.LemIsSwimmer := false;
-                     L.LemIsFloater := false;
-                     L.LemIsGlider := false;
-                     L.LemIsDisarmer := false;
-                     L.LemHasBeenOhnoer := true;
+                     L.LemIsSlider := False;
+                     L.LemIsClimber := False;
+                     L.LemIsSwimmer := False;
+                     L.LemIsFloater := False;
+                     L.LemIsGlider := False;
+                     L.LemIsDisarmer := False;
+                     L.LemHasBeenOhnoer := True;
                    end;
     baExploding  : CueSoundEffect(SFX_EXPLOSION, L.Position);
     baStoneFinish: CueSoundEffect(SFX_EXPLOSION, L.Position);
@@ -1897,7 +1897,7 @@ begin
   end;
 end;
 
-function TLemmingGame.AssignNewSkill(Skill: TBasicLemmingAction; IsHighlight: Boolean = False; IsReplayAssignment: Boolean = false): Boolean;
+function TLemmingGame.AssignNewSkill(Skill: TBasicLemmingAction; IsHighlight: Boolean = False; IsReplayAssignment: Boolean = False): Boolean;
 const
   PermSkillSet = [baSliding, baClimbing, baFloating, baGliding, baFixing, baSwimming];
 var
@@ -1907,7 +1907,7 @@ begin
   Result := False;
 
   OldHTAF := HitTestAutoFail;
-  HitTestAutoFail := false;
+  HitTestAutoFail := False;
 
   // Just to be safe, though this should always return in fLemSelected
   GetPriorityLemming(L, Skill, CursorPoint, IsHighlight, IsReplayAssignment);
@@ -1990,7 +1990,7 @@ begin
       // unless the Lem will fall down (which is handles already in Transition)
       if HasPixelAt(L.LemX, L.LemY) then
       begin
-        L.LemWalkerPositionAdjusted := true;
+        L.LemWalkerPositionAdjusted := True;
         Dec(L.LemX, L.LemDx);
       end;
     end;
@@ -2034,7 +2034,7 @@ begin
   else Transition(L, NewSkill);
 
   Result := True;
-  fDoneAssignmentThisFrame := true;
+  fDoneAssignmentThisFrame := True;
 end;
 
 
@@ -2383,7 +2383,7 @@ begin
     // Check whether the lemming would fall down the next frame
     CopyL := TLemming.Create;
     CopyL.Assign(L);
-    CopyL.LemIsPhysicsSimulation := true;
+    CopyL.LemIsPhysicsSimulation := True;
 
     SimulateLem(CopyL, False);
 
@@ -2398,7 +2398,7 @@ begin
     // Check whether the lemming would fall down the next frame
     CopyL := TLemming.Create;
     CopyL.Assign(L);
-    CopyL.LemIsPhysicsSimulation := true;
+    CopyL.LemIsPhysicsSimulation := True;
     OldAction := CopyL.LemAction;
 
     SimulateLem(CopyL, False);
@@ -2409,7 +2409,7 @@ begin
       if L.LemY > PhysicsMap.Height + 4 then
         Result := not HasPixelAt(L.LemX, PhysicsMap.Height - 1)
       else
-        Result := true;
+        Result := True;
     end;
 
     CopyL.Free;
@@ -2418,7 +2418,7 @@ begin
     for i := -1 to 3 do
       if HasPixelAt(L.LemX, L.LemY - 9 - i) and not HasPixelAt(L.LemX, L.LemY - 8 - i) then
       begin
-        Result := true;
+        Result := True;
         Break;
       end;
   end;
@@ -2535,7 +2535,7 @@ begin
 end;
 
 
-procedure TLemmingGame.CheckTriggerArea(L: TLemming; IsPostTeleportCheck: Boolean = false);
+procedure TLemmingGame.CheckTriggerArea(L: TLemming; IsPostTeleportCheck: Boolean = False);
 // For intermediate pixels, we call the trigger function according to trigger area
 var
   CheckPos: TArrayArrayInt; // Combined list for both X- and Y-coordinates
@@ -2582,7 +2582,7 @@ begin
       end;
 
       fLemNextAction := baNone;
-      fLemJumpToHoistAdvance := false;
+      fLemJumpToHoistAdvance := False;
     end;
 
     // Pickup Skills
@@ -3142,19 +3142,19 @@ begin
     Gadget := Gadgets[GadgetID];
     if (Gadget.SkillType = spbSlider) and (not L.LemIsSlider) then
     begin
-      L.LemIsSlider := true;
+      L.LemIsSlider := True;
       CueSoundEffect(SFX_ADD_SKILL, L.Position);
     end;
 
     if (Gadget.SkillType = spbClimber) and (not L.LemIsClimber) then
     begin
-      L.LemIsClimber := true;
+      L.LemIsClimber := True;
       CueSoundEffect(SFX_ADD_SKILL, L.Position);
     end;
 
     if (Gadget.SkillType = spbSwimmer) and (not L.LemIsSwimmer) then
     begin
-      L.LemIsSwimmer := true;
+      L.LemIsSwimmer := True;
       CueSoundEffect(SFX_ADD_SKILL, L.Position);
       if L.LemAction = baDrowning then
         Transition(L, baSwimming);
@@ -3162,19 +3162,19 @@ begin
 
     if (Gadget.SkillType = spbFloater) and (not (L.LemIsFloater or L.LemIsGlider)) then
     begin
-      L.LemIsFloater := true;
+      L.LemIsFloater := True;
       CueSoundEffect(SFX_ADD_SKILL, L.Position);
     end;
 
     if (Gadget.SkillType = spbGlider) and (not (L.LemIsFloater or L.LemIsGlider)) then
     begin
-      L.LemIsGlider := true;
+      L.LemIsGlider := True;
       CueSoundEffect(SFX_ADD_SKILL, L.Position);
     end;
 
     if (Gadget.SkillType = spbDisarmer) and (not L.LemIsDisarmer) then
     begin
-      L.LemIsDisarmer := true;
+      L.LemIsDisarmer := True;
       CueSoundEffect(SFX_ADD_SKILL, L.Position);
     end;
   end;
@@ -3187,13 +3187,13 @@ begin
   if L.HasPermanentSkills then
   begin
     CueSoundEffect(SFX_REMOVE_SKILLS, L.Position);
-    L.LemIsClimber := false;
-    L.LemIsSlider := false;
-    L.LemIsSwimmer := false;
-    L.LemIsFloater := false;
-    L.LemIsGlider := false;
-    L.LemIsDisarmer := false;
-    Result := true;
+    L.LemIsClimber := False;
+    L.LemIsSlider := False;
+    L.LemIsSwimmer := False;
+    L.LemIsFloater := False;
+    L.LemIsGlider := False;
+    L.LemIsDisarmer := False;
+    Result := True;
 
     OldAction := L.LemAction;
 
@@ -3210,7 +3210,7 @@ begin
       L.LemTrueFallen := -1;
     end;
   end else
-    Result := false;
+    Result := False;
 end;
 
 function TLemmingGame.HandleNeutralize(L: TLemming): Boolean;
@@ -3220,7 +3220,7 @@ begin
   if not (L.LemIsNeutral or L.LemIsZombie) then
   begin
     CueSoundEffect(SFX_NEUTRALIZE, L.Position);
-    L.LemIsNeutral := true;
+    L.LemIsNeutral := True;
   end;
 end;
 
@@ -3231,7 +3231,7 @@ begin
   if L.LemIsNeutral and not L.LemIsZombie then
   begin
     CueSoundEffect(SFX_DENEUTRALIZE, L.Position);
-    L.LemIsNeutral := false;
+    L.LemIsNeutral := False;
   end;
 end;
 
@@ -3427,7 +3427,7 @@ begin
 end;
 
 
-procedure TLemmingGame.CheckForNewShadow(aForceRedraw: Boolean = false);
+procedure TLemmingGame.CheckForNewShadow(aForceRedraw: Boolean = False);
 var
   ShadowSkillButton: TSkillPanelButton;
   ShadowLem: TLemming;
@@ -3472,11 +3472,11 @@ begin
      (not fExistShadow) or (not (fLemWithShadow = ShadowLem))
                         or (not (fLemWithShadowButton = ShadowSkillButton)) then
   begin
-    if fExistShadow then // false if coming from UpdateLemming
+    if fExistShadow then // False if coming from UpdateLemming
     begin
       // erase existing ShadowBridge
       fRenderer.ClearShadows;
-      fExistShadow := false;
+      fExistShadow := False;
     end;
 
     // Draw the new ShadowBridge
@@ -3485,7 +3485,7 @@ begin
       if not ((ShadowSkillButton in ShadowSkillSet) or (fRenderInterface.ProjectionType <> 0)) then Exit;
 
       // Draw the shadows
-      fRenderer.DrawShadows(ShadowLem, ShadowSkillButton, fSelectedSkill, false);
+      fRenderer.DrawShadows(ShadowLem, ShadowSkillButton, fSelectedSkill, False);
 
       // remember stats for lemming with shadow
       fLemWithShadow := ShadowLem;
@@ -3543,7 +3543,7 @@ begin
     if not HasPixelAt(PixPosX, BrickPosY) then
     begin
       AddConstructivePixel(PixPosX, BrickPosY, BrickPixelColors[12 - L.LemNumberOfBricksLeft]);
-      Result := true;
+      Result := True;
     end;
   end;
 end;
@@ -3629,19 +3629,19 @@ const
     end;
   end;
 begin
-  Result := true;
+  Result := True;
   if not HasPixelAt(L.LemX, L.LemY) then
     Transition(L, baFalling)
   else begin
-    Hit := false;
-    HitUseful := false;
+    Hit := False;
+    HitUseful := False;
 
     Target := Point(L.LemX + (L.LemDX * 2), L.LemY - 5);
     for i := 0 to DISTANCE_CAP-1 do
       case CheckForHit of
         htNone: begin Inc(Target.X, L.LemDX); Dec(Target.Y); end;
-        htSolid: begin Hit := true; HitUseful := true; Break; end;
-        htIndestructible: begin Hit := true; Break; end;
+        htSolid: begin Hit := True; HitUseful := True; Break; end;
+        htIndestructible: begin Hit := True; Break; end;
         htOutOfBounds: Break;
       end;
 
@@ -3649,10 +3649,10 @@ begin
 
     if Hit then
     begin
-      L.LemLaserHit := true;
+      L.LemLaserHit := True;
       ApplyLaserMask(Target, L);
     end else
-      L.LemLaserHit := false;
+      L.LemLaserHit := False;
 
     if HitUseful then
       L.LemLaserRemainTime := 10
@@ -3667,7 +3667,7 @@ end;
 function TLemmingGame.HandleLemming(L: TLemming): Boolean;
 {-------------------------------------------------------------------------------
   This is the main lemming method, called by CheckLemmings().
-  The return value should return true if the lemming has to be checked by
+  The return value should return True if the lemming has to be checked by
   interactive objects.
   o Increment lemming frame
   o Call specialized action-method
@@ -3685,7 +3685,7 @@ begin
   L.LemActionOld := L.LemAction;
   // No transition to do at the end of lemming movement
   fLemNextAction := baNone;
-  fLemJumpToHoistAdvance := false;
+  fLemJumpToHoistAdvance := False;
 
   Inc(L.LemFrame);
   Inc(L.LemPhysicsFrame);
@@ -3731,15 +3731,15 @@ begin
   Result := True;
 
   WalkerPositionAdjusted := L.LemWalkerPositionAdjusted;
-  L.LemWalkerPositionAdjusted := false;
+  L.LemWalkerPositionAdjusted := False;
 
   Inc(L.LemX, L.LemDx);
   LemDy := FindGroundPixel(L.LemX, L.LemY);
 
-  if (LemDy > 0) and (L.LemIsSlider) and (LemCanDehoist(L, true)) then
+  if (LemDy > 0) and (L.LemIsSlider) and (LemCanDehoist(L, True)) then
   begin
     Dec(L.LemX, L.LemDX);
-    Transition(L, baDehoisting, true);
+    Transition(L, baDehoisting, True);
     Exit;
   end;
 
@@ -3893,7 +3893,7 @@ begin
         Inc(LemY);
         Dec(LemAscended);
       end;
-      Transition(L, baFalling, true); // turn around as well
+      Transition(L, baFalling, True); // turn around as well
     end;
   end;
 end;
@@ -3952,7 +3952,7 @@ begin
       Inc(L.LemY);
       if not LemSliderTerrainChecks(L, (L.LemPhysicsFrame * 2) - 3 + n) then
       begin
-        if L.LemAction = baDrowning then Result := false;
+        if L.LemAction = baDrowning then Result := False;
         Break;
       end;
     end;
@@ -3973,17 +3973,17 @@ begin
     NextX := NextX + L.LemDX;
 
   if (NextX < 0) or (NextX >= Level.Info.Width) then
-    Result := false
+    Result := False
   else if (not HasPixelAt(CurX, L.LemY)) or HasPixelAt(NextX, L.LemY) then
-    Result := false
+    Result := False
   else begin
-    Result := true;
+    Result := True;
 
     // Dehoist if cannot step down
     for n := 1 to 3 do
       if HasPixelAt(NextX, L.LemY + n) then
       begin
-        Result := false;
+        Result := False;
         Exit;
       end else if not HasPixelAt(CurX, L.LemY + n) then
         Break;
@@ -3997,13 +3997,13 @@ begin
   if ((L.LemX <= 0) and (L.LemDX = -1)) or ((L.LemX >= Level.Info.Width - 1) and (L.LemDX = 1)) then
     RemoveLemming(L, RM_NEUTRAL); // shouldn't get to this point but just in case
 
-  Result := true;
+  Result := True;
   for n := 0 to 1 do
   begin
     Inc(L.LemY);
     if not LemSliderTerrainChecks(L) then
     begin
-      if L.LemAction = baDrowning then Result := false;
+      if L.LemAction = baDrowning then Result := False;
       Break;
     end;
   end;
@@ -4017,16 +4017,16 @@ function TLemmingGame.LemSliderTerrainChecks(L: TLemming; MaxYCheckOffset: Integ
       Result := HasPixelAt(X, Y+1);
   end;
 begin
-  Result := true;
+  Result := True;
 
   if SliderHasPixelAt(L.LemX, L.LemY) and not SliderHasPixelAt(L.LemX, L.LemY-1) then
   begin
     Transition(L, baWalking);
-    Result := false;
+    Result := False;
   end else if not SliderHasPixelAt(L.LemX, L.LemY - Min(MaxYCheckOffset, 7)) then
   begin
     Transition(L, baFalling);
-    Result := false;
+    Result := False;
   end else if SliderHasPixelAt(L.LemX, L.LemY) then
   begin
     if HasTriggerAt(L.LemX - L.LemDX, L.LemY, trWater, L) then
@@ -4034,18 +4034,18 @@ begin
       Dec(L.LemX, L.LemDX);
       if L.LemIsSwimmer then
       begin
-        Transition(L, baSwimming, true);
+        Transition(L, baSwimming, True);
         CueSoundEffect(SFX_SWIMMING, L.Position);
       end else begin
-        Transition(L, baDrowning, true);
+        Transition(L, baDrowning, True);
         CueSoundEffect(SFX_DROWNING, L.Position);
       end;
-      Result := false;
+      Result := False;
     end else if SliderHasPixelAt(L.LemX - L.LemDX, L.LemY) then
     begin
       Dec(L.LemX, L.LemDX);
-      Transition(L, baWalking, true);
-      Result := false;
+      Transition(L, baWalking, True);
+      Result := False;
     end;
   end;
 end;
@@ -4230,7 +4230,7 @@ begin
   end;
 
   if L.LemPhysicsFrame = 0 then
-    L.LemConstructivePositionFreeze := false;
+    L.LemConstructivePositionFreeze := False;
 end;
 
 
@@ -4283,7 +4283,7 @@ begin
   end;
 
   if L.LemPhysicsFrame = 0 then
-    L.LemConstructivePositionFreeze := false;
+    L.LemConstructivePositionFreeze := False;
 end;
 
 
@@ -4400,7 +4400,7 @@ var
     // Make deep copy of the lemming
     CopyL := TLemming.Create;
     CopyL.Assign(L);
-    CopyL.LemIsPhysicsSimulation := true;
+    CopyL.LemIsPhysicsSimulation := True;
 
     // Make a deep copy of the PhysicsMap
     SavePhysicsMap := TBitmap32.Create;
@@ -4438,7 +4438,7 @@ var
       end
       // Check if we are still a basher
       else if CopyL.LemRemoved or not (CopyL.LemAction = baBashing) then
-        Break; // and return false
+        Break; // and return False
     end;
 
     // Copy PhysicsMap back
@@ -4491,10 +4491,10 @@ begin
 
     LemDy := FindGroundPixel(L.LemX, L.LemY);
 
-    if (LemDy > 0) and L.LemIsSlider and LemCanDehoist(L, true) then
+    if (LemDy > 0) and L.LemIsSlider and LemCanDehoist(L, True) then
     begin
       Dec(L.LemX, L.LemDX);
-      Transition(L, baDehoisting, true);
+      Transition(L, baDehoisting, True);
     end
 
     else if LemDy = 4 then
@@ -4626,7 +4626,7 @@ var
     // Make deep copy of the lemming
     CopyL := TLemming.Create;
     CopyL.Assign(L);
-    CopyL.LemIsPhysicsSimulation := true;
+    CopyL.LemIsPhysicsSimulation := True;
 
     // Make a deep copy of the PhysicsMap
     SavePhysicsMap := TBitmap32.Create;
@@ -4660,7 +4660,7 @@ var
 
       // Check if we've moved upwards
       if (CopyL.LemY < L.LemY) then
-        MoveUpContinue := true;
+        MoveUpContinue := True;
 
       // Check if we have turned around at steel
       if (CopyL.LemDX = -L.LemDX) and (CopyL.LemAction <> baDehoisting) then
@@ -4671,7 +4671,7 @@ var
 
       // Check if we are still a fencer
       else if CopyL.LemRemoved or not (CopyL.LemAction = baFencing) then
-        Break; // and return false
+        Break; // and return False
     end;
 
     // Copy PhysicsMap back
@@ -4690,7 +4690,7 @@ begin
     ApplyFencerMask(L, L.LemPhysicsFrame - 2);
 
   if L.LemPhysicsFrame = 15 then
-    L.LemIsStartingAction := false;
+    L.LemIsStartingAction := False;
 
   // Check for enough terrain to continue working
   if L.LemPhysicsFrame = 5 then
@@ -4710,7 +4710,7 @@ begin
 
     // check whether we turn around within the next two fencer strokes (only if we don't simulate)
     if not L.LemIsPhysicsSimulation then
-      if not (ContinueWork and L.LemIsStartingAction) then // if BOTH of these are true, then both things being tested for are irrelevant
+      if not (ContinueWork and L.LemIsStartingAction) then // if BOTH of these are True, then both things being tested for are irrelevant
       begin
         DoFencerContinueTests(L, SteelContinue, MoveUpContinue);
 
@@ -4741,16 +4741,16 @@ begin
     begin
       Dec(L.LemY, 1);
       LemDy := 0;
-      NeedUndoMoveUp := true;
+      NeedUndoMoveUp := True;
       // This is to ignore the effect of the fencer's own slope on determining how far it can step up or down.
       // I'm starting to think I should've based the Fencer code off Miner rather than Basher...
     end else
-      NeedUndoMoveUp := false;
+      NeedUndoMoveUp := False;
 
-    if (LemDy > 0) and L.LemIsSlider and LemCanDehoist(L, true) then
+    if (LemDy > 0) and L.LemIsSlider and LemCanDehoist(L, True) then
     begin
       Dec(L.LemX, L.LemDX);
-      Transition(L, baDehoisting, true);
+      Transition(L, baDehoisting, True);
     end
 
     else if LemDy = 4 then
@@ -4968,7 +4968,7 @@ const
 
     CheckX: Integer;
   begin
-    Result := false;
+    Result := False;
 
     case L.LemJumpProgress of
       0..1: PatternIndex := 0;
@@ -5009,7 +5009,7 @@ const
                 L.LemX := CheckX;
                 L.LemY := L.LemY - n + 5;
                 fLemNextAction := baHoisting;
-                fLemJumpToHoistAdvance := true;
+                fLemJumpToHoistAdvance := True;
               end else begin
                 L.LemX := CheckX;
                 L.LemY := L.LemY - n + 8;
@@ -5062,7 +5062,7 @@ const
       DoJumperTriggerChecks;
 
       if FirstStepSpecialHandling then
-        FirstStepSpecialHandling := false
+        FirstStepSpecialHandling := False
       else if HasPixelAt(L.LemX, L.LemY) then // Foot check
       begin
         fLemNextAction := baWalking;
@@ -5070,7 +5070,7 @@ const
       end;
     end;
 
-    Result := true;
+    Result := True;
   end;
 begin
   if MakeJumpMovement then
@@ -5082,7 +5082,7 @@ begin
       fLemNextAction := baWalking;
   end;
 
-  Result := true;
+  Result := True;
 end;
 
 function TLemmingGame.FindGroundPixel(x, y: Integer): Integer;
@@ -5142,19 +5142,19 @@ begin
 
   else if L.LemPhysicsFrame in [3, 15] then
   begin
-    if L.LemIsSlider and LemCanDehoist(L, false) then
+    if L.LemIsSlider and LemCanDehoist(L, False) then
     begin
-      Transition(L, baDehoisting, true);
+      Transition(L, baDehoisting, True);
       Exit;
     end;
 
     Inc(L.LemX, 2*L.LemDx);
     Inc(L.LemY);
 
-    if L.LemIsSlider and LemCanDehoist(L, true) then
+    if L.LemIsSlider and LemCanDehoist(L, True) then
     begin
       Dec(L.LemX, L.LemDX);
-      Transition(L, baDehoisting, true);
+      Transition(L, baDehoisting, True);
       Exit;
     end;
 
@@ -5222,19 +5222,19 @@ var
 
   function CheckFloaterOrGliderTransition: Boolean;
   begin
-    Result := false;
+    Result := False;
 
     if L.LemIsFloater and (L.LemTrueFallen > 16) and (CurrFallDist = 0) then
     begin
       // Depending on updrafts, this happens on the 6th-8th frame
       Transition(L, baFloating);
-      Result := true;
+      Result := True;
     end else if L.LemIsGlider and
       ((L.LemTrueFallen > 8) or
        ((L.LemInitialFall) and (L.LemTrueFallen > 6))) then
     begin
       Transition(L, baGliding);
-      Result := true;
+      Result := True;
     end;
   end;
 begin
@@ -5340,7 +5340,7 @@ var
       OneWayCheckType: TTriggerTypes;
     begin
       // Check at LemY +1, +2, +3 for (a) solid terrain, or (b) a one-way field that will turn the lemming around
-      Result := false;
+      Result := False;
 
       if L.LemDX > 0 then
         OneWayCheckType := trForceLeft
@@ -5352,7 +5352,7 @@ var
                 HasTriggerAt(L.LemX + L.LemDX, L.LemY + i, OneWayCheckType)) then
           Exit;
 
-      Result := true;
+      Result := True;
     end;
   begin
     // Move upwards if in updraft
@@ -5405,7 +5405,7 @@ begin
 
   if GroundDist < -4 then // pushed down or turn around
   begin
-    if DoTurnAround(L, false) then
+    if DoTurnAround(L, False) then
     begin
       // move back and turn around
       Dec(L.LemX, L.LemDx);
@@ -5542,7 +5542,7 @@ begin
 end;
 
 
-procedure TLemmingGame.RemoveLemming(L: TLemming; RemMode: Integer = 0; Silent: Boolean = false);
+procedure TLemmingGame.RemoveLemming(L: TLemming; RemMode: Integer = 0; Silent: Boolean = False);
 begin
   if IsSimulating then Exit;
 
@@ -5593,7 +5593,7 @@ procedure TLemmingGame.UpdateLemmings;
   The main method: handling a single frame of the game.
 -------------------------------------------------------------------------------}
 begin
-  fDoneAssignmentThisFrame := false;
+  fDoneAssignmentThisFrame := False;
 
   // Don't update if the game is finished, or we've reached an unplayable state
   if fGameFinished or StateIsUnplayable then
@@ -5609,7 +5609,7 @@ begin
   if fExistShadow then
   begin
     fRenderer.ClearShadows;
-    fExistShadow := false;
+    fExistShadow := False;
   end;
 
   // just as a warning: do *not* mess around with the order here
@@ -5665,10 +5665,10 @@ begin
     else if GameParams.CurrentLevel.Status = lst_None then
       GameParams.CurrentLevel.Status := lst_Attempted;
 
-    GameParams.CurrentLevel.WriteNewRecords(NewRecs, true);
+    GameParams.CurrentLevel.WriteNewRecords(NewRecs, True);
   end else begin
     NewRecs.SetNameOnAll(fReplayManager.PlayerName);
-    GameParams.CurrentLevel.WriteNewRecords(NewRecs, false);
+    GameParams.CurrentLevel.WriteNewRecords(NewRecs, False);
   end;
 end;
 
@@ -5682,12 +5682,12 @@ var
   var
     i: Integer;
   begin
-    Result := false;
+    Result := False;
     for i := 0 to Gadgets.Count-1 do
       if   (Gadgets[i].TriggerEffect = DOM_WINDOW)
         and Gadgets[i].IsPreassignedZombie then
       begin
-        Result := true;
+        Result := True;
         Exit;
       end;
   end;
@@ -5724,7 +5724,7 @@ begin
           begin
             Gadgets[i].Triggered := True;
             Gadgets[i].CurrentFrame := 1;
-            HatchesOpened := true;
+            HatchesOpened := True;
             Inc(HatchOpenCount);
             AX := AX + Gadgets[i].Center.X;
             AY := AY + Gadgets[i].Center.Y;
@@ -5746,12 +5746,12 @@ begin
 end;
 
 
-procedure TLemmingGame.HitTest(Autofail: Boolean = false);
+procedure TLemmingGame.HitTest(Autofail: Boolean = False);
 var
   HitCount: Integer;
   L, OldLemSelected: TLemming;
 begin
-  if Autofail then fHitTestAutoFail := true;
+  if Autofail then fHitTestAutoFail := True;
 
   OldLemSelected := fRenderInterface.SelectedLemming;
   // Shadow stuff for updated selected lemming
@@ -5770,7 +5770,7 @@ begin
   LastHitCount := HitCount;
 end;
 
-function TLemmingGame.ProcessSkillAssignment(IsHighlight: Boolean = false): Boolean;
+function TLemmingGame.ProcessSkillAssignment(IsHighlight: Boolean = False): Boolean;
 var
   Sel: TBasicLemmingAction;
 begin
@@ -5832,7 +5832,7 @@ begin
     if (L <> nil) and (Skill in AssignableSkills) then
     begin
       fTargetLemmingID := L.LemIndex;
-      AssignNewSkill(Skill, false, true);
+      AssignNewSkill(Skill, False, True);
     end;
 
   end;
@@ -5858,9 +5858,9 @@ procedure TLemmingGame.SetSelectedSkill(Value: TSkillPanelButton; MakeActive: Bo
   var
     i: Integer;
   begin
-    Result := false;
+    Result := False;
     for i := 0 to MAX_SKILL_TYPES_PER_LEVEL - 1 do
-      if fActiveSkills[i] = Value then Result := true;
+      if fActiveSkills[i] = Value then Result := True;
   end;
 begin
 
@@ -5920,8 +5920,8 @@ begin
 
         if RightClick and (GetHighlitLemming <> nil) and (SkillPanelButtonToAction[Value] <> baNone) then
         begin
-          if ProcessSkillAssignment(true) then
-            fRenderInterface.ForceUpdate := true
+          if ProcessSkillAssignment(True) then
+            fRenderInterface.ForceUpdate := True
           else
             PlayAssignFailSound(True);
         end;
@@ -5959,7 +5959,7 @@ begin
           Transition(NewLemming, baFalling);
 
           if LemAction = baFalling then // could be a walker if eg. spawned inside terrain
-            LemInitialFall := true;
+            LemInitialFall := True;
 
           LemX := Gadgets[ix].TriggerRect.Left;
           LemY := Gadgets[ix].TriggerRect.Top;
@@ -5977,11 +5977,11 @@ begin
           if Gadgets[ix].IsPreassignedZombie then
           begin
             Dec(fSpawnedDead);
-            RemoveLemming(NewLemming, RM_ZOMBIE, true);
+            RemoveLemming(NewLemming, RM_ZOMBIE, True);
           end;
 
           if Gadgets[ix].IsPreassignedNeutral then
-            LemIsNeutral := true;
+            LemIsNeutral := True;
 
           if Gadgets[ix].RemainingLemmingsCount > 0 then
           begin
@@ -6098,9 +6098,9 @@ begin
   if Level.Info.SpawnIntervalLocked
   or (aSI < MINIMUM_SI)
   or (aSI > Level.Info.SpawnInterval) then
-    Result := false
+    Result := False
   else
-    Result := true;
+    Result := True;
 end;
 
 function TLemmingGame.CheckIfZombiesRemain: Boolean;
@@ -6108,7 +6108,7 @@ var
   i: Integer;
   ReleaseOffset: Integer;
 begin
-  Result := true;
+  Result := True;
 
   for i := 0 to LemmingList.Count-1 do
     if LemmingList[i].LemIsZombie and not LemmingList[i].LemRemoved then
@@ -6123,7 +6123,7 @@ begin
         Exit;
   end;
 
-  Result := false;
+  Result := False;
 end;
 
 procedure TLemmingGame.AdjustSpawnInterval(aSI: Integer);
@@ -6165,7 +6165,7 @@ begin
   E.AddedByInsert := ReplayInsert;
 
   fReplayManager.Add(E);
-  CheckForReplayAction(true);
+  CheckForReplayAction(True);
 end;
 
 procedure TLemmingGame.RecordSkillAssignment(L: TLemming; aSkill: TBasicLemmingAction);
@@ -6184,7 +6184,7 @@ begin
   fReplayManager.Add(E);
 end;
 
-procedure TLemmingGame.CheckForReplayAction(PausedRRCheck: Boolean = false);
+procedure TLemmingGame.CheckForReplayAction(PausedRRCheck: Boolean = False);
 var
   R: TBaseReplayItem;
   i: Integer;
@@ -6213,10 +6213,10 @@ var
 
   function Handle: Boolean;
   begin
-    Result := false;
+    Result := False;
     if R = nil then Exit;
 
-    Result := true;
+    Result := True;
 
     if R is TReplaySkillAssignment then
       ApplySkillAssign;
@@ -6404,7 +6404,7 @@ begin
           Inc(L.LemPhysicsFrame, 2);
         end;
         fLemNextAction := baNone;
-        fLemJumpToHoistAdvance := false;
+        fLemJumpToHoistAdvance := False;
       end;
 
       if    (    HasTriggerAt(LemPosArray[0, i], LemPosArray[1, i], trTrap)
@@ -6528,7 +6528,7 @@ var
   i: Integer;
 begin
   // Check for trigger areas.
-  CheckTriggerArea(L, true);
+  CheckTriggerArea(L, True);
 
   // Reset blocker map, if lemming is a blocker and the target position is free
   if L.LemAction = baBlocking then
@@ -6543,7 +6543,7 @@ begin
   end;
 
   if (L.LemAction in [baBuilding, baPlatforming]) and (L.LemPhysicsFrame >= 9) then
-    L.LemConstructivePositionFreeze := true;
+    L.LemConstructivePositionFreeze := True;
 
   if (L.LemAction = baBuilding) and ((L.LemNumberOfBricksLeft < 12) or (L.LemPhysicsFrame >= 9)) then
   begin
@@ -6586,7 +6586,7 @@ begin
   end;
 end;
 
-procedure TLemmingGame.RegainControl(Force: Boolean = false);
+procedure TLemmingGame.RegainControl(Force: Boolean = False);
 begin
   if ReplayInsert and not Force then Exit;
 
@@ -6701,7 +6701,7 @@ var
 begin
   CustomAssert(aAction in AssignableSkills, 'CheckSkillAvailable for not assignable skill');
 
-  HasSkillButton := false;
+  HasSkillButton := False;
   for i := 0 to MAX_SKILL_TYPES_PER_LEVEL - 1 do
     HasSkillButton := HasSkillButton or (fActiveSkills[i] = ActionToSkillPanelButton[aAction]);
 
@@ -6724,7 +6724,7 @@ begin
   BMP := TBitmap32.Create;
   try
     fRenderer.DrawLevel(BMP);
-    TPngInterface.SavePngFile(Filename, BMP, true);
+    TPngInterface.SavePngFile(Filename, BMP, True);
   finally
     BMP.Free;
   end;

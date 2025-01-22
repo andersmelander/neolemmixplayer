@@ -96,7 +96,7 @@ begin
   if (ReplayNaming[CR_PASS].Action = rnaDelete) or
      (ReplayNaming[CR_PASS_TALISMAN].Action = rnaDelete) then
   begin
-    if RunCustomPopup(self, 'Delete successful replays?',
+    if RunCustomPopup(Self, 'Delete successful replays?',
                       'You have selected to delete pass and/or pass-with-talisman replays. Are you sure?',
                       'Yes|No') = 1 then
       ModalResult := mrOk;
@@ -109,8 +109,8 @@ begin
   if fIsSetting then
     Exit;
 
-  lblClassic.Visible := false;
-  SetToOptions(true, false);
+  lblClassic.Visible := False;
+  SetToOptions(True, False);
 end;
 
 procedure TFReplayNaming.cbNamingSchemeEnter(Sender: TObject);
@@ -124,8 +124,8 @@ begin
   if fIsSetting then
     Exit;
 
-  lblClassic.Visible := false;
-  SetToOptions(false, true);
+  lblClassic.Visible := False;
+  SetToOptions(False, True);
 end;
 
 class procedure TFReplayNaming.ClearNamingSettings;
@@ -137,7 +137,7 @@ begin
   for i := 0 to Length(ReplayNaming)-1 do
   begin
     ReplayNaming[i].Action := rnaNone;
-    ReplayNaming[i].Refresh := false;
+    ReplayNaming[i].Refresh := False;
     ReplayNaming[i].Template := NewPattern;
   end;
 end;
@@ -174,24 +174,24 @@ begin
   if fIsSetting then
     Exit;
 
-  lblClassic.Visible := false;
+  lblClassic.Visible := False;
 
-  fIsSetting := true;
+  fIsSetting := True;
   try
     if not (rbCopyTo.Checked or rbMoveTo.Checked) then
     begin
       cbNamingScheme.Text := '';
-      cbNamingScheme.Enabled := false;
+      cbNamingScheme.Enabled := False;
     end else if not cbNamingScheme.Enabled then
     begin
       cbNamingScheme.ItemIndex := 0;
-      cbNamingScheme.Enabled := true;
+      cbNamingScheme.Enabled := True;
     end;
   finally
-    fIsSetting := false;
+    fIsSetting := False;
   end;
 
-  SetToOptions(true, false);
+  SetToOptions(True, False);
 end;
 
 procedure TFReplayNaming.rgReplayKindClick(Sender: TObject);
@@ -199,7 +199,7 @@ begin
   if fIsSetting then
     Exit;
 
-  lblClassic.Visible := false;
+  lblClassic.Visible := False;
   SetFromOptions;
 end;
 
@@ -208,17 +208,17 @@ var
   ToSet: TIntArray;
   i: Integer;
 begin
-  fIsSetting := true;
+  fIsSetting := True;
 
   try
     gbAction.Caption := 'Action for ' + Lowercase(rgReplayKind.Items[rgReplayKind.ItemIndex]);
     ToSet := GetSettingIndexes(rgReplayKind.ItemIndex);
 
     case ReplayNaming[ToSet[0]].Action of
-      rnaNone: rbDoNothing.Checked := true;
-      rnaDelete: rbDeleteFile.Checked := true;
-      rnaCopy: rbCopyTo.Checked := true;
-      rnaMove: rbMoveTo.Checked := true;
+      rnaNone: rbDoNothing.Checked := True;
+      rnaDelete: rbDeleteFile.Checked := True;
+      rnaCopy: rbCopyTo.Checked := True;
+      rnaMove: rbMoveTo.Checked := True;
     end;
     SetNamingDropdown(ReplayNaming[ToSet[0]].Template);
     cbRefresh.Checked := ReplayNaming[ToSet[0]].Refresh;
@@ -227,25 +227,25 @@ begin
     begin
       if ReplayNaming[ToSet[i]].Action <> ReplayNaming[ToSet[0]].Action then
       begin
-        rbDoNothing.Checked := false;
-        rbDeleteFile.Checked := false;
-        rbCopyTo.Checked := false;
-        rbMoveTo.Checked := false;
+        rbDoNothing.Checked := False;
+        rbDeleteFile.Checked := False;
+        rbCopyTo.Checked := False;
+        rbMoveTo.Checked := False;
       end;
       if ReplayNaming[ToSet[i]].Template <> ReplayNaming[ToSet[0]].Template then
         cbNamingScheme.Text := '';
       if ReplayNaming[ToSet[i]].Refresh <> ReplayNaming[ToSet[0]].Refresh then
-        cbRefresh.Checked := false;
+        cbRefresh.Checked := False;
     end;
 
     if not (rbCopyTo.Checked or rbMoveTo.Checked) then
     begin
       cbNamingScheme.Text := '';
-      cbNamingScheme.Enabled := false;
+      cbNamingScheme.Enabled := False;
     end else
-      cbNamingScheme.Enabled := true;
+      cbNamingScheme.Enabled := True;
   finally
-    fIsSetting := false;
+    fIsSetting := False;
   end;
 end;
 

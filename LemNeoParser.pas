@@ -43,7 +43,7 @@ Although direct access is possible, the recommended ways to get lines or subsect
     In the event that more than one line / section with the keyword exist, the LAST one in the file is returned.
   In the case that multiple occurances may be expected:
     Define a procedure (may be private) in the class that's loading the file, of the following format. This can
-    either be a procedure of the object itself, or a sub-procedure of another method.
+    either be a procedure of the object itSelf, or a sub-procedure of another method.
       procedure <name>(aLine: TParserLine; const aIteration: Integer);
       procedure <name>(aLine: TParserLine; const aIteration: Integer; aData: Pointer);
       procedure <name>(aSection: TParserSection; const aIteration: Integer);
@@ -54,7 +54,7 @@ Although direct access is possible, the recommended ways to get lines or subsect
     This effectively works like the following code would be expected to if it were valid:
       for each Item := TParserLine in <TParserSection>.LineList do
         <name>(Item, # of previous Item found[, <pointer>]);
-    The pointer, if used, is not used by DoForEachXXXX itself, but simply passed to the function it calls.
+    The pointer, if used, is not used by DoForEachXXXX itSelf, but simply passed to the function it calls.
 
 >> Saving
 Create a TParser object. The main section will be created, but empty, and can be accessed as <TParser>.MainSection.
@@ -651,7 +651,7 @@ constructor TParserSectionList.Create;
 var
   aOwnsObjects: Boolean;
 begin
-  aOwnsObjects := true;
+  aOwnsObjects := True;
   inherited Create(aOwnsObjects);
 end;
 
@@ -682,7 +682,7 @@ constructor TParserLineList.Create;
 var
   aOwnsObjects: Boolean;
 begin
-  aOwnsObjects := true;
+  aOwnsObjects := True;
   inherited Create(aOwnsObjects);
 end;
 

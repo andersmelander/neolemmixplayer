@@ -32,7 +32,7 @@ type
       procedure Load;
 
       procedure DrawText(Dst: TBitmap32; const S: string; X, Y: Integer; aRestoreBuffer: TBitmap32 = nil);
-      procedure DrawTextCentered(Dst: TBitmap32; const S: string; Y: Integer; aRestoreBuffer: TBitmap32 = nil; EraseOnly: Boolean = false);
+      procedure DrawTextCentered(Dst: TBitmap32; const S: string; Y: Integer; aRestoreBuffer: TBitmap32 = nil; EraseOnly: Boolean = False);
       function GetTextSize(const S: String): TRect;
 
       property BitmapOfChar[Ch: Char]: TBitmap32 read GetBitmapOfChar;

@@ -96,7 +96,7 @@ begin
     begin
       if GameParams.EnableOnline then
       begin
-        case RunCustomPopup(self, 'Missing styles',
+        case RunCustomPopup(Self, 'Missing styles',
           'Some pieces used by this level are missing. Do you want to attempt to download missing styles?',
           'Yes|No|Open Style Manager') of
           1:
@@ -106,7 +106,7 @@ begin
             end;
           3:
             begin
-              F := TFManageStyles.Create(self);
+              F := TFManageStyles.Create(Self);
               try
                 F.ShowModal;
               finally
@@ -175,7 +175,7 @@ begin
   case aButton of
     mbLeft: BeginPlay;
     mbRight: ExitToMenu;
-    mbMiddle: begin GameParams.ShownText := false; BeginPlay; end;
+    mbMiddle: begin GameParams.ShownText := False; BeginPlay; end;
   end;
 end;
 
@@ -254,7 +254,7 @@ var
   SaveName: String;
   TempBitmap: TBitmap32;
 begin
-  Dlg := TSaveDialog.Create(self);
+  Dlg := TSaveDialog.Create(Self);
   Dlg.Filter := 'PNG Image (*.png)|*.png';
   Dlg.FilterIndex := 1;
   Dlg.DefaultExt := '.png';
@@ -270,7 +270,7 @@ begin
   TempBitmap := TBitmap32.Create;
   TempBitmap.SetSize(GameParams.Level.Info.Width * ResMod, GameParams.Level.Info.Height * ResMod);
   GameParams.Renderer.RenderWorld(TempBitmap, not GameParams.NoBackgrounds);
-  TPngInterface.SavePngFile(SaveName, TempBitmap, true);
+  TPngInterface.SavePngFile(SaveName, TempBitmap, True);
   TempBitmap.Free;
 end;
 
@@ -353,7 +353,7 @@ begin
   for i := 0 to fTalRects.Count-1 do
     if PtInRect(fTalRects[i], P) then
     begin
-      F := TLevelInfoPanel.Create(self, nil, fTalismanImage);
+      F := TLevelInfoPanel.Create(Self, nil, fTalismanImage);
       try
         F.Level := GameParams.Level;
         F.Talisman := GameParams.Level.Talismans[i];
@@ -385,7 +385,7 @@ begin
   if GameParams.Level.Talismans.Count = 0 then
     Exit;
 
-  KeepTalismans := false;
+  KeepTalismans := False;
 
   if fTalismanImage = nil then
     fTalismanImage := TBitmap32.Create;
@@ -396,7 +396,7 @@ begin
     if LoadPath = '' then
       LoadPath := AppPath + SFGraphicsMenu + 'talismans.png'
     else
-      KeepTalismans := true;
+      KeepTalismans := True;
 
     TPngInterface.LoadPngFile(LoadPath, fTalismanImage);
     fTalismanImage.DrawMode := dmOpaque;

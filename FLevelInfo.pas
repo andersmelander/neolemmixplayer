@@ -114,16 +114,16 @@ begin
     fIcons := TBitmap32.Create;
     TPNGInterface.LoadPngFile(AppPath + SFGraphicsMenu + 'levelinfo_icons.png', fIcons);
     fIcons.DrawMode := dmBlend;
-    fOwnIcons := true;
+    fOwnIcons := True;
   end else if fTalismanOverrideBMP <> nil then
   begin
     fIcons := TBitmap32.Create;
     fIcons.Assign(aIconBMP);
     fIcons.DrawMode := dmBlend;
-    fOwnIcons := true;
+    fOwnIcons := True;
   end else begin
     fIcons := aIconBMP;
-    fOwnIcons := false;
+    fOwnIcons := False;
   end;
 
   if fTalismanOverrideBMP <> nil then
@@ -207,7 +207,7 @@ procedure TLevelInfoPanel.Wipe;
 var
   i: Integer;
 begin
-  btnClose.Visible := false;
+  btnClose.Visible := False;
 
   for i := ControlCount-1 downto 0 do
     if (Controls[i] <> btnClose) then
@@ -223,15 +223,15 @@ var
   NewImage: TImage32;
   NewLabel: TLabel;
 begin
-  NewImage := TImage32.Create(self);
-  NewImage.Parent := self;
+  NewImage := TImage32.Create(Self);
+  NewImage.Parent := Self;
   NewImage.Width := fAdjustedSizing.IconSize;
   NewImage.Height := fAdjustedSizing.IconSize;
   NewImage.ScaleMode := smResize;
   TLinearResampler.Create(NewImage.Bitmap);
 
-  NewLabel := TLabel.Create(self);
-  NewLabel.Parent := self;
+  NewLabel := TLabel.Create(Self);
+  NewLabel.Parent := Self;
   NewLabel.Font.Style := [fsBold];
 
   DrawIcon(aIcon, NewImage.Bitmap);
@@ -242,9 +242,9 @@ begin
   if aHintText <> '' then
   begin
     NewLabel.Hint := aHintText;
-    NewLabel.ShowHint := true;
+    NewLabel.ShowHint := True;
     NewImage.Hint := aHintText;
-    NewImage.ShowHint := true;
+    NewImage.ShowHint := True;
   end;
 
   if aTextOnRight then
@@ -263,8 +263,8 @@ begin
   fMinSize.X := Max(fMinSize.X, Max(NewImage.Left + NewImage.Width, NewLabel.Left + NewLabel.Width) + fAdjustedSizing.PaddingSize);
   fMinSize.Y := Max(fMinSize.Y, Max(NewImage.Top + NewImage.Height, NewLabel.Top + NewLabel.Height) + fAdjustedSizing.PaddingSize);
 
-  NewLabel.Visible := true;
-  NewImage.Visible := true;
+  NewLabel.Visible := True;
+  NewImage.Visible := True;
 
   Reposition(aMovement);
 end;
@@ -293,8 +293,8 @@ begin
   // Components' LEFT is set during creation
   // Components' TOP is set at the end
 
-  Img := TImage32.Create(self);
-  Img.Parent := self;
+  Img := TImage32.Create(Self);
+  Img.Parent := Self;
   Img.Width := fAdjustedSizing.IconSize;
   Img.Height := fAdjustedSizing.IconSize;
   Img.Left := fCurrentPos.X;
@@ -311,8 +311,8 @@ begin
 
   if fTalisman.Title <> '' then
   begin
-    LblTitle := TLabel.Create(self);
-    LblTitle.Parent := self;
+    LblTitle := TLabel.Create(Self);
+    LblTitle.Parent := Self;
     LblTitle.Font.Style := [fsBold];
     LblTitle.Caption := fTalisman.Title;
     LblTitle.Left := fCurrentPos.X + Img.Width + fAdjustedSizing.PaddingSize;
@@ -320,8 +320,8 @@ begin
   end else
     LblTitle := nil;
 
-  LblRequirement := TLabel.Create(self);
-  LblRequirement.Parent := self;
+  LblRequirement := TLabel.Create(Self);
+  LblRequirement.Parent := Self;
   LblRequirement.Caption := MakeWrappedRequirementText;
   LblRequirement.Left := fCurrentPos.X + Img.Width + fAdjustedSizing.PaddingSize;
   LabelHeight := LabelHeight + LblRequirement.Height;
@@ -388,7 +388,7 @@ begin
 
   fMinSize.Y := btnClose.Top + btnClose.Height + fAdjustedSizing.PaddingSize;
 
-  btnClose.Visible := true;
+  btnClose.Visible := True;
 end;
 
 procedure TLevelInfoPanel.AddDummy(aTextOnRight: Boolean;
@@ -408,15 +408,15 @@ begin
 
   if AvailHeight < fAdjustedSizing.MinPreviewHeight then Exit;
 
-  LevelImg := TImage32.Create(self);
-  LevelImg.Parent := self;
+  LevelImg := TImage32.Create(Self);
+  LevelImg.Parent := Self;
   LevelImg.ScaleMode := smResize;
   LevelImg.BitmapAlign := baCenter;
 
   if (fLastRenderLevelID <> fLevel.Info.LevelID) or aForceRedraw then
   begin
     fLastRenderLevelID := fLevel.Info.LevelID;
-    GameParams.Renderer.RenderWorld(fLevelImage, true);
+    GameParams.Renderer.RenderWorld(fLevelImage, True);
   end;
 
   LevelImg.Bitmap.Assign(fLevelImage);
@@ -531,20 +531,20 @@ procedure TLevelInfoPanel.ShowPopup;
     Result := 0;
 
     if (fTalisman.RescueCount > fLevel.Info.RescueCount) then
-      LocalAdd(ICON_SAVE_REQUIREMENT, fTalisman.RescueCount, false, pmMoveHorz, COLOR_TALISMAN_RESTRICTION);
+      LocalAdd(ICON_SAVE_REQUIREMENT, fTalisman.RescueCount, False, pmMoveHorz, COLOR_TALISMAN_RESTRICTION);
 
     if (Talisman.TimeLimit > 0) and
        ((not fLevel.Info.HasTimeLimit) or (Talisman.TimeLimit < fLevel.Info.TimeLimit * 17)) then
       LocalAdd(ICON_TIME_LIMIT,
         IntToStr(Talisman.TimeLimit div (60 * 17)) + ':' + LeadZeroStr((Talisman.TimeLimit div 17) mod 60, 2) + '.' +
           LeadZeroStr(Round((Talisman.TimeLimit mod 17) / 17 * 100), 2),
-          false, pmMoveHorz, COLOR_TALISMAN_RESTRICTION);
+          False, pmMoveHorz, COLOR_TALISMAN_RESTRICTION);
 
     if Talisman.TotalSkillLimit >= 0 then
-      LocalAdd(ICON_MAX_SKILLS, IntToStr(Talisman.TotalSkillLimit), false, pmMoveHorz, COLOR_TALISMAN_RESTRICTION);
+      LocalAdd(ICON_MAX_SKILLS, IntToStr(Talisman.TotalSkillLimit), False, pmMoveHorz, COLOR_TALISMAN_RESTRICTION);
 
     if Talisman.SkillTypeLimit >= 0 then
-      LocalAdd(ICON_MAX_SKILL_TYPES, IntToStr(Talisman.SkillTypeLimit), false, pmMoveHorz, COLOR_TALISMAN_RESTRICTION);
+      LocalAdd(ICON_MAX_SKILL_TYPES, IntToStr(Talisman.SkillTypeLimit), False, pmMoveHorz, COLOR_TALISMAN_RESTRICTION);
 
     for Skill := Low(TSkillPanelButton) to LAST_SKILL_BUTTON do
       if Skill in fLevel.Info.Skillset then
@@ -557,7 +557,7 @@ procedure TLevelInfoPanel.ShowPopup;
           TalCount := Talisman.SkillLimit[Skill];
 
           if TalCount < BaseCount + PickupCount then
-            LocalAdd(ICON_SKILLS[Skill], TalCount, false, pmMoveHorz, COLOR_TALISMAN_RESTRICTION);
+            LocalAdd(ICON_SKILLS[Skill], TalCount, False, pmMoveHorz, COLOR_TALISMAN_RESTRICTION);
         end;
       end;
   end;
@@ -602,7 +602,7 @@ begin
 
     Wipe;
 
-    ReqCount := AddRequirements(true);
+    ReqCount := AddRequirements(True);
     ReqWidth := fAdjustedSizing.NormalSpacing * ReqCount - 8;
 
     AddTalisman(Max(ReqWidth, MIN_CENTER_REQ_COUNT * fAdjustedSizing.NormalSpacing - 8));
@@ -612,7 +612,7 @@ begin
     else
       RepositionExistingControls(ReqWidth + fAdjustedSizing.PaddingSize * 2);
 
-    AddRequirements(false);
+    AddRequirements(False);
 
     AddClose;
     ApplySize;
@@ -639,24 +639,24 @@ begin
 
   if fTalisman <> nil then
     if (GameParams.CurrentLevel.TalismanStatus[fTalisman.ID]) then
-      Add(ICON_TALISMAN[fTalisman.Color], fTalisman.Title, '', true, pmNextRowPadLeft)
+      Add(ICON_TALISMAN[fTalisman.Color], fTalisman.Title, '', True, pmNextRowPadLeft)
     else
-      Add(ICON_TALISMAN[fTalisman.Color] + ICON_TALISMAN_UNOBTAINED_OFFSET, fTalisman.Title, '', true, pmNextRowPadLeft);
+      Add(ICON_TALISMAN[fTalisman.Color] + ICON_TALISMAN_UNOBTAINED_OFFSET, fTalisman.Title, '', True, pmNextRowPadLeft);
 
-  Add(ICON_NORMAL_LEMMING, fLevel.Info.LemmingsCount - fLevel.Info.ZombieCount - fLevel.Info.NeutralCount, '', true, pmNextColumnSame);
+  Add(ICON_NORMAL_LEMMING, fLevel.Info.LemmingsCount - fLevel.Info.ZombieCount - fLevel.Info.NeutralCount, '', True, pmNextColumnSame);
 
   if fLevel.Info.NeutralCount > 0 then
-    Add(ICON_NEUTRAL_LEMMING, fLevel.Info.NeutralCount, '', true, pmNextColumnSame);
+    Add(ICON_NEUTRAL_LEMMING, fLevel.Info.NeutralCount, '', True, pmNextColumnSame);
 
   if fLevel.Info.ZombieCount > 0 then
-    Add(ICON_ZOMBIE_LEMMING, fLevel.Info.ZombieCount, '', true, pmNextColumnSame);
+    Add(ICON_ZOMBIE_LEMMING, fLevel.Info.ZombieCount, '', True, pmNextColumnSame);
 
   Reposition(pmNextRowLeft);
 
   if (fTalisman = nil) or (fTalisman.RescueCount <= fLevel.Info.RescueCount) then
-    Add(ICON_SAVE_REQUIREMENT, fLevel.Info.RescueCount, '', true, pmNextColumnSame)
+    Add(ICON_SAVE_REQUIREMENT, fLevel.Info.RescueCount, '', True, pmNextColumnSame)
   else
-    Add(ICON_SAVE_REQUIREMENT, fTalisman.RescueCount, '', true, pmNextColumnSame, COLOR_TALISMAN_RESTRICTION);
+    Add(ICON_SAVE_REQUIREMENT, fTalisman.RescueCount, '', True, pmNextColumnSame, COLOR_TALISMAN_RESTRICTION);
 
   if GameParams.SpawnInterval then
     SIVal := Level.Info.SpawnInterval
@@ -664,9 +664,9 @@ begin
     SIVal := SpawnIntervalToReleaseRate(Level.Info.SpawnInterval);
 
   if fLevel.Info.SpawnIntervalLocked or (fLevel.Info.SpawnInterval = 4) then
-    Add(ICON_RELEASE_RATE_LOCKED, SIVal, '', true, pmNextColumnSame)
+    Add(ICON_RELEASE_RATE_LOCKED, SIVal, '', True, pmNextColumnSame)
   else
-    Add(ICON_RELEASE_RATE, SIVal, '', true, pmNextColumnSame);
+    Add(ICON_RELEASE_RATE, SIVal, '', True, pmNextColumnSame);
 
   if (Talisman <> nil) and
      (Talisman.TimeLimit > 0) and
@@ -674,16 +674,16 @@ begin
     Add(ICON_TIME_LIMIT,
       IntToStr(Talisman.TimeLimit div (60 * 17)) + ':' + LeadZeroStr((Talisman.TimeLimit div 17) mod 60, 2) + '.' +
         LeadZeroStr(Round((Talisman.TimeLimit mod 17) / 17 * 100), 2), '',
-        true, pmNextColumnSame, COLOR_TALISMAN_RESTRICTION)
+        True, pmNextColumnSame, COLOR_TALISMAN_RESTRICTION)
   else if fLevel.Info.HasTimeLimit then
-    Add(ICON_TIME_LIMIT, IntToStr(fLevel.Info.TimeLimit div 60) + ':' + LeadZeroStr(fLevel.Info.TimeLimit mod 60, 2), '', true, pmNextColumnSame);
+    Add(ICON_TIME_LIMIT, IntToStr(fLevel.Info.TimeLimit div 60) + ':' + LeadZeroStr(fLevel.Info.TimeLimit mod 60, 2), '', True, pmNextColumnSame);
 
   if (Talisman <> nil) then
   begin
     if (Talisman.TotalSkillLimit >= 0) then
-      Add(ICON_MAX_SKILLS, IntToStr(Talisman.TotalSkillLimit), '', true, pmNextColumnShortSame, COLOR_TALISMAN_RESTRICTION);
+      Add(ICON_MAX_SKILLS, IntToStr(Talisman.TotalSkillLimit), '', True, pmNextColumnShortSame, COLOR_TALISMAN_RESTRICTION);
     if (Talisman.SkillTypeLimit >= 0) then
-      Add(ICON_MAX_SKILL_TYPES, IntToStr(Talisman.SkillTypeLimit), '', true, pmNextColumnSame, COLOR_TALISMAN_RESTRICTION);
+      Add(ICON_MAX_SKILL_TYPES, IntToStr(Talisman.SkillTypeLimit), '', True, pmNextColumnSame, COLOR_TALISMAN_RESTRICTION);
   end;
 
 
@@ -695,7 +695,7 @@ begin
       BaseCount := Min(fLevel.Info.SkillCount[Skill], 100);
       PickupCount := fLevel.GetPickupSkillCount(Skill);
 
-      IsTalismanLimit := false;
+      IsTalismanLimit := False;
 
       if (Talisman <> nil) and (Talisman.SkillLimit[Skill] >= 0) then
       begin
@@ -703,16 +703,16 @@ begin
 
         if TalCount < BaseCount then
         begin
-          IsTalismanLimit := true;
+          IsTalismanLimit := True;
           SkillString := IntToStr(TalCount);
         end else if TalCount < BaseCount + PickupCount then
         begin
-          IsTalismanLimit := true;
+          IsTalismanLimit := True;
           SkillString := IntToStr(TalCount) + ' (' + IntToStr(BaseCount + PickupCount - TalCount) + ')';
         end;
 
         if IsTalismanLimit then
-          Add(ICON_SKILLS[Skill], SkillString, '', false, pmMoveHorz, COLOR_TALISMAN_RESTRICTION);
+          Add(ICON_SKILLS[Skill], SkillString, '', False, pmMoveHorz, COLOR_TALISMAN_RESTRICTION);
       end;
 
       if not IsTalismanLimit then
@@ -722,12 +722,12 @@ begin
         if (PickupCount > 0) then
           SkillString := SkillString + ' (' + IntToStr(PickupCount) + ')';
 
-        Add(ICON_SKILLS[Skill], SkillString, '', false, pmMoveHorz);
+        Add(ICON_SKILLS[Skill], SkillString, '', False, pmMoveHorz);
       end;
     end;
 
   if fCurrentPos.X = fAdjustedSizing.PaddingSize then
-    AddDummy(false, pmMoveHorz);
+    AddDummy(False, pmMoveHorz);
 
   AddPreview(aForceRedraw);
 
@@ -755,37 +755,37 @@ begin
   if aKind = rdUser then
   begin
     Records := GameParams.CurrentLevel.UserRecords;
-    Add(ICON_RECORDS, 'Your records', '', true, pmNextRowLeft);
+    Add(ICON_RECORDS, 'Your records', '', True, pmNextRowLeft);
   end else begin
     Records := GameParams.CurrentLevel.WorldRecords;
-    Add(ICON_WORLD_RECORDS, 'Records', '', true, pmNextRowLeft);
+    Add(ICON_WORLD_RECORDS, 'Records', '', True, pmNextRowLeft);
   end;
 
   if Records.LemmingsRescued.Value < 0 then
-    Add(ICON_SAVE_REQUIREMENT, '~', '', true, pmNextColumnLongSame)
+    Add(ICON_SAVE_REQUIREMENT, '~', '', True, pmNextColumnLongSame)
   else
     Add(ICON_SAVE_REQUIREMENT, IntToStr(Records.LemmingsRescued.Value) + ' / ' + IntToStr(fLevel.Info.LemmingsCount - fLevel.Info.ZombieCount),
-        PrepareHintName(Records.LemmingsRescued.User), true, pmNextColumnLongSame, COLOR_RECORDS);
+        PrepareHintName(Records.LemmingsRescued.User), True, pmNextColumnLongSame, COLOR_RECORDS);
 
   if Records.TimeTaken.Value < 0 then
-    Add(ICON_TIMER, '~', '', true, pmNextColumnSame)
+    Add(ICON_TIMER, '~', '', True, pmNextColumnSame)
   else
     Add(ICON_TIMER,
       IntToStr(Records.TimeTaken.Value div (60 * 17)) + ':' + LeadZeroStr((Records.TimeTaken.Value div 17) mod 60, 2) + '.' +
         LeadZeroStr(Round((Records.TimeTaken.Value mod 17) / 17 * 100), 2),
-      PrepareHintName(Records.TimeTaken.User), true, pmNextColumnSame, COLOR_RECORDS);
+      PrepareHintName(Records.TimeTaken.User), True, pmNextColumnSame, COLOR_RECORDS);
 
   if Records.TotalSkills.Value < 0 then
-    Add(ICON_MAX_SKILLS, '~', '', true, pmNextColumnShortSame)
+    Add(ICON_MAX_SKILLS, '~', '', True, pmNextColumnShortSame)
   else
     Add(ICON_MAX_SKILLS, Records.TotalSkills.Value,
-        PrepareHintName(Records.TotalSkills.User), true, pmNextColumnShortSame, COLOR_RECORDS);
+        PrepareHintName(Records.TotalSkills.User), True, pmNextColumnShortSame, COLOR_RECORDS);
 
   if Records.SkillTypes.Value < 0 then
-    Add(ICON_MAX_SKILL_TYPES, '~', '', true, pmNextColumnSame)
+    Add(ICON_MAX_SKILL_TYPES, '~', '', True, pmNextColumnSame)
   else
     Add(ICON_MAX_SKILL_TYPES, Records.SkillTypes.Value,
-        PrepareHintName(Records.SkillTypes.User), true, pmNextColumnShortSame, COLOR_RECORDS);
+        PrepareHintName(Records.SkillTypes.User), True, pmNextColumnShortSame, COLOR_RECORDS);
 
 
   Reposition(pmNextRowPadLeft);
@@ -793,15 +793,15 @@ begin
   for Skill := Low(TSkillPanelButton) to LAST_SKILL_BUTTON do
     if Skill in fLevel.Info.Skillset then
       if Records.SkillCount[Skill].Value < 0 then
-        Add(ICON_SKILLS[Skill], '~', '', false, pmMoveHorz)
+        Add(ICON_SKILLS[Skill], '~', '', False, pmMoveHorz)
       else
         Add(ICON_SKILLS[Skill], Records.SkillCount[Skill].Value,
-            PrepareHintName(Records.SkillCount[Skill].User), false, pmMoveHorz, COLOR_RECORDS);
+            PrepareHintName(Records.SkillCount[Skill].User), False, pmMoveHorz, COLOR_RECORDS);
 
   if fCurrentPos.X = fAdjustedSizing.PaddingSize then
-    AddDummy(false, pmMoveHorz);
+    AddDummy(False, pmMoveHorz);
 
-  AddPreview(false);
+  AddPreview(False);
 
   ApplySize(fAdjustedSizing.AsPanelWidth, fAdjustedSizing.AsPanelHeight);
 end;

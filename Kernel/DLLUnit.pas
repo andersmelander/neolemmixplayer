@@ -63,11 +63,11 @@ const
   IMAGE_ORDINAL_MASK32 = $0000FFFF;
 
 function xLoadLibrary(Src: Pointer; Imports: array of TImportItem): TLibInfo;
-function xFreeLibrary(LoadedLib: TLibInfo): boolean;
+function xFreeLibrary(LoadedLib: TLibInfo): Boolean;
 
 implementation
 
-function xFreeLibrary(LoadedLib: TLibInfo): boolean;
+function xFreeLibrary(LoadedLib: TLibInfo): Boolean;
 var
   ObjectLoop: integer;
 begin
@@ -112,7 +112,7 @@ var
     Strings[Length(Strings)-1] := Text;
   end;
 
-  function Find(Strings: array of string; Text: string; var Index: integer): boolean;
+  function Find(Strings: array of string; Text: string; var Index: integer): Boolean;
   var
     StringLoop: integer;
   begin
@@ -184,7 +184,7 @@ var
     PFnName: pchar;
     FnIndex: dword;
 
-    function IsForwarderString(Data: pchar): boolean;
+    function IsForwarderString(Data: pchar): Boolean;
     begin
       Result := Data > PExports;
       if Result then Result := cardinal(Data - PExports) < BlockSize;
@@ -267,7 +267,7 @@ var
     PLibName: pchar;
     ImportLoop: integer;
 
-    function IsImportByOrdinal(ImportDescriptor: dword; HLib: THandle): boolean;
+    function IsImportByOrdinal(ImportDescriptor: dword; HLib: THandle): Boolean;
     begin
       Result := (ImportDescriptor and IMAGE_ORDINAL_FLAG32) <> 0;
     end;

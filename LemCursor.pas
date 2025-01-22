@@ -93,7 +93,7 @@ begin
 
       with TempInfo do
       begin
-        fIcon := false;
+        fIcon := False;
         xHotspot := TempBitmap32.Width div 2;
         yHotspot := TempBitmap32.Height div 2;
         hbmMask := TempBitmapMask.Handle;
@@ -103,7 +103,7 @@ begin
       fCursors[i] := CreateIconIndirect(TempInfo);
     end;
 
-    fLoaded := true;
+    fLoaded := True;
   finally
     TempBitmap32.Free;
     TempBitmapImage.Free;

@@ -106,14 +106,14 @@ var
   Terminated: Boolean;
 begin
   Application.OnIdle := nil;
-  fProcessing := true;
-  Terminated := false;
+  fProcessing := True;
+  Terminated := False;
   try
     RunTests;
     if not fProcessing then
-      Terminated := true;
+      Terminated := True;
   finally
-    fProcessing := false;
+    fProcessing := False;
   end;
 
   if Terminated then CloseScreen(gstMenu);
@@ -165,7 +165,7 @@ var
     var
       i: Integer;
     begin
-      Result := false;
+      Result := False;
 
       for i := 0 to aGroup.Children.Count-1 do
       begin
@@ -177,8 +177,8 @@ var
         if aGroup.Levels[i].LevelID = aID then
         begin
           GameParams.SetLevel(aGroup.Levels[i]);
-          GameParams.LoadCurrentLevel(true);
-          Result := true;
+          GameParams.LoadCurrentLevel(True);
+          Result := True;
         end;
     end;
   begin
@@ -415,7 +415,7 @@ begin
                   fReplays[i].ReplayResult := CR_FAIL;
               end;
             if fReplays[i].ReplayResult <> CR_UNDETERMINED then Break;
-          until false;
+          until False;
 
           fReplays[i].ReplayDuration := Game.CurrentIteration;
 
@@ -453,9 +453,9 @@ begin
     begin
       if ParamStr(2) <> 'replaytest' then
       begin
-        fReplays.SaveToFile(MakeSafeForFilename(GetPackName, false) + ' Replay Results.txt');
+        fReplays.SaveToFile(MakeSafeForFilename(GetPackName, False) + ' Replay Results.txt');
         fScreenText.Add('Results saved to');
-        fScreenText.Add(MakeSafeForFilename(GetPackName, false) + ' Replay Results.txt');
+        fScreenText.Add(MakeSafeForFilename(GetPackName, False) + ' Replay Results.txt');
         fScreenText.Add('');
         fScreenText.Add(''); // Padding for clickable text.
       end;
@@ -486,7 +486,7 @@ begin
     MenuFont.DrawTextCentered(ScreenImg.Bitmap, 'Preparing replay check. Please wait.', 192);
 
     fOldHighRes := GameParams.HighResolution;
-    GameParams.HighResolution := false;
+    GameParams.HighResolution := False;
     PieceManager.Clear;
 
     MakeHiddenOption(VK_ESCAPE, ExitToMenu);
@@ -545,9 +545,9 @@ begin
   if not fProcessing then
    CloseScreen(gstMenu)
   else
-    if RunCustomPopup(self, 'Terminate replay test?', 'Do you wish to terminate mass replay testing?', 'Yes|No') = 1 then
+    if RunCustomPopup(Self, 'Terminate replay test?', 'Do you wish to terminate mass replay testing?', 'Yes|No') = 1 then
     begin
-      fProcessing := false;
+      fProcessing := False;
       Exit;
     end;
 end;
@@ -558,7 +558,7 @@ constructor TReplayCheckEntries.Create;
 var
   aOwnsObjects: Boolean;
 begin
-  aOwnsObjects := true;
+  aOwnsObjects := True;
   inherited Create(aOwnsObjects);
 end;
 
@@ -585,7 +585,7 @@ var
   begin
     SL.Add('--== ' + aGroupName + ' ==--');
     SL.Add('');
-    FoundAny := false;
+    FoundAny := False;
     for i := 0 to Count-1 do
     begin
       if Items[i].ReplayResult <> aGroupIndex then Continue;
@@ -594,7 +594,7 @@ var
       if Items[i].ReplayLevelVersion <> Items[i].ReplayReplayVersion then
         NewLine := NewLine + ' (mismatch!)';
       SL.Add(NewLine);
-      FoundAny := true;
+      FoundAny := True;
     end;
 
     if not FoundAny then

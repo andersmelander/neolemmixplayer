@@ -68,8 +68,8 @@ constructor TAppController.Create(aOwner: TComponent);
 begin
   inherited;
 
-  // Set to true as default; change to false if any failure.
-  fLoadSuccess := true;
+  // Set to True as default; change to False if any failure.
+  fLoadSuccess := True;
 
   SoundManager := TSoundManager.Create;
   SoundManager.LoadDefaultSounds;  
@@ -100,8 +100,8 @@ begin
       case RunCustomPopup(nil, 'WINE Detected',
                                'You appear to be running NeoLemmix under WINE. Fullscreen mode may not work properly.' + #13 +
                                'Do you wish to change to windowed mode instead?', 'Yes|No|Never') of
-        1: GameParams.FullScreen := false;
-        3: GameParams.DisableWineWarnings := true;
+        1: GameParams.FullScreen := False;
+        3: GameParams.DisableWineWarnings := True;
       end;
     end;
 
@@ -112,13 +112,13 @@ begin
 
   case TCommandLineHandler.HandleCommandLine of
     clrContinue: ; // Don't need to do anything.
-    clrHalt: fLoadSuccess := false;
+    clrHalt: fLoadSuccess := False;
     clrToPreview: GameParams.NextScreen := gstPreview;
   end;
 
   if not fLoadSuccess then
   begin
-    IsHalting := true;
+    IsHalting := True;
     GameParams.NextScreen := gstExit;
   end;
 end;
@@ -141,7 +141,7 @@ begin
 
   try
     if DirectoryExists(AppPath + SFTemp) then
-      TDirectory.Delete(AppPath + SFTemp, true);
+      TDirectory.Delete(AppPath + SFTemp, True);
   except
     // Do nothing - this is a "if it fails it fails" situation.
   end;
@@ -164,7 +164,7 @@ function TAppController.Execute: Boolean;
 var
   NewScreen: TGameScreenType;
 begin
-  Result := true;
+  Result := True;
 
   //while GameParams.NextScreen <> gstExit do
   //begin
@@ -186,7 +186,7 @@ begin
       gstPostview  : ShowPostviewScreen;
       gstText      : ShowTextScreen;
       gstReplayTest: ShowReplayCheckScreen;
-      else Result := false;
+      else Result := False;
     end;
 
   //end;

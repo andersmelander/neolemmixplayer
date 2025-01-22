@@ -65,7 +65,7 @@ end;
 
 procedure TGamePostviewScreen.NextLevel;
 begin
-  GameParams.NextLevel(true);
+  GameParams.NextLevel(True);
   CloseScreen(gstPreview);
 end;
 
@@ -181,10 +181,10 @@ var
              ((aText.ConditionType = pvc_Percent) and (aText.ConditionValue = 100))
              ) then
           begin
-            Result := true;
+            Result := True;
             CurrentMin := NewMin;
           end else
-            Result := false;
+            Result := False;
         end;
       end;
     begin
@@ -232,15 +232,15 @@ begin
   begin
     if GameParams.OneLevelMode then
     begin
-     gSuccess := false;
-     gCheated := false;
+     gSuccess := False;
+     gCheated := False;
      fLevelOverride := $0000;
     end;
 
     if TestModeLevel <> nil then
     begin
-      gSuccess := false;
-      gCheated := false;
+      gSuccess := False;
+      gCheated := False;
       fLevelOverride := $0000;
     end;
 

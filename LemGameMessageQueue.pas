@@ -3,7 +3,7 @@ unit LemGameMessageQueue;
 // Why this unit? Ideally, LemGame should be purely a physics processor; interface stuff should be taken care of
 // by TGameWindow or similar. But, there are some cases where the physics processor has to notify the interface
 // of what to do, for example, to play a sound, or to exit gameplay. Some of these are currently handled by
-// LemGame itself - not good! Others are communicated to TGameWindow, but via specialized methods in cases where
+// LemGame itSelf - not good! Others are communicated to TGameWindow, but via specialized methods in cases where
 // something more generic like this could handle it. So, this TGameMessageQueue class is designed so that
 // LemGame can add something here, and after the next physics update (or at any needed time), TGameWindow can
 // check the queue and act on anything it needs to - or just discard messages it doesn't need. And if the LemGame

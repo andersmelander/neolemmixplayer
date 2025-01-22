@@ -254,23 +254,23 @@ begin
   TPNGInterface.LoadPngFile(AppPath + SFGraphicsMenu + 'levelinfo_icons.png', fIconBMP);
   fIconBMP.DrawMode := dmBlend;
 
-  fInfoForm := TLevelInfoPanel.Create(self, fIconBMP);
-  fInfoForm.Parent := self;
+  fInfoForm := TLevelInfoPanel.Create(Self, fIconBMP);
+  fInfoForm.Parent := Self;
   fInfoForm.BoundsRect := pnLevelInfo.BoundsRect;
-  fInfoForm.Visible := false;
+  fInfoForm.Visible := False;
 
-  fPackTalBox := TScrollBox.Create(self);
-  fPackTalBox.Parent := self;
+  fPackTalBox := TScrollBox.Create(Self);
+  fPackTalBox.Parent := Self;
   fPackTalBox.BoundsRect := pnLevelInfo.BoundsRect;
-  fPackTalBox.VertScrollBar.Tracking := true;
-  fPackTalBox.Visible := false;
+  fPackTalBox.VertScrollBar.Tracking := True;
+  fPackTalBox.Visible := False;
 
-  pnLevelInfo.Visible := false;
+  pnLevelInfo.Visible := False;
 
   if GameParams.HideAdvancedOptions then
   begin
-    lblAdvancedOptions.Visible := false;
-    sbAdvancedOptions.Visible := false;
+    lblAdvancedOptions.Visible := False;
+    sbAdvancedOptions.Visible := False;
     ClientWidth := sbAdvancedOptions.Left;
   end;
 
@@ -286,7 +286,7 @@ procedure TFLevelSelect.FormDestroy(Sender: TObject);
 begin
   fIconBMP.Free;
 
-  fTalismanButtons.OwnsObjects := false; // because TFLevelSelect itself will take care of any that remain
+  fTalismanButtons.OwnsObjects := False; // because TFLevelSelect itSelf will take care of any that remain
   fTalismanButtons.Free;
 end;
 
@@ -294,7 +294,7 @@ procedure TFLevelSelect.btnCleanseOneClick(Sender: TObject);
 var
   SaveDlg: TSaveDialog;
 begin
-  SaveDlg := TSaveDialog.Create(self);
+  SaveDlg := TSaveDialog.Create(Self);
   try
     SaveDlg.Title := 'Select file to save to';
     SaveDlg.Filter := 'NXLV Level Files|*.nxlv';
@@ -376,7 +376,7 @@ begin
     TargetPath := RightStr(TargetPath, Length(TargetPath) - Length(AppPath + SFLevels));
 
 
-  Dlg := TSaveDialog.Create(self);
+  Dlg := TSaveDialog.Create(Self);
   try
     Dlg.Title := 'Select location for shortcut';
     Dlg.Filter := 'Windows Shortcut (*.lnk)|*.lnk';
@@ -409,14 +409,14 @@ begin
 
   Obj := TObject(N.Data);
 
-  fLoadAsPack := false;
+  fLoadAsPack := False;
 
   if Obj is TNeoLevelGroup then
   begin
     if G.Levels.Count = 0 then
     begin
       if G.LevelCount > 0 then
-        fLoadAsPack := true
+        fLoadAsPack := True
       else
         Exit;
     end;
@@ -531,7 +531,7 @@ begin
   N := tvLevelSelect.Selected;
   if N = nil then
   begin
-    btnOk.Enabled := false;
+    btnOk.Enabled := False;
     Exit;
   end;
 
@@ -581,11 +581,11 @@ begin
     end;
 
     lblCompletion.Caption := S;
-    lblCompletion.Visible := true;
+    lblCompletion.Visible := True;
 
     DisplayPackTalismanInfo;
 
-    fInfoForm.Visible := false;
+    fInfoForm.Visible := False;
 
     btnOk.Enabled := G.LevelCount > 0; // note: Levels.Count is not recursive; LevelCount is
 
@@ -603,13 +603,13 @@ begin
       lblAuthor.Caption := '';
 
     lblCompletion.Caption := '';
-    lblCompletion.Visible := false;
+    lblCompletion.Visible := False;
 
     DisplayLevelInfo;
 
-    fPackTalBox.Visible := false;
+    fPackTalBox.Visible := False;
 
-    btnOk.Enabled := true;
+    btnOk.Enabled := True;
 
     SetAdvancedOptionsLevel;
   end;
@@ -620,12 +620,12 @@ var
   NeedRedraw: Boolean;
 begin
   WriteToParams;
-  GameParams.LoadCurrentLevel(false);
+  GameParams.LoadCurrentLevel(False);
 
   NeedRedraw := (GameParams.CurrentLevel.Path <> fLastLevelPath);
   fLastLevelPath := GameParams.CurrentLevel.Path;
 
-  fInfoForm.Visible := true;
+  fInfoForm.Visible := True;
   fInfoForm.BoundsRect := pnLevelInfo.BoundsRect; // Delphi 10.4 bugfix
   fInfoForm.Level := GameParams.Level;
   fInfoForm.Talisman := nil;
@@ -682,22 +682,22 @@ begin
 
     if Trim(Tal.Title) <> '' then
     begin
-      TitleLabel := TLabel.Create(self);
+      TitleLabel := TLabel.Create(Self);
       TitleLabel.Parent := fPackTalBox;
       TitleLabel.Font.Style := [fsBold];
       TitleLabel.Caption := Tal.Title;
     end else
       TitleLabel := nil;
 
-    LevLabel := TLabel.Create(self);
+    LevLabel := TLabel.Create(Self);
     LevLabel.Parent := fPackTalBox;
     LevLabel.Caption := Level.Group.Name + ' ' + IntToStr(Level.GroupIndex + 1) + ': ' + Level.Title;
 
-    ReqLabel := TLabel.Create(self);
+    ReqLabel := TLabel.Create(Self);
     ReqLabel.Parent := fPackTalBox;
     ReqLabel.Caption := BreakString(Tal.RequirementText, ReqLabel, fPackTalBox.ClientWidth - 16 - 40);
 
-    NewButton := TSpeedButton.Create(self);
+    NewButton := TSpeedButton.Create(Self);
     NewButton.Parent := fPackTalBox;
 
     NewButton.Width := 32 + (SPEEDBUTTON_PADDING_SIZE * 2);
@@ -753,7 +753,7 @@ begin
 
   fPackTalBox.VertScrollBar.Position := 0;
   fPackTalBox.VertScrollBar.Range := Max(0, TotalHeight);
-  fPackTalBox.Visible := true;
+  fPackTalBox.Visible := True;
 end;
 
 procedure TFLevelSelect.SetTalismanInfo;
@@ -764,8 +764,8 @@ var
   var
     NewButton: TSpeedButton;
   begin
-    NewButton := TSpeedButton.Create(self);
-    NewButton.Parent := self;
+    NewButton := TSpeedButton.Create(Self);
+    NewButton.Parent := Self;
 
     NewButton.Left := lblCompletion.Left + (40 * n) - SPEEDBUTTON_PADDING_SIZE;
     NewButton.Top := lblCompletion.Top - SPEEDBUTTON_PADDING_SIZE;
@@ -824,7 +824,7 @@ begin
       fInfoForm.PrepareEmbedRecords(fDisplayRecords)
     else begin
       fInfoForm.Talisman := nil;
-      fInfoForm.PrepareEmbed(false);
+      fInfoForm.PrepareEmbed(False);
     end;
   end else begin
     Tal := GameParams.Level.Talismans[TalBtn.Tag];
@@ -836,7 +836,7 @@ begin
       fInfoForm.Talisman := Tal;
 
     DrawTalismanButtons;
-    fInfoForm.PrepareEmbed(false);
+    fInfoForm.PrepareEmbed(False);
   end;
 end;
 
@@ -974,9 +974,9 @@ begin
   if not GameParams.HideAdvancedOptions then
   begin
     btnSaveImage.Caption := 'Save Level Images';
-    btnMassReplay.Enabled := true;
-    btnCleanseLevels.Enabled := true;
-    btnCleanseOne.Enabled := false;
+    btnMassReplay.Enabled := True;
+    btnCleanseLevels.Enabled := True;
+    btnCleanseOne.Enabled := False;
   end;
 end;
 
@@ -987,7 +987,7 @@ begin
     btnSaveImage.Caption := 'Save Image';
     btnMassReplay.Enabled := TNeoLevelEntry(tvLevelSelect.Selected.Data).Group.ParentBasePack <> GameParams.BaseLevelPack;
     btnCleanseLevels.Enabled := btnMassReplay.Enabled;
-    btnCleanseOne.Enabled := true;
+    btnCleanseOne.Enabled := True;
   end;
 end;
 
@@ -1009,7 +1009,7 @@ begin
 
   if Obj is TNeoLevelGroup then
   begin
-    DumpImagesFallbackFlag := false;
+    DumpImagesFallbackFlag := False;
     BasePack := TNeoLevelGroup(Obj).ParentBasePack;
 
     PathString := MakeSafeForFilename(BasePack.Name);
@@ -1026,7 +1026,7 @@ begin
   end else if Obj is TNeoLevelEntry then
   begin
     BMP := TBitmap32.Create;
-    SaveDlg := TSaveDialog.Create(self);
+    SaveDlg := TSaveDialog.Create(Self);
     try
       if GameParams.Level.HasAnyFallbacks then
         ShowMessage('Some styles used by this level appear to be missing. Use the Style Manager to download these.');
@@ -1035,7 +1035,7 @@ begin
       SaveDlg.DefaultExt := '.png';
       if SaveDlg.Execute then
       begin
-        GameParams.Renderer.RenderWorld(BMP, true);
+        GameParams.Renderer.RenderWorld(BMP, True);
         TPngInterface.SavePngFile(SaveDlg.FileName, BMP);
       end;
     finally
@@ -1050,10 +1050,10 @@ var
   OpenDlg: TOpenDialog;
   F: TFReplayNaming;
 begin
-  OpenDlg := TOpenDialog.Create(self);
+  OpenDlg := TOpenDialog.Create(Self);
   try
     OpenDlg.Title := 'Select any file in the folder containing replays';
-    OpenDlg.InitialDir := AppPath + 'Replay\' + MakeSafeForFilename(GameParams.CurrentLevel.Group.ParentBasePack.Name, false);
+    OpenDlg.InitialDir := AppPath + 'Replay\' + MakeSafeForFilename(GameParams.CurrentLevel.Group.ParentBasePack.Name, False);
     OpenDlg.Filter := SProgramName + ' Replay (*.nxrp)|*.nxrp';
     OpenDlg.Options := [ofHideReadOnly, ofFileMustExist, ofEnableSizing];
     if not OpenDlg.Execute then
@@ -1063,7 +1063,7 @@ begin
     OpenDlg.Free;
   end;
 
-  F := TFReplayNaming.Create(self);
+  F := TFReplayNaming.Create(Self);
   try
     if F.ShowModal = mrCancel then
       Exit;

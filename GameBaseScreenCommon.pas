@@ -151,7 +151,7 @@ var
       else begin
         while not (G.IsBasePack or (G.Parent.Parent = nil)) do
           G := G.Parent;
-        Result := MakeSafeForFilename(G.Name, false) + '\';
+        Result := MakeSafeForFilename(G.Name, False) + '\';
       end;
     end;
   begin
@@ -167,7 +167,7 @@ var
   end;
 begin
   s := '';
-  Dlg := TOpenDialog.Create(self);
+  Dlg := TOpenDialog.Create(Self);
   try
     Dlg.Title := 'Select a replay file to load (' + GameParams.CurrentGroupName + ' ' + IntToStr(GameParams.CurrentLevel.GroupIndex + 1) + ', ' + Trim(GameParams.Level.Info.Title) + ')';
     Dlg.Filter := SProgramName + ' Replay File (*.nxrp)|*.nxrp';
@@ -186,9 +186,9 @@ begin
     begin
       s:=Dlg.filename;
       LastReplayDir := ExtractFilePath(s);
-      Result := true;
+      Result := True;
     end else
-      Result := false;
+      Result := False;
   finally
     Dlg.Free;
   end;

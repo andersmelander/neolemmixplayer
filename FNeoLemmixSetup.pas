@@ -49,7 +49,7 @@ end;
 
 procedure TFNLSetup.btnExitClick(Sender: TObject);
 begin
-  GameParams.DisableSaveOptions := true;
+  GameParams.DisableSaveOptions := True;
   Application.Terminate;
 end;
 
@@ -66,14 +66,14 @@ begin
 
   case cbGraphics.ItemIndex of
     1, 3: begin
-         GameParams.MinimapHighQuality := true;
-         GameParams.LinearResampleMenu := true;
-         GameParams.LinearResampleGame := false;
+         GameParams.MinimapHighQuality := True;
+         GameParams.LinearResampleMenu := True;
+         GameParams.LinearResampleGame := False;
        end;
     0, 2: begin
-         GameParams.MinimapHighQuality := false;
-         GameParams.LinearResampleMenu := false;
-         GameParams.LinearResampleGame := false;
+         GameParams.MinimapHighQuality := False;
+         GameParams.LinearResampleMenu := False;
+         GameParams.LinearResampleGame := False;
        end;
   end;
 

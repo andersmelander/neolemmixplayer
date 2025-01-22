@@ -27,7 +27,7 @@ type
       function GetDisableTriggers: Boolean;
     public
       constructor Create(aGadget: TGadget; aAnimation: TGadgetAnimation);
-      function UpdateOneFrame: Boolean; // if returns false, the object PERMANENTLY removes the animation. Futureproofing.
+      function UpdateOneFrame: Boolean; // if returns False, the object PERMANENTLY removes the animation. Futureproofing.
       procedure UpdateAnimationState; // basically, all frame update logic *except* moving to the next frame
       procedure ProcessTriggers;
 
@@ -150,7 +150,7 @@ type
     property ZombieMode: Boolean read sZombieMode write sZombieMode;
     property NeutralMode: Boolean read sNeutralMode write sNeutralMode;
     property KeyFrame: Integer read GetKeyFrame;
-    property CanDrawToBackground: Boolean read GetCanDrawToBackground; // moving backgrounds: if only one frame and zero speed, this returns true
+    property CanDrawToBackground: Boolean read GetCanDrawToBackground; // moving backgrounds: if only one frame and zero speed, this returns True
     property Speed: Integer read GetSpeed;
     property SkillCount: Integer read GetSkillCount;
     property IsPreassignedClimber: Boolean index 1 read GetPreassignedSkill;
@@ -173,7 +173,7 @@ type
     procedure UnifyFlippingFlagsOfTeleporter();
     procedure SetFlipOfReceiverTo(Teleporter: TGadget);
 
-    // true = X-movement, false = Y-movement
+    // True = X-movement, False = Y-movement
     function Movement(Direction: Boolean; CurrentIteration: Integer): Integer;
   end;
 
@@ -274,7 +274,7 @@ var
 begin
   for i := 0 to MetaObj.Animations.Count-1 do
   begin
-    NewInstance := TGadgetAnimationInstance.Create(self, MetaObj.Animations.Items[i]);
+    NewInstance := TGadgetAnimationInstance.Create(Self, MetaObj.Animations.Items[i]);
     Animations.Add(NewInstance);
   end;
 end;
@@ -411,25 +411,25 @@ end;
 
 function TGadget.GetAnimFlagState(aFlag: TGadgetAnimationTriggerCondition): Boolean;
 const
-  READY_OBJECT_TYPES = // Any object not listed here, always returns *TRUE* (not false like the others)
+  READY_OBJECT_TYPES = // Any object not listed here, always returns *TRUE* (not False like the others)
     [DOM_TRAP, DOM_TELEPORT, DOM_RECEIVER, DOM_PICKUP, DOM_LOCKEXIT, DOM_BUTTON, DOM_WINDOW, DOM_TRAPONCE,
      DOM_ANIMATION, DOM_ANIMONCE];
-  BUSY_OBJECT_TYPES = // Any object not listed here, always returns false
+  BUSY_OBJECT_TYPES = // Any object not listed here, always returns False
     [DOM_TRAP, DOM_TELEPORT, DOM_RECEIVER, DOM_LOCKEXIT, DOM_BUTTON, DOM_WINDOW, DOM_TRAPONCE, DOM_ANIMATION,
      DOM_ANIMONCE];
-  DISABLED_OBJECT_TYPES = // Any object not listed here, always returns false
+  DISABLED_OBJECT_TYPES = // Any object not listed here, always returns False
     [DOM_EXIT, DOM_TRAP, DOM_PICKUP, DOM_LOCKEXIT, DOM_BUTTON, DOM_WINDOW, DOM_TRAPONCE, DOM_ANIMONCE];
-  EXHAUSTED_OBJECT_TYPES = // Any object not listed here, always returns false
+  EXHAUSTED_OBJECT_TYPES = // Any object not listed here, always returns False
     [DOM_EXIT, DOM_PICKUP, DOM_LOCKEXIT, DOM_BUTTON, DOM_WINDOW, DOM_TRAPONCE, DOM_ANIMONCE];
 
   function CheckReadyFlag: Boolean;
   begin
-    Result := true;
+    Result := True;
     if TriggerEffectBase in READY_OBJECT_TYPES then
     begin
       if sSecondariesTreatAsBusy // for DOM_TELEPORT, "receiver is busy" is marked as this
       or (TriggerEffect = DOM_NONE) then // local trigger effect is set to DOM_NONE when disarmed / etc
-        Result := false
+        Result := False
       else
         case TriggerEffectBase of
           DOM_EXIT: Result := RemainingLemmingsCount <> 0;
@@ -445,11 +445,11 @@ const
 
   function CheckBusyFlag: Boolean;
   begin
-    Result := false;
+    Result := False;
     if TriggerEffectBase in BUSY_OBJECT_TYPES then
     begin
       if sSecondariesTreatAsBusy then // for DOM_TELEPORT, "receiver is busy" is marked as this
-        Result := true
+        Result := True
       else
         case TriggerEffectBase of
           DOM_TRAP, DOM_ANIMATION, DOM_TELEPORT: Result := CurrentFrame > 0;
@@ -461,11 +461,11 @@ const
 
   function CheckDisabledFlag: Boolean;
   begin
-    Result := false;
+    Result := False;
     if TriggerEffectBase in DISABLED_OBJECT_TYPES then
     begin
        if TriggerEffect = DOM_NONE then // local trigger effect is set to DOM_NONE when disarmed trap, unmatched teleport / receiver
-        Result := true
+        Result := True
       else
         case TriggerEffectBase of
           DOM_EXIT: Result := RemainingLemmingsCount = 0;
@@ -480,7 +480,7 @@ const
 
   function CheckExhaustedFlag: Boolean;
   begin
-    Result := false;
+    Result := False;
     if TriggerEffectBase in EXHAUSTED_OBJECT_TYPES then
       case TriggerEffectBase of
         DOM_PICKUP: Result := CurrentFrame mod 2 = 0;
@@ -490,7 +490,7 @@ const
   end;
 begin
   case aFlag of
-    gatcUnconditional: Result := true;
+    gatcUnconditional: Result := True;
     gatcReady: Result := CheckReadyFlag;
     gatcBusy: Result := CheckBusyFlag;
     gatcDisabled: Result := CheckDisabledFlag;
@@ -515,7 +515,7 @@ begin
     else
       sRemainingLemmingsCount := -1;
 
-    sShowRemainingLemmings := true;
+    sShowRemainingLemmings := True;
   end;
 
   Result := sRemainingLemmingsCount;
@@ -576,7 +576,7 @@ begin
     if MetaObj.Animations.Items[i].FrameCount > 1 then
       Exit;
 
-  Result := true;
+  Result := True;
 end;
 
 function TGadget.GetSpeed: Integer;
@@ -694,7 +694,7 @@ begin
   SetLength(IsReceiverUsed, ItemCount);
   for i := 0 to ItemCount - 1 do
   begin
-    IsReceiverUsed[i] := false;
+    IsReceiverUsed[i] := False;
     Items[i].sPairingId := -1;
   end;
 
@@ -726,7 +726,7 @@ begin
         end;
         Gadget.sPairingId := PairCount;
         TestGadget.sPairingId := PairCount;
-        IsReceiverUsed[TestID] := true; // ignore newly added receivers for this
+        IsReceiverUsed[TestID] := True; // ignore newly added receivers for this
         Inc(PairCount);
         // Flip receiver according to teleporter
         Gadget.UnifyFlippingFlagsOfTeleporter();
@@ -752,8 +752,8 @@ begin
         Gadget.sReceiverId := TestID;
         TestGadget.sReceiverId := i;
 
-        IsReceiverUsed[i] := true;
-        IsReceiverUsed[TestID] := true;
+        IsReceiverUsed[i] := True;
+        IsReceiverUsed[TestID] := True;
 
         Gadget.sPairingId := PairCount;
         TestGadget.sPairingId := PairCount;
@@ -803,7 +803,7 @@ begin
 
   if fAnimation.Primary then
   begin
-    fPrimary := true;
+    fPrimary := True;
 
     MetaObj := aGadget.MetaObj;
 
@@ -816,7 +816,7 @@ begin
     if (MetaObj.TriggerEffect = DOM_FLIPPER) and (aGadget.IsFlipPhysics) then
       fFrame := 1;
   end else
-    fPrimary := false;
+    fPrimary := False;
 end;
 
 function TGadgetAnimationInstance.GetBitmap: TBitmap32;
@@ -831,7 +831,7 @@ end;
 
 function TGadgetAnimationInstance.UpdateOneFrame: Boolean;
 begin
-  Result := true;
+  Result := True;
 
   ProcessTriggers;
 
@@ -887,9 +887,9 @@ begin
       Remove(fPrimaryAnimation);
 
       PrimaryAnimation := NewPrimary;
-      NewPrimary.fPrimary := true;
+      NewPrimary.fPrimary := True;
       NewPrimary.fState := gasPause;
-      NewPrimary.fVisible := true;
+      NewPrimary.fVisible := True;
 
       if (aSetFrame >= 0) then
         NewPrimary.fFrame := aSetFrame; // Futureproofing, in case we ever have a situation where we *don't* need

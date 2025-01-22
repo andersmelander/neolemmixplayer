@@ -65,9 +65,9 @@ implementation
 
 procedure TFLemmixHotkeys.FormCreate(Sender: TObject);
 begin
-  fShownFindInfo := false;
+  fShownFindInfo := False;
   SetWindowPosition;
-  fKeyNames := TLemmixHotkeyManager.GetKeyNames(true);
+  fKeyNames := TLemmixHotkeyManager.GetKeyNames(True);
 end;
 
 procedure TFLemmixHotkeys.SetWindowPosition;
@@ -183,40 +183,40 @@ end;
 
 procedure TFLemmixHotkeys.SetVisibleModifier(aKeyType: TLemmixHotkeyAction);
 begin
-  lblSkill.Visible := false;
-  cbSkill.Visible := false;
-  cbSkill.Enabled := false;
-  lblDuration.Visible := false;
-  ebSkipDuration.Visible := false;
-  ebSkipDuration.Enabled := false;
-  lblSkip.Visible := false;
-  cbSpecialSkip.Visible := false;
-  cbSpecialSkip.Enabled := false;
-  cbHoldKey.Visible := false;
-  cbHoldKey.Enabled := false;
+  lblSkill.Visible := False;
+  cbSkill.Visible := False;
+  cbSkill.Enabled := False;
+  lblDuration.Visible := False;
+  ebSkipDuration.Visible := False;
+  ebSkipDuration.Enabled := False;
+  lblSkip.Visible := False;
+  cbSpecialSkip.Visible := False;
+  cbSpecialSkip.Enabled := False;
+  cbHoldKey.Visible := False;
+  cbHoldKey.Enabled := False;
 
   case aKeyType of
     lka_Skill: begin
-                 lblSkill.Visible := true;
-                 cbSkill.Visible := true;
-                 cbSkill.Enabled := true;
+                 lblSkill.Visible := True;
+                 cbSkill.Visible := True;
+                 cbSkill.Enabled := True;
                end;
     lka_Skip: begin
-                lblDuration.Visible := true;
-                ebSkipDuration.Visible := true;
-                ebSkipDuration.Enabled := true;
+                lblDuration.Visible := True;
+                ebSkipDuration.Visible := True;
+                ebSkipDuration.Enabled := True;
               end;
     lka_ClearPhysics,
     lka_Projection,
     lka_SkillProjection,
     lka_ShowUsedSkills: begin
-                          cbHoldKey.Visible := true;
-                          cbHoldKey.Enabled := true;
+                          cbHoldKey.Visible := True;
+                          cbHoldKey.Enabled := True;
                         end;
     lka_SpecialSkip: begin
-                       lblSkip.Visible := true;
-                       cbSpecialSkip.Visible := true;
-                       cbSpecialSkip.Enabled := true;
+                       lblSkip.Visible := True;
+                       cbSpecialSkip.Visible := True;
+                       cbSpecialSkip.Enabled := True;
                      end;
   end;
 end;
@@ -231,13 +231,13 @@ begin
     cbFunctions.ItemIndex := -1;
     cbSkill.ItemIndex := -1;
     ebSkipDuration.Text := '';
-    cbFunctions.Enabled := false;
-    cbSkill.Enabled := false;
-    ebSkipDuration.Enabled := false;
+    cbFunctions.Enabled := False;
+    cbSkill.Enabled := False;
+    ebSkipDuration.Enabled := False;
     Label3.Caption := '';
     Exit;
   end;
-  cbFunctions.Enabled := true;
+  cbFunctions.Enabled := True;
   cbFunctions.ItemIndex := Integer(fHotkeys.CheckKeyEffect(i).Action);
   case fHotkeys.CheckKeyEffect(i).Action of
     lka_Skill: cbSkill.ItemIndex := fHotkeys.CheckKeyEffect(i).Modifier;
@@ -248,7 +248,7 @@ begin
     lka_ShowUsedSkills: cbHoldKey.Checked := fHotkeys.CheckKeyEffect(i).Modifier = 1;
   end;
   Label3.Caption := 'Editing key: ' + fKeyNames[i];
-  cbFunctionsChange(self);
+  cbFunctionsChange(Self);
 end;
 
 function TFLemmixHotkeys.FindKeyFromList(aValue: Integer): Integer;
@@ -354,9 +354,9 @@ begin
       lvHotkeys.ItemIndex := i;
       Exit;
     end;
-  if cbShowUnassigned.Checked = false then
+  if cbShowUnassigned.Checked = False then
   begin
-    cbShowUnassigned.Checked := true;
+    cbShowUnassigned.Checked := True;
     btnFindKeyKeyDown(Sender, Key, Shift);
   end else
     ShowMessage('Could not find the key.');
@@ -387,7 +387,7 @@ procedure TFLemmixHotkeys.btnFindKeyClick(Sender: TObject);
 begin
   if not fShownFindInfo then
   begin
-    fShownFindInfo := true;
+    fShownFindInfo := True;
     ShowMessage('After clicking Find Key, press any key to jump to that key in the list.');
   end;
 end;

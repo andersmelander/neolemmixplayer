@@ -58,13 +58,13 @@ type
 
   OBJECT TYPE     | gatcUnconditional (no condition)
   ----------------|-----------------------------------
-  GENERAL RULE    | Always true, for all objects
-  Anything        | Always true
+  GENERAL RULE    | Always True, for all objects
+  Anything        | Always True
 
 
   OBJECT TYPE     | gatcReady (READY)
   ----------------|-----------------------------------
-  GENERAL RULE    | The condition will be true if the object would able to interact with a lemming at this moment
+  GENERAL RULE    | The condition will be True if the object would able to interact with a lemming at this moment
   DOM_EXIT        | True when the exit's lemming limit has not been reached, or if the exit has no limit
   DOM_TRAP        | True when the trap is idle (but not disabled)
   DOM_TELEPORT    | True when the teleporter and its paired receiver (if any) are idle
@@ -76,12 +76,12 @@ type
   DOM_TRAPONCE    | True when the trap has not yet been triggered (or disabled)
   DOM_ANIMATION   | True when the animation is idle
   DOM_ANIMONCE    | True when the animation has not yet been triggered
-  All others      | Always true
+  All others      | Always True
 
 
   OBJECT TYPE     | gatcBusy (BUSY)
   ----------------|-----------------------------------
-  GENERAL RULE    | The condition will be true when the object is transitioning between states, or currently in use
+  GENERAL RULE    | The condition will be True when the object is transitioning between states, or currently in use
   DOM_TRAP        | True when the trap is mid-kill
   DOM_TELEPORT    | True when the teleporter, or its paired receiver, are mid-operation
   DOM_RECEIVER    | True when the receiver, or its paired teleporter, are mid-operation
@@ -90,12 +90,12 @@ type
   DOM_TRAPONCE    | True when the trap is mid-kill
   DOM_ANIMATION   | True when the animation is playing
   DOM_ANIMONCE    | True when the animation is playing
-  All others      | Always false
+  All others      | Always False
 
 
   OBJECT TYPE     | gatcDisabled (DISABLED)
   ----------------|-----------------------------------
-  GENERAL RULE    | The condition will be true when the object is unable to interact with a lemming, either permanently or
+  GENERAL RULE    | The condition will be True when the object is unable to interact with a lemming, either permanently or
                   | until some external condition is fulfilled.
   DOM_EXIT        | True if the exit has a lemming limit and it has been reached
   DOM_TRAP        | True if the trap has been disabled (most likely by a disarmer)
@@ -107,7 +107,7 @@ type
   DOM_WINDOW      | True if the window has a lemming limit and it has been reached
   DOM_TRAPONCE    | True when the trap has been disabled (most likely by a disarmer) or used
   DOM_ANIMONCE    | True when the animation has completed
-  All others      | Always false
+  All others      | Always False
 
 
   OBJECT TYPE     | gatcExhausted
@@ -120,7 +120,7 @@ type
   DOM_WINDOW      | True if the window is limited-use and has released all lemmings
   DOM_TRAPONCE    | True when the trap has been used
   DOM_ANIMONCE    | True when the animation has completed
-  All others      | Always false
+  All others      | Always False
 
   }
 
@@ -180,7 +180,7 @@ type
       fSourceImageMasked: TBitmap32;
       fMaskColor: TColor32;
 
-      function MakeFrameBitmaps(aForceLowRes: Boolean = false): TBitmaps;
+      function MakeFrameBitmaps(aForceLowRes: Boolean = False): TBitmaps;
       procedure CombineBitmaps(aBitmaps: TBitmaps);
       function GetCutRect: TRect;
       function GetCutRectHighRes: TRect;
@@ -201,11 +201,11 @@ type
 
       procedure GeneratePickupSkills(aTheme: TNeoTheme; aAni: TBaseAnimationSet; aErase: TGadgetAnimation);
 
-      function GetFrameBitmap(aFrame: Integer; aPersistent: Boolean = false): TBitmap32;
+      function GetFrameBitmap(aFrame: Integer; aPersistent: Boolean = False): TBitmap32;
       procedure GetFrame(aFrame: Integer; aBitmap: TBitmap32);
 
-      procedure Draw(Dst: TBitmap32; X, Y: Integer; aFrame: Integer; aPixelCombine: TPixelCombineEvent = nil; aRaw: Boolean = false); overload;
-      procedure Draw(Dst: TBitmap32; DstRect: TRect; aFrame: Integer; aPixelCombine: TPixelCombineEvent = nil; aRaw: Boolean = false); overload;
+      procedure Draw(Dst: TBitmap32; X, Y: Integer; aFrame: Integer; aPixelCombine: TPixelCombineEvent = nil; aRaw: Boolean = False); overload;
+      procedure Draw(Dst: TBitmap32; DstRect: TRect; aFrame: Integer; aPixelCombine: TPixelCombineEvent = nil; aRaw: Boolean = False); overload;
 
       property Name: String read fName write fName;
       property Color: String read fColor write fColor;
@@ -276,7 +276,7 @@ begin
     fTempBitmap := TBitmap32.Create;
   Inc(fTempBitmapUsageCount);
 
-  fNeedRemask := true;
+  fNeedRemask := True;
   fMaskColor := $FFFFFFFF;
 end;
 
@@ -296,7 +296,7 @@ procedure TGadgetAnimation.Remask(aTheme: TNeoTheme);
 begin
   if aTheme <> nil then
   begin
-    fNeedRemask := false;
+    fNeedRemask := False;
 
     if aTheme.Colors[fColor] and $FFFFFF = fMaskColor then
       Exit;
@@ -310,12 +310,12 @@ begin
     TPngInterface.MaskImageFromImage(fSourceImageMasked, fSourceImageMasked, fMaskColor);
 end;
 
-procedure TGadgetAnimation.Draw(Dst: TBitmap32; X, Y, aFrame: Integer; aPixelCombine: TPixelCombineEvent = nil; aRaw: Boolean = false);
+procedure TGadgetAnimation.Draw(Dst: TBitmap32; X, Y, aFrame: Integer; aPixelCombine: TPixelCombineEvent = nil; aRaw: Boolean = False);
 begin
   Draw(Dst, SizedRect(X, Y, fWidth * ResMod, fHeight * ResMod), aFrame, aPixelCombine, aRaw);
 end;
 
-procedure TGadgetAnimation.Draw(Dst: TBitmap32; DstRect: TRect; aFrame: Integer; aPixelCombine: TPixelCombineEvent = nil; aRaw: Boolean = false);
+procedure TGadgetAnimation.Draw(Dst: TBitmap32; DstRect: TRect; aFrame: Integer; aPixelCombine: TPixelCombineEvent = nil; aRaw: Boolean = False);
 var
   SrcRect: TRect;
   SrcBmp: TBitmap32;
@@ -345,7 +345,7 @@ begin
   SrcBmp.DrawTo(Dst, DstRect, SrcRect);
 end;
 
-function TGadgetAnimation.GetFrameBitmap(aFrame: Integer; aPersistent: Boolean = false): TBitmap32;
+function TGadgetAnimation.GetFrameBitmap(aFrame: Integer; aPersistent: Boolean = False): TBitmap32;
 begin
   if aPersistent then
     Result := TBitmap32.Create
@@ -560,9 +560,9 @@ begin
         LoadPath := LoadPath + '_' + fName; // for backwards-compatible or simply unnamed primaries
       LoadPath := LoadPath + '.png';
 
-      NeedUpscale := true;
+      NeedUpscale := True;
     end else
-      NeedUpscale := false;
+      NeedUpscale := False;
 
     fHorizontalStrip := aSegment.Line['horizontal_strip'] <> nil;
 
@@ -579,7 +579,7 @@ begin
 
     if NeedUpscale then
     begin
-      Bitmaps := MakeFrameBitmaps(true);
+      Bitmaps := MakeFrameBitmaps(True);
       Info := PieceManager.GetUpscaleInfo(aCollection + ':' + aPiece, rkGadget);
       for i := 0 to Bitmaps.Count-1 do
         Upscale(Bitmaps[i], Info.Settings);
@@ -590,7 +590,7 @@ begin
       fHeight := fHeight div 2;
     end;
   end else begin
-    fHorizontalStrip := false;
+    fHorizontalStrip := False;
 
     if Lowercase(fName) = '*blank' then
     begin
@@ -657,9 +657,9 @@ begin
     BaseTrigger.fState := gasPlay;
 
   if (aSegment.Line['hide'] = nil) then
-    BaseTrigger.fVisible := true
+    BaseTrigger.fVisible := True
   else
-    BaseTrigger.fVisible := false;
+    BaseTrigger.fVisible := False;
 
   fTriggers.Add(BaseTrigger);
 
@@ -667,7 +667,7 @@ begin
   begin
     // Some properties are overridden / hardcoded for primary
     BaseTrigger.fState := gasPause; // physics control the current frame
-    BaseTrigger.fVisible := true;   // never hide the primary - if it's needed as an effect, make the graphic blank
+    BaseTrigger.fVisible := True;   // never hide the primary - if it's needed as an effect, make the graphic blank
   end else begin
     // If NOT primary - load triggers
     aSegment.DoForEachSection('trigger',
@@ -682,7 +682,7 @@ begin
     );
   end;
 
-  fNeedRemask := true;
+  fNeedRemask := True;
   fMaskColor := $FFFFFFFF;
 end;
 
@@ -699,7 +699,7 @@ begin
   fColor := '';
 
   // leave fPrimary unaffected
-  fHorizontalStrip := false;
+  fHorizontalStrip := False;
 
   fZIndex := 0;
   fStartFrameIndex := 0;
@@ -819,7 +819,7 @@ begin
   fCutTop := Temp;
 end;
 
-function TGadgetAnimation.MakeFrameBitmaps(aForceLowRes: Boolean = false): TBitmaps;
+function TGadgetAnimation.MakeFrameBitmaps(aForceLowRes: Boolean = False): TBitmaps;
 var
   i: Integer;
   TempBMP: TBitmap32;
@@ -853,7 +853,7 @@ begin
   fFrameCount := aBitmaps.Count;
   fWidth := aBitmaps[0].Width;
   fHeight := aBitmaps[0].Height;
-  fHorizontalStrip := false;
+  fHorizontalStrip := False;
 
   fSourceImage.SetSize(fWidth, fFrameCount * fHeight);
   fSourceImage.Clear(0);
@@ -863,7 +863,7 @@ begin
 
   aBitmaps.Free;
 
-  fNeedRemask := true;
+  fNeedRemask := True;
   fMaskColor := $FFFFFFFF;
 
   fWidth := fWidth div ResMod;
@@ -876,9 +876,9 @@ procedure TGadgetAnimations.AddPrimary(aAnimation: TGadgetAnimation);
 begin
   Add(aAnimation);
   if fPrimaryAnimation <> nil then
-    fPrimaryAnimation.fPrimary := false;
+    fPrimaryAnimation.fPrimary := False;
   fPrimaryAnimation := aAnimation;
-  aAnimation.fPrimary := true;
+  aAnimation.fPrimary := True;
 end;
 
 procedure TGadgetAnimations.Clone(aSrc: TGadgetAnimations);
@@ -956,11 +956,11 @@ function TGadgetAnimations.GetAnyMasked: Boolean;
 var
   i: Integer;
 begin
-  Result := true;
+  Result := True;
   for i := 0 to Count-1 do
     if Items[i].fColor <> '' then
       Exit;
-  Result := false;
+  Result := False;
 end;
 
 procedure TGadgetAnimations.Invert;

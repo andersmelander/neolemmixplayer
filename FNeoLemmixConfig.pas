@@ -241,7 +241,7 @@ end;
 
 procedure TFormNXConfig.SetFromParams;
 begin
-  fIsSetting := true;
+  fIsSetting := True;
 
   try
     //// Page 1 (Global Options) ////
@@ -284,9 +284,9 @@ begin
 
     cbFullScreen.Checked := GameParams.FullScreen;
     cbResetWindowSize.Enabled := not GameParams.FullScreen;
-    cbResetWindowSize.Checked := false;
+    cbResetWindowSize.Checked := False;
     cbResetWindowPosition.Enabled := not GameParams.FullScreen;
-    cbResetWindowPosition.Checked := false;
+    cbResetWindowPosition.Checked := False;
     cbHighResolution.Checked := GameParams.HighResolution; // must be done before SetZoomDropdown
     cbIncreaseZoom.Checked := GameParams.IncreaseZoom;
     cbLinearResampleMenu.Checked := GameParams.LinearResampleMenu;
@@ -311,9 +311,9 @@ begin
     cbDisableTestplayMusic.Checked := GameParams.DisableMusicInTestplay;
     cbPostviewJingles.Checked := GameParams.PostviewJingles;
 
-    btnApply.Enabled := false;
+    btnApply.Enabled := False;
   finally
-    fIsSetting := false;
+    fIsSetting := False;
   end;
 end;
 
@@ -379,14 +379,14 @@ begin
   GameParams.DisableMusicInTestplay := cbDisableTestplayMusic.Checked;
   GameParams.PostviewJingles := cbPostviewJingles.Checked;
 
-  btnApply.Enabled := false;
+  btnApply.Enabled := False;
 end;
 
 procedure TFormNXConfig.btnHotkeysClick(Sender: TObject);
 var
   HotkeyForm: TFLemmixHotkeys;
 begin
-  HotkeyForm := TFLemmixHotkeys.Create(self);
+  HotkeyForm := TFLemmixHotkeys.Create(Self);
   HotkeyForm.HotkeyManager := GameParams.Hotkeys;
   HotkeyForm.ShowModal;
   HotkeyForm.Free;
@@ -399,7 +399,7 @@ var
 begin
   OldEnableOnline := GameParams.EnableOnline;
   GameParams.EnableOnline := cbEnableOnline.Checked; // Behave as checkbox indicates; but don't break the Cancel button.
-  F := TFManageStyles.Create(self);
+  F := TFManageStyles.Create(Self);
   try
     F.ShowModal;
   finally
@@ -437,7 +437,7 @@ begin
     if NewZoom >= 0 then SetZoomDropdown(NewZoom);
     if NewPanelZoom >= 0 then SetPanelZoomDropdown(NewPanelZoom);
 
-    btnApply.Enabled := true;
+    btnApply.Enabled := True;
   end;
 end;
 
@@ -466,7 +466,7 @@ begin
   if not fIsSetting then
   begin
     cbUpdateCheck.Enabled := cbEnableOnline.Checked;
-    if not cbEnableOnline.Checked then cbUpdateCheck.Checked := false;
+    if not cbEnableOnline.Checked then cbUpdateCheck.Checked := False;
     OptionChanged(Sender);
   end;
 end;
@@ -479,10 +479,10 @@ begin
 
     if cbFullScreen.Checked then
     begin
-      cbResetWindowSize.Checked := false;
-      cbResetWindowSize.Enabled := false;
-      cbResetWindowPosition.Checked := false;
-      cbResetWindowPosition.Enabled := false;
+      cbResetWindowSize.Checked := False;
+      cbResetWindowSize.Enabled := False;
+      cbResetWindowPosition.Checked := False;
+      cbResetWindowPosition.Enabled := False;
     end else begin
       cbResetWindowSize.Enabled := not GameParams.FullScreen;
       cbResetWindowSize.Checked := GameParams.FullScreen;
@@ -495,7 +495,7 @@ end;
 procedure TFormNXConfig.SliderChange(Sender: TObject);
 begin
   if not fIsSetting then
-    btnApply.Enabled := true;
+    btnApply.Enabled := True;
 end;
 
 end.

@@ -219,7 +219,7 @@ begin
       raise Exception.Create('TBaseAnimationSet: Error while opening scheme.nxmi.');
     end;
 
-    HasRequiredRecoloring := false;
+    HasRequiredRecoloring := False;
     StateRecolorSec := Parser.MainSection.Section['state_recoloring'];
     if StateRecolorSec <> nil then
     begin
@@ -451,8 +451,8 @@ begin
   fCountDownDigitsBitmap.Clear;
   fWarpBitmap.Clear;
   fHighlightBitmap.Clear;
-  fHasZombieColor := false;
-  fHasNeutralColor := false;
+  fHasZombieColor := False;
+  fHasNeutralColor := False;
   fTheme := nil;
 end;
 

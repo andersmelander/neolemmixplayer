@@ -812,7 +812,7 @@ type
  var
     BASS_Handle:Thandle=0; // this will hold our handle for the dll; it functions nicely as a mutli-dll prevention unit as well...
 
-Function Load_BASSDLL (const dllfilename : String) :boolean;
+Function Load_BASSDLL (const dllfilename : String) :Boolean;
 Procedure Unload_BASSDLL;
 {
   This function frees the dynamically linked-in functions from memory...don't forget to call it once you're done !
@@ -849,7 +849,7 @@ var
    oldmode : integer;
 begin
   if BASSCD_Handle <> 0 then // is it already there ?
-     result := true
+     result := True
    else
      begin {go & load the dll}
     {   oldmode := SetErrorMode($8001);
@@ -861,13 +861,13 @@ begin
 
 
 
-Function Load_BASSDLL (const dllfilename : String) :boolean;
+Function Load_BASSDLL (const dllfilename : String) :Boolean;
 const szBassDll = 'bass.dll' + #0;
 var
   oldmode:integer;
 begin
  if BASS_Handle <> 0 then
-  Result:= true {is it already there ?}
+  Result:= True {is it already there ?}
  else
   begin
   (*go & load the dll*)
@@ -1232,10 +1232,10 @@ end;
 
 procedure BASS_MarkChannelFree(handle: HSYNC; channel, data: DWORD; user: POINTER); stdcall;
 var
-  ac : ^boolean;
+  ac : ^Boolean;
 begin
   ac := user;
-  ac^ := false;
+  ac^ := False;
 end;
 
 procedure BASS_WipeChannel(handle: HSYNC; channel, data: DWORD; user: POINTER); stdcall;

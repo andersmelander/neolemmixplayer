@@ -115,7 +115,7 @@ type
       procedure ApplyConfigChanges(OldFullScreen, OldHighResolution, ResetWindowSize, ResetWindowPos: Boolean);
       procedure DoAfterConfig; virtual;
 
-      function GetGraphic(aName: String; aDst: TBitmap32; aAcceptFailure: Boolean = false; aFromPackOnly: Boolean = false): Boolean;
+      function GetGraphic(aName: String; aDst: TBitmap32; aAcceptFailure: Boolean = False; aFromPackOnly: Boolean = False): Boolean;
 
       procedure DrawBackground; overload;
       procedure DrawBackground(aRegion: TRect); overload;
@@ -128,7 +128,7 @@ type
 
       function MakeHiddenOption(aKey: Word; aAction: TRegionAction): TClickableRegion; overload;
       function MakeHiddenOption(aFunc: TLemmixHotkeyAction; aAction: TRegionAction): TClickableRegion; overload;
-      procedure DrawAllClickables(aForceNormalState: Boolean = false);
+      procedure DrawAllClickables(aForceNormalState: Boolean = False);
 
       function GetInternalMouseCoordinates: TPoint;
 
@@ -506,14 +506,14 @@ begin
         begin
           if fClickableRegions[i].ResetTimer = nil then
           begin
-            NewTimer := TTimer.Create(self);
+            NewTimer := TTimer.Create(Self);
             NewTimer.Interval := 100;
             NewTimer.Tag := i;
             NewTimer.OnTimer := OnClickTimer;
             fClickableRegions[i].ResetTimer := NewTimer;
           end else begin
-            fClickableRegions[i].ResetTimer.Enabled := false;
-            fClickableRegions[i].ResetTimer.Enabled := true;
+            fClickableRegions[i].ResetTimer.Enabled := False;
+            fClickableRegions[i].ResetTimer.Enabled := True;
           end;
 
           fClickableRegions[i].CurrentState := rsClick;
@@ -541,8 +541,8 @@ begin
     Exit;
 
   P := GetInternalMouseCoordinates;
-  FoundActive := false;
-  StatusChanged := false;
+  FoundActive := False;
+  StatusChanged := False;
 
   for i := fClickableRegions.Count-1 downto 0 do
     if fClickableRegions[i].Bitmaps <> nil then
@@ -551,14 +551,14 @@ begin
         if (fClickableRegions[i].CurrentState = rsNormal) then
         begin
           fClickableRegions[i].CurrentState := rsHover;
-          StatusChanged := true;
+          StatusChanged := True;
         end;
 
-        FoundActive := true;
+        FoundActive := True;
       end else if (FoundActive or not Types.PtInRect(fClickableRegions[i].ClickArea, P)) and (fClickableRegions[i].CurrentState = rsHover) then
       begin
         fClickableRegions[i].CurrentState := rsNormal;
-        StatusChanged := true;
+        StatusChanged := True;
       end;
 
   if StatusChanged then
@@ -583,7 +583,7 @@ begin
     Exit;
 
   P := GetInternalMouseCoordinates;
-  InvokeCustomHandler := true;
+  InvokeCustomHandler := True;
 
   for i := fClickableRegions.Count-1 downto 0 do
     if fClickableRegions[i].Bitmaps <> nil then
@@ -591,21 +591,21 @@ begin
       begin
         if fClickableRegions[i].ResetTimer = nil then
         begin
-          NewTimer := TTimer.Create(self);
+          NewTimer := TTimer.Create(Self);
           NewTimer.Interval := 150;
           NewTimer.Tag := i;
           NewTimer.OnTimer := OnClickTimer;
           fClickableRegions[i].ResetTimer := NewTimer;
         end else begin
-          fClickableRegions[i].ResetTimer.Enabled := false;
-          fClickableRegions[i].ResetTimer.Enabled := true;
+          fClickableRegions[i].ResetTimer.Enabled := False;
+          fClickableRegions[i].ResetTimer.Enabled := True;
         end;
 
         fClickableRegions[i].CurrentState := rsClick;
         fClickableRegions[i].Bitmaps.DrawTo(ScreenImg.Bitmap, fClickableRegions[i].Bounds, fClickableRegions[i].SrcRect[rsClick]);
 
         fClickableRegions[i].Action;
-        InvokeCustomHandler := false;
+        InvokeCustomHandler := False;
         Break;
       end else begin
         ExpRegion := fClickableRegions[i].ClickArea;
@@ -615,7 +615,7 @@ begin
         ExpRegion.Bottom := ExpRegion.Bottom + DEAD_ZONE_SIZE;
 
         if Types.PtInRect(ExpRegion, P) then
-          InvokeCustomHandler := false;
+          InvokeCustomHandler := False;
       end;
 
   if InvokeCustomHandler then
@@ -658,7 +658,7 @@ var
   S: String;
 begin
   GlobalGame.EnsureCorrectReplayDetails;
-  S := GlobalGame.ReplayManager.GetSaveFileName(self, rsoPostview, GlobalGame.ReplayManager);
+  S := GlobalGame.ReplayManager.GetSaveFileName(Self, rsoPostview, GlobalGame.ReplayManager);
   if S = '' then Exit;
   GlobalGame.ReplayManager.SaveToFile(S);
 end;
@@ -675,19 +675,19 @@ begin
   ScreenImg.Cursor := CursorIndex;
 end;
 
-procedure TGameBaseMenuScreen.DrawAllClickables(aForceNormalState: Boolean = false);
+procedure TGameBaseMenuScreen.DrawAllClickables(aForceNormalState: Boolean = False);
 var
   i: Integer;
   Region: TClickableRegion;
 
   function CheckDrawCurrentRegion(aDrawingFront: Boolean): Boolean;
   begin
-    Result := false;
+    Result := False;
 
     if Region.Bitmaps = nil then Exit;
     if (Region.DrawInFrontWhenHighlit and (Region.CurrentState <> rsNormal)) xor aDrawingFront then Exit;
 
-    Result := true;
+    Result := True;
   end;
 begin
   if ScreenIsClosing then
@@ -703,23 +703,23 @@ begin
   for i := 0 to fClickableRegions.Count-1 do
   begin
     Region := fClickableRegions[i];
-    if CheckDrawCurrentRegion(false) then
+    if CheckDrawCurrentRegion(False) then
       Region.Bitmaps.DrawTo(ScreenImg.Bitmap, Region.Bounds, Region.GetSrcRect(Region.CurrentState));
   end;
 
   for i := 0 to fClickableRegions.Count-1 do
   begin
     Region := fClickableRegions[i];
-    if CheckDrawCurrentRegion(true) then
+    if CheckDrawCurrentRegion(True) then
       Region.Bitmaps.DrawTo(ScreenImg.Bitmap, Region.Bounds, Region.GetSrcRect(Region.CurrentState));
   end;
 
   AfterRedrawClickables;
 end;
 
-function TGameBaseMenuScreen.GetGraphic(aName: String; aDst: TBitmap32; aAcceptFailure: Boolean = false; aFromPackOnly: Boolean = false): Boolean;
+function TGameBaseMenuScreen.GetGraphic(aName: String; aDst: TBitmap32; aAcceptFailure: Boolean = False; aFromPackOnly: Boolean = False): Boolean;
 begin
-  Result := true;
+  Result := True;
 
   if (not (GameParams.CurrentLevel = nil))
      and FileExists(GameParams.CurrentLevel.Group.FindFile(aName)) then
@@ -730,7 +730,7 @@ begin
     if not aAcceptFailure then
       raise Exception.Create('Could not find gfx\menu\' + aName + '.');
 
-    Result := false;
+    Result := False;
   end;
 
   aDst.DrawMode := dmBlend;
@@ -751,8 +751,8 @@ begin
   BgImage := TBitmap32.Create;
 
   try
-    if not GetGraphic('background_' + GetBackgroundSuffix + '.png', BgImage, true) then
-      GetGraphic('background.png', BgImage, true);
+    if not GetGraphic('background_' + GetBackgroundSuffix + '.png', BgImage, True) then
+      GetGraphic('background.png', BgImage, True);
 
     if (BgImage.Width = 0) or (BgImage.Height = 0) then
     begin
@@ -851,7 +851,7 @@ begin
   if GameParams.TestModeLevel <> nil then Exit;
 
   OldLevel := GameParams.CurrentLevel;
-  F := TFLevelSelect.Create(self);
+  F := TFLevelSelect.Create(Self);
   try
     PopupResult := F.ShowModal;
     Success := PopupResult = mrOk;
@@ -868,7 +868,7 @@ begin
     GameParams.SetLevel(OldLevel);
     AfterCancelLevelSelect;
   end else begin
-    GameParams.ShownText := false;
+    GameParams.ShownText := False;
 
     if LoadAsPack then
       CloseScreen(gstMenu)
@@ -885,7 +885,7 @@ begin
   OldFullScreen := GameParams.FullScreen;
   OldHighResolution := GameParams.HighResolution;
 
-  ConfigDlg := TFormNXConfig.Create(self);
+  ConfigDlg := TFormNXConfig.Create(Self);
   try
     ConfigDlg.SetGameParams;
     ConfigDlg.NXConfigPages.TabIndex := 0;
@@ -970,7 +970,7 @@ begin
   aHover.DrawTo(fBitmaps, aNormal.Width, 0);
   aClick.DrawTo(fBitmaps, aNormal.Width * 2, 0);
 
-  fDrawInFrontWhenHighlit := true;
+  fDrawInFrontWhenHighlit := True;
 
   fAction := aAction;
 end;

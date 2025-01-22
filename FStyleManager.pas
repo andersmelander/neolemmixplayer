@@ -100,7 +100,7 @@ var
   i: Integer;
   ThisStyle: String;
 begin
-  Result := true;
+  Result := True;
 
   F := TFManageStyles.Create(nil);
   try
@@ -116,7 +116,7 @@ begin
     F.Free;
   end;
 
-  Result := false;
+  Result := False;
 end;
 
 procedure TFManageStyles.BeginDownloads;
@@ -127,13 +127,13 @@ begin
       ShowMessage('Please select at least one style.');
   end else begin
     fDownloadIndex := 0;
-    btnGetSelected.Enabled := false;
-    btnDownloadAll.Enabled := false;
-    btnUpdateAll.Enabled := false;
+    btnGetSelected.Enabled := False;
+    btnDownloadAll.Enabled := False;
+    btnUpdateAll.Enabled := False;
     btnExit.Caption := 'Cancel';
-    pbDownload.Visible := true;
-    tmContinueDownload.Enabled := true;
-    fLocalList.Sorted := false;
+    pbDownload.Visible := True;
+    tmContinueDownload.Enabled := True;
+    fLocalList.Sorted := False;
     fFailList.Clear;
     BeginNextDownload;
   end;
@@ -147,13 +147,13 @@ begin
   fDownloadIndex := -1;
   SaveLocalList;
   MakeStyleList;
-  btnGetSelected.Enabled := true;
-  btnDownloadAll.Enabled := true;
-  btnUpdateAll.Enabled := true;
+  btnGetSelected.Enabled := True;
+  btnDownloadAll.Enabled := True;
+  btnUpdateAll.Enabled := True;
   btnExit.Caption := 'Exit';
-  pbDownload.Visible := false;
-  tmContinueDownload.Enabled := false;
-  fLocalList.Sorted := true;
+  pbDownload.Visible := False;
+  tmContinueDownload.Enabled := False;
+  fLocalList.Sorted := True;
 
   if fFailList.Count > 0 then
   begin
@@ -176,7 +176,7 @@ begin
       fDownloadStream.Position := 0;
       Zip.Open(fDownloadStream, zmRead);
       if DirectoryExists(AppPath + SFStyles + fDownloadList[fDownloadIndex]) then
-        TDirectory.Delete(AppPath + SFStyles + fDownloadList[fDownloadIndex], true);
+        TDirectory.Delete(AppPath + SFStyles + fDownloadList[fDownloadIndex], True);
       Zip.ExtractAll(AppPath);
       Zip.Close;
 
@@ -210,7 +210,7 @@ begin
   if fWebList.IndexOfName(fDownloadList[fDownloadIndex]) < 0 then
   begin
     fFailList.Values[fDownloadList[fDownloadIndex]] := 'Style does not exist on server.';
-    fTimeForNextDownload := true;
+    fTimeForNextDownload := True;
     Exit;
   end;
 
@@ -220,7 +220,7 @@ begin
     procedure
     begin
       fDownloadThread := nil;
-      fTimeForNextDownload := true;
+      fTimeForNextDownload := True;
     end
   );
 end;
@@ -229,7 +229,7 @@ procedure TFManageStyles.CheckNextDownload;
 begin
   if fTimeForNextDownload then
   begin
-    fTimeForNextDownload := false;
+    fTimeForNextDownload := False;
     if fDownloadStream.Size > 0 then ConcludeDownload;
     Inc(fDownloadIndex);
     BeginNextDownload;
@@ -312,7 +312,7 @@ begin
   if not fClearedPieceManager then
   begin
     PieceManager.Clear;
-    fClearedPieceManager := true;
+    fClearedPieceManager := True;
   end;
 end;
 
@@ -329,10 +329,10 @@ begin
   fDownloadList := TStringList.Create;
   fFailList := TStringList.Create;
 
-  fLocalList.Sorted := true;
-  fWebList.Sorted := true;
+  fLocalList.Sorted := True;
+  fWebList.Sorted := True;
 
-  fDownloadList.Sorted := true;
+  fDownloadList.Sorted := True;
   fDownloadList.Duplicates := dupIgnore;
 
   fDownloadIndex := -1;
@@ -341,9 +341,9 @@ begin
 
   if not GameParams.EnableOnline then
   begin
-    btnGetSelected.Enabled := false;
-    btnDownloadAll.Enabled := false;
-    btnUpdateAll.Enabled := false;
+    btnGetSelected.Enabled := False;
+    btnDownloadAll.Enabled := False;
+    btnUpdateAll.Enabled := False;
   end;
 end;
 

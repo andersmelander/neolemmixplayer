@@ -207,52 +207,52 @@ type
     procedure CreateBasePack;
 
     procedure SetLevel(aLevel: TNeoLevelEntry);
-    procedure NextLevel(aCanCrossRank: Boolean = false);
-    procedure PrevLevel(aCanCrossRank: Boolean = false);
+    procedure NextLevel(aCanCrossRank: Boolean = False);
+    procedure PrevLevel(aCanCrossRank: Boolean = False);
     procedure SetGroup(aGroup: TNeoLevelGroup);
     procedure NextGroup;
     procedure PrevGroup;
-    procedure LoadCurrentLevel(NoOutput: Boolean = false); // loads level specified by CurrentLevel into Level, and prepares renderer
-    procedure ReloadCurrentLevel(NoOutput: Boolean = false); // re-prepares using the existing TLevel in memory
+    procedure LoadCurrentLevel(NoOutput: Boolean = False); // loads level specified by CurrentLevel into Level, and prepares renderer
+    procedure ReloadCurrentLevel(NoOutput: Boolean = False); // re-prepares using the existing TLevel in memory
 
     procedure ElevateSaveCriticality(aCriticality: TGameParamsSaveCriticality);
 
     property CurrentLevel: TNeoLevelEntry read fCurrentLevel write fCurrentLevel;
 
     property AutoSaveReplay: Boolean Index moAutoReplaySave read GetOptionFlag write SetOptionFlag;
-    property EnableOnline: boolean Index moEnableOnline read GetOptionFlag write SetOptionFlag;
-    property CheckUpdates: boolean Index moCheckUpdates read GetOptionFlag write SetOptionFlag;
-    property LoadNextUnsolvedLevel: boolean Index moLoadNextUnsolvedLevel read GetOptionFlag write SetOptionFlag;
-    property AutoReplayMode: boolean Index moAutoReplayMode read GetOptionFlag write SetOptionFlag;
-    property ReplayAfterRestart: boolean Index moReplayAfterRestart read GetOptionFlag write SetOptionFlag;
-    property PauseAfterBackwardsSkip: boolean Index moPauseAfterBackwards read GetOptionFlag write SetOptionFlag;
-    property NoBackgrounds: boolean Index moNoBackgrounds read GetOptionFlag write SetOptionFlag;
-    property HideShadows: boolean Index moHideShadows read GetOptionFlag write SetOptionFlag;
-    property HideHelpers: boolean Index moHideHelpers read GetOptionFlag write SetOptionFlag;
-    property NoSkillQueue: boolean Index moNoSkillQueue read GetOptionFlag write SetOptionFlag;
-    property DisableWineWarnings: boolean Index moDisableWineWarnings read GetOptionFlag write SetOptionFlag;
-    property HighResolution: boolean Index moHighResolution read GetOptionFlag write SetOptionFlag;
-    property LinearResampleMenu: boolean Index moLinearResampleMenu read GetOptionFlag write SetOptionFlag;
-    property LinearResampleGame: boolean Index moLinearResampleGame read GetOptionFlag write SetOptionFlag;
-    property FullScreen: boolean Index moFullScreen read GetOptionFlag write SetOptionFlag;
-    property MinimapHighQuality: boolean Index moMinimapHighQuality read GetOptionFlag write SetOptionFlag;
-    property IncreaseZoom: boolean Index moIncreaseZoom read GetOptionFlag write SetOptionFlag;
-    property LoadedConfig: boolean Index moLoadedConfig read GetOptionFlag write SetOptionFlag;
-    property CompactSkillPanel: boolean Index moCompactSkillPanel read GetOptionFlag write SetOptionFlag;
-    property EdgeScroll: boolean Index moEdgeScroll read GetOptionFlag write SetOptionFlag;
-    property SpawnInterval: boolean Index moSpawnInterval read GetOptionFlag write SetOptionFlag;
-    property ForceDefaultLemmings: boolean Index moForceDefaultLemmings read GetOptionFlag write SetOptionFlag;
-    property DisableMusicInTestplay: boolean Index moDisableMusicInTestplay read GetOptionFlag write SetOptionFlag;
+    property EnableOnline: Boolean Index moEnableOnline read GetOptionFlag write SetOptionFlag;
+    property CheckUpdates: Boolean Index moCheckUpdates read GetOptionFlag write SetOptionFlag;
+    property LoadNextUnsolvedLevel: Boolean Index moLoadNextUnsolvedLevel read GetOptionFlag write SetOptionFlag;
+    property AutoReplayMode: Boolean Index moAutoReplayMode read GetOptionFlag write SetOptionFlag;
+    property ReplayAfterRestart: Boolean Index moReplayAfterRestart read GetOptionFlag write SetOptionFlag;
+    property PauseAfterBackwardsSkip: Boolean Index moPauseAfterBackwards read GetOptionFlag write SetOptionFlag;
+    property NoBackgrounds: Boolean Index moNoBackgrounds read GetOptionFlag write SetOptionFlag;
+    property HideShadows: Boolean Index moHideShadows read GetOptionFlag write SetOptionFlag;
+    property HideHelpers: Boolean Index moHideHelpers read GetOptionFlag write SetOptionFlag;
+    property NoSkillQueue: Boolean Index moNoSkillQueue read GetOptionFlag write SetOptionFlag;
+    property DisableWineWarnings: Boolean Index moDisableWineWarnings read GetOptionFlag write SetOptionFlag;
+    property HighResolution: Boolean Index moHighResolution read GetOptionFlag write SetOptionFlag;
+    property LinearResampleMenu: Boolean Index moLinearResampleMenu read GetOptionFlag write SetOptionFlag;
+    property LinearResampleGame: Boolean Index moLinearResampleGame read GetOptionFlag write SetOptionFlag;
+    property FullScreen: Boolean Index moFullScreen read GetOptionFlag write SetOptionFlag;
+    property MinimapHighQuality: Boolean Index moMinimapHighQuality read GetOptionFlag write SetOptionFlag;
+    property IncreaseZoom: Boolean Index moIncreaseZoom read GetOptionFlag write SetOptionFlag;
+    property LoadedConfig: Boolean Index moLoadedConfig read GetOptionFlag write SetOptionFlag;
+    property CompactSkillPanel: Boolean Index moCompactSkillPanel read GetOptionFlag write SetOptionFlag;
+    property EdgeScroll: Boolean Index moEdgeScroll read GetOptionFlag write SetOptionFlag;
+    property SpawnInterval: Boolean Index moSpawnInterval read GetOptionFlag write SetOptionFlag;
+    property ForceDefaultLemmings: Boolean Index moForceDefaultLemmings read GetOptionFlag write SetOptionFlag;
+    property DisableMusicInTestplay: Boolean Index moDisableMusicInTestplay read GetOptionFlag write SetOptionFlag;
 
-    property HideAdvancedOptions: boolean Index moHideAdvanced read GetOptionFlag write SetOptionFlag;
+    property HideAdvancedOptions: Boolean Index moHideAdvanced read GetOptionFlag write SetOptionFlag;
 
-    property FileCaching: boolean Index moFileCaching read GetOptionFlag write SetOptionFlag;
-    property MatchBlankReplayUsername: boolean Index moMatchBlankReplayUsername read GetOptionFlag write SetOptionFlag;
+    property FileCaching: Boolean Index moFileCaching read GetOptionFlag write SetOptionFlag;
+    property MatchBlankReplayUsername: Boolean Index moMatchBlankReplayUsername read GetOptionFlag write SetOptionFlag;
     property PostviewJingles: Boolean Index moPostviewJingles read GetOptionFlag write SetOptionFlag;
 
-    property DumpMode: boolean read fDumpMode write fDumpMode;
-    property OneLevelMode: boolean read fOneLevelMode write fOneLevelMode;
-    property ShownText: boolean read fShownText write fShownText;
+    property DumpMode: Boolean read fDumpMode write fDumpMode;
+    property OneLevelMode: Boolean read fOneLevelMode write fOneLevelMode;
+    property ShownText: Boolean read fShownText write fShownText;
     property DoneUpdateCheck: Boolean read fDoneUpdateCheck write fDoneUpdateCheck;
 
     property Directory: string read fDirectory write fDirectory;
@@ -322,7 +322,7 @@ begin
   if not LoadedConfig then Exit;
   if IsHalting then Exit;
 
-  Success := false;
+  Success := False;
   Attempts := 2;
   case fSaveCriticality of
     scImportant: Attempts := 5;
@@ -335,7 +335,7 @@ begin
       SaveToIniFile;
       BaseLevelPack.SaveUserData;
       Hotkeys.SaveFile;
-      Success := true;
+      Success := True;
     except
       Sleep(50);
     end;
@@ -365,7 +365,7 @@ var
   SL, SL2: TStringList;
   LevelSavePath: String;
 
-  procedure SaveBoolean(aLabel: String; aValue: Boolean; aValue2: Boolean = false);
+  procedure SaveBoolean(aLabel: String; aValue: Boolean; aValue2: Boolean = False);
   var
     NumValue: Integer;
   begin
@@ -384,10 +384,10 @@ var
   begin
     for i := SL2.Count-1 downto 0 do
     begin
-      RemoveLine := false;
-      if SL2[i] = '' then RemoveLine := true;
-      if LeftStr(SL2[i], 1) = '#' then RemoveLine := true;
-      if SL.IndexOfName(SL2.Names[i]) > -1 then RemoveLine := true;
+      RemoveLine := False;
+      if SL2[i] = '' then RemoveLine := True;
+      if LeftStr(SL2[i], 1) = '#' then RemoveLine := True;
+      if SL.IndexOfName(SL2.Names[i]) > -1 then RemoveLine := True;
 
       if RemoveLine then SL2.Delete(i);
     end;
@@ -507,11 +507,11 @@ var
   begin
     // CANNOT load multi-saved in one for obvious reasons, those must be handled manually
     if (SL.Values[aLabel] = '0') then
-      Result := false
+      Result := False
     else if (SL.Values[aLabel] = '') then
       Result := aDefault
     else
-      Result := true;
+      Result := True;
   end;
 
   procedure EnsureValidWindowSize;
@@ -519,7 +519,7 @@ var
     // Older config files might specify a zoom level of zero, to represent fullscreen.
     if ZoomLevel < 1 then
     begin
-      FullScreen := true;
+      FullScreen := True;
       ZoomLevel := Min(Screen.Width div 320 div ResMod, Screen.Height div 200 div ResMod);
     end;
 
@@ -590,11 +590,11 @@ begin
     if FileExists(AppPath + SFSaveData + 'settings.ini') then
     begin
       SL.LoadFromFile(AppPath + SFSaveData + 'settings.ini');
-      LoadedConfig := true;
+      LoadedConfig := True;
     end else if UnderWine then
     begin
       // When running under WINE without an existing config, let's default to windowed.
-      FullScreen := false;
+      FullScreen := False;
       ZoomLevel := Max(Max((Screen.Width - 100) div 416 div ResMod, (Screen.Height - 100) div 200 div ResMod), 1);
       TMainForm(GameParams.MainForm).RestoreDefaultSize;
       TMainForm(GameParams.MainForm).RestoreDefaultPosition;
@@ -664,8 +664,8 @@ begin
     LinearResampleMenu := LoadBoolean('LinearResampleMenu', LinearResampleMenu);
     LinearResampleGame := LoadBoolean('LinearResampleGame', LinearResampleGame);
 
-    if LoadBoolean('VictoryJingle', false) or LoadBoolean('FailureJingle', false) then
-      PostviewJingles := true
+    if LoadBoolean('VictoryJingle', False) or LoadBoolean('FailureJingle', False) then
+      PostviewJingles := True
     else
       PostviewJingles := LoadBoolean('PostviewJingles', PostviewJingles);
 
@@ -678,7 +678,7 @@ begin
   except
     on E: Exception do
     begin
-      fDisableSaveOptions := true;
+      fDisableSaveOptions := True;
       ShowMessage('Error during settings loading:' + #10 +
                    E.ClassName + ': ' + E.Message + #10 +
                    'Default settings have been loaded. Customizations to settings during this session will not be saved.');
@@ -688,7 +688,7 @@ begin
   SL.Free;
 end;
 
-procedure TDosGameParams.LoadCurrentLevel(NoOutput: Boolean = false);
+procedure TDosGameParams.LoadCurrentLevel(NoOutput: Boolean = False);
 begin
   if CurrentLevel = nil then Exit;
   if not FileExists(CurrentLevel.Path) then
@@ -701,7 +701,7 @@ begin
   Renderer.PrepareGameRendering(Level, NoOutput);
 end;
 
-procedure TDosGameParams.ReloadCurrentLevel(NoOutput: Boolean = false);
+procedure TDosGameParams.ReloadCurrentLevel(NoOutput: Boolean = False);
 begin
   PieceManager.Tidy;
   Renderer.PrepareGameRendering(Level, NoOutput);
@@ -732,7 +732,7 @@ begin
   end else
     fCurrentLevel := CurLevelGroup.Levels[CurLevelIndex + 1];
 
-  ShownText := false;
+  ShownText := False;
 end;
 
 procedure TDosGameParams.PrevLevel(aCanCrossRank: Boolean);
@@ -756,7 +756,7 @@ begin
     fCurrentLevel := CurLevelGroup.Levels[CurLevelIndex - 1];
   end;
 
-  ShownText := false;
+  ShownText := False;
 end;
 
 procedure TDosGameParams.SetCurrentLevelToBestMatch(aPattern: String);
@@ -858,9 +858,9 @@ begin
   SoundManager.SoundVolume := 50;
   ExitToPostview := etpIfPassed;
 
-  fDumpMode := false;
-  fShownText := false;
-  fOneLevelMode := false;
+  fDumpMode := False;
+  fShownText := False;
+  fOneLevelMode := False;
   fTalismanPage := 0;
   fZoomLevel := Min(Screen.Width div 320, Screen.Height div 200);
   fPanelZoomLevel := Min(fZoomLevel, Screen.Width div 416);
