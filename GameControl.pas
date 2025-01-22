@@ -71,7 +71,7 @@ type
     moEnableOnline,
     moCheckUpdates,
     moLoadNextUnsolvedLevel,
-    moNoAutoReplayMode,
+    moAutoReplayMode,
     moReplayAfterRestart,
     moPauseAfterBackwards,
     moNoBackgrounds,
@@ -223,7 +223,7 @@ type
     property EnableOnline: boolean Index moEnableOnline read GetOptionFlag write SetOptionFlag;
     property CheckUpdates: boolean Index moCheckUpdates read GetOptionFlag write SetOptionFlag;
     property LoadNextUnsolvedLevel: boolean Index moLoadNextUnsolvedLevel read GetOptionFlag write SetOptionFlag;
-    property NoAutoReplayMode: boolean Index moNoAutoReplayMode read GetOptionFlag write SetOptionFlag;
+    property AutoReplayMode: boolean Index moAutoReplayMode read GetOptionFlag write SetOptionFlag;
     property ReplayAfterRestart: boolean Index moReplayAfterRestart read GetOptionFlag write SetOptionFlag;
     property PauseAfterBackwardsSkip: boolean Index moPauseAfterBackwards read GetOptionFlag write SetOptionFlag;
     property NoBackgrounds: boolean Index moNoBackgrounds read GetOptionFlag write SetOptionFlag;
@@ -432,7 +432,7 @@ begin
   else if (ExitToPostview = etpNever) then
     SaveString('ExitToPostview', 'Never');
 
-  SaveBoolean('NoAutoReplay', NoAutoReplayMode);
+  SaveBoolean('AutoReplay', AutoReplayMode);
   SaveBoolean('ReplayAfterRestart', ReplayAfterRestart);
   SaveBoolean('PauseAfterBackwardsSkip', PauseAfterBackwardsSkip);
   SaveBoolean('NoBackgrounds', NoBackgrounds);
@@ -615,7 +615,7 @@ begin
     if IngameSaveReplayPattern = '' then IngameSaveReplayPattern := DEFAULT_REPLAY_PATTERN_INGAME;
     if PostviewSaveReplayPattern = '' then PostviewSaveReplayPattern := DEFAULT_REPLAY_PATTERN_POSTVIEW;
 
-    NoAutoReplayMode := LoadBoolean('NoAutoReplay', NoAutoReplayMode);
+    AutoReplayMode := LoadBoolean('AutoReplay', AutoReplayMode);
     ReplayAfterRestart := LoadBoolean('ReplayAfterRestart', ReplayAfterRestart);
     PauseAfterBackwardsSkip := LoadBoolean('PauseAfterBackwardsSkip', PauseAfterBackwardsSkip);
     NoBackgrounds := LoadBoolean('NoBackgrounds', NoBackgrounds);

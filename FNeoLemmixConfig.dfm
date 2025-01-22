@@ -27,7 +27,7 @@ object FormNXConfig: TFormNXConfig
     Top = 0
     Width = 382
     Height = 499
-    ActivePage = TabSheet1
+    ActivePage = TabSheet2
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 0
     object TabSheet1: TTabSheet
@@ -211,12 +211,12 @@ object FormNXConfig: TFormNXConfig
         Height = 70
         Caption = 'Replay Options'
         TabOrder = 2
-        object cbNoAutoReplay: TCheckBox
+        object cbAutoReplay: TCheckBox
           Left = 19
           Top = 20
           Width = 234
           Height = 17
-          Caption = 'Don'#39't Replay After Backwards Frameskips'
+          Caption = 'Auto-Replay After Backwards Frameskips'
           TabOrder = 0
           OnClick = OptionChanged
         end
