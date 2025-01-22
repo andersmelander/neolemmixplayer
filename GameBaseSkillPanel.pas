@@ -1566,6 +1566,9 @@ begin
                 end;
     spbBackOneFrame:
       begin
+        if not GameParams.AutoReplayMode then
+          Game.CancelReplayAfterSkip := True;
+
         if Button = mbLeft then
         begin
           fGameWindow.GotoSaveState(Game.CurrentIteration - 1);
