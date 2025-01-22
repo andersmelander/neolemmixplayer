@@ -82,7 +82,10 @@ object FormNXConfig: TFormNXConfig
           Items.Strings = (
             'Position + Timestamp'
             'Title + Timestamp'
-            'Position + Title + Timestamp')
+            'Position + Title + Timestamp'
+            'Username + Position + Timestamp'
+            'Username + Title + Timestamp'
+            'Username + Position + Title + Timestamp')
         end
         object cbIngameSaveReplayPattern: TComboBox
           Left = 90
@@ -97,7 +100,10 @@ object FormNXConfig: TFormNXConfig
             'Position + Timestamp'
             'Title + Timestamp'
             'Position + Title + Timestamp'
-            '(Show file selector)')
+            'Username + Position + Timestamp'
+            'Username + Title + Timestamp'
+            'Username + Position + Title + Timestamp'
+            '(Show '#39'Save As'#39' dialog)')
         end
         object cbPostviewSaveReplayPattern: TComboBox
           Left = 90
@@ -112,7 +118,10 @@ object FormNXConfig: TFormNXConfig
             'Position + Timestamp'
             'Title + Timestamp'
             'Position + Title + Timestamp'
-            '(Show file selector)')
+            'Username + Position + Timestamp'
+            'Username + Title + Timestamp'
+            'Username + Position + Title + Timestamp'
+            '(Show '#39'Save As'#39' dialog)')
         end
       end
       object gbInternetOptions: TGroupBox
@@ -292,9 +301,9 @@ object FormNXConfig: TFormNXConfig
         object cbSpawnInterval: TCheckBox
           Left = 19
           Top = 112
-          Width = 153
+          Width = 294
           Height = 17
-          Caption = 'Use Spawn Interval'
+          Caption = 'Use Spawn Interval Instead of Release Rate'
           TabOrder = 4
           OnClick = OptionChanged
         end
