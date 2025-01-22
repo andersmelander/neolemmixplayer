@@ -263,6 +263,7 @@ begin
     // Checkboxes
     cbPauseAfterBackwards.Checked := GameParams.PauseAfterBackwardsSkip;
     cbNoAutoReplay.Checked := GameParams.NoAutoReplayMode;
+    cbReplayAfterRestart.Checked := GameParams.ReplayAfterRestart;
 
     cbNoBackgrounds.Checked := GameParams.NoBackgrounds;
     cbForceDefaultLemmings.Checked := GameParams.ForceDefaultLemmings;
@@ -330,6 +331,7 @@ begin
   // Checkboxes
   GameParams.PauseAfterBackwardsSkip := cbPauseAfterBackwards.Checked;
   GameParams.NoAutoReplayMode := cbNoAutoReplay.Checked;
+  GameParams.ReplayAfterRestart := cbReplayAfterRestart.Checked;
 
   GameParams.NoBackgrounds := cbNoBackgrounds.Checked;
   GameParams.ForceDefaultLemmings := cbForceDefaultLemmings.Checked;

@@ -61,7 +61,8 @@ uses
   CustomPopup,
   FBaseDosForm,
   FLevelInfo,
-  FStyleManager;
+  FStyleManager,
+  LemGame;
 
 const
   TALISMAN_PADDING = 8;
@@ -454,6 +455,10 @@ begin
       Raise; // yet again, to be caught on TBaseDosForm
     end;
   end;
+
+  // Clears the current-replay-in-memory when the level loads
+  if not GameParams.ReplayAfterRestart then
+    GlobalGame.ReplayManager.Clear(True);
 end;
 
 end.

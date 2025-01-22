@@ -1341,7 +1341,12 @@ begin
       lka_SaveImage: SaveShot;
       lka_LoadReplay: LoadReplay;
       lka_Music: SoundManager.MuteMusic := not SoundManager.MuteMusic;
-      lka_Restart: GotoSaveState(0);
+      lka_Restart: begin
+                     if not GameParams.ReplayAfterRestart then
+                       Game.CancelReplayAfterSkip := True;
+
+                     GotoSaveState(0);
+                   end;
       lka_Sound: SoundManager.MuteSound := not SoundManager.MuteSound;
       lka_SaveReplay: SaveReplay;
       lka_SkillRight: begin

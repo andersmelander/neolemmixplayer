@@ -227,6 +227,7 @@ object FormNXConfig: TFormNXConfig
           Height = 17
           Caption = 'Auto-Replay After Restart'
           TabOrder = 1
+          OnClick = OptionChanged
         end
       end
       object gbHelperOptions: TGroupBox

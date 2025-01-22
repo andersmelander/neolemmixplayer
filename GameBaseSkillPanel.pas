@@ -1558,7 +1558,12 @@ begin
         else if fGameWindow.GameSpeed in [gspNormal, gspSlowMo, gspPause] then
           fGameWindow.GameSpeed := gspFF;
       end;
-    spbRestart: fGameWindow.GotoSaveState(0);
+    spbRestart: begin
+                  if not GameParams.ReplayAfterRestart then
+                    Game.CancelReplayAfterSkip := True;
+
+                  fGameWindow.GotoSaveState(0);
+                end;
     spbBackOneFrame:
       begin
         if Button = mbLeft then
