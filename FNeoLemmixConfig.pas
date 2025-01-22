@@ -59,8 +59,8 @@ type
     cbForceDefaultLemmings: TCheckBox;
     cbDisableTestplayMusic: TCheckBox;
     rgWhenNoLemmings: TRadioGroup;
-    cbDeactivateHelpers: TCheckBox;
-    cbDeactivateSkillQueue: TCheckBox;
+    cbHideHelpers: TCheckBox;
+    cbNoSkillQueue: TCheckBox;
     cbReplayAfterRestart: TCheckBox;
     rgGameLoading: TRadioGroup;
     gbVolume: TGroupBox;
@@ -264,6 +264,7 @@ begin
     cbNoBackgrounds.Checked := GameParams.NoBackgrounds;
     cbForceDefaultLemmings.Checked := GameParams.ForceDefaultLemmings;
     cbHideShadows.Checked := GameParams.HideShadows;
+    cbHideHelpers.Checked := GameParams.HideHelpers;
     cbEdgeScrolling.Checked := GameParams.EdgeScroll;
     cbSpawnInterval.Checked := GameParams.SpawnInterval;
     cbHideAdvanced.Checked := GameParams.HideAdvancedOptions;
@@ -329,6 +330,7 @@ begin
   GameParams.NoBackgrounds := cbNoBackgrounds.Checked;
   GameParams.ForceDefaultLemmings := cbForceDefaultLemmings.Checked;
   GameParams.HideShadows := cbHideShadows.Checked;
+  GameParams.HideHelpers := cbHideHelpers.Checked;
   GameParams.EdgeScroll := cbEdgeScrolling.Checked;
   GameParams.SpawnInterval := cbSpawnInterval.Checked;
   GameParams.HideAdvancedOptions := cbHideAdvanced.Checked;

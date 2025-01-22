@@ -467,11 +467,12 @@ begin
   end;
 
   // Helper for selected lemming
-  if (Selected and aLemming.CannotReceiveSkills) or UsefulOnly or
-     ((fRenderInterface <> nil) and fRenderInterface.IsStartingSeconds) then
+  if (Selected and aLemming.CannotReceiveSkills) or UsefulOnly
+    or ((fRenderInterface <> nil) and fRenderInterface.IsStartingSeconds
+      and not GameParams.HideHelpers) then
   begin
     DrawLemmingHelpers(fLayers[rlObjectHelpers], aLemming, UsefulOnly);
-    fLayers.fIsEmpty[rlObjectHelpers] := false;
+    fLayers.fIsEmpty[rlObjectHelpers] := False;
   end;
 
   // Draw blocker areas on the triggerLayer
@@ -2699,7 +2700,7 @@ procedure TRenderer.DrawAllGadgets(Gadgets: TGadgetList; DrawHelper: Boolean = T
 var
   Gadget: TGadget;
   i, i2: Integer;
-  DrawOtherHatchHelper: Boolean;
+  DrawPreassignedHelper, DrawOtherHatchHelper: Boolean;
   HatchPoint: TPoint;
 begin
   fGadgets := Gadgets;
@@ -2730,12 +2731,15 @@ begin
     if not (Gadget.TriggerEffect = DOM_WINDOW) then
       Continue;
 
+    DrawPreassignedHelper := Gadget.HasPreassignedSkills and
+                            (not GameParams.HideHelpers or UsefulOnly);
+
     DrawOtherHatchHelper := fRenderInterface.IsStartingSeconds() or
                             (DrawHelper and UsefulOnly and IsCursorOnGadget(Gadget));
 
-    fLayers.fIsEmpty[rlObjectHelpers] := false;
+    fLayers.fIsEmpty[rlObjectHelpers] := False;
 
-    if Gadget.HasPreassignedSkills then
+    if DrawPreassignedHelper then
       DrawHatchSkillHelpers(fLayers[rlObjectHelpers], Gadget, false);
 
     if DrawOtherHatchHelper then

@@ -27,7 +27,7 @@ object FormNXConfig: TFormNXConfig
     Top = 0
     Width = 382
     Height = 499
-    ActivePage = TabSheet1
+    ActivePage = TabSheet2
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 0
     object TabSheet1: TTabSheet
@@ -236,7 +236,7 @@ object FormNXConfig: TFormNXConfig
           TabOrder = 0
           OnClick = OptionChanged
         end
-        object cbDeactivateHelpers: TCheckBox
+        object cbHideHelpers: TCheckBox
           Left = 19
           Top = 91
           Width = 177
@@ -245,7 +245,7 @@ object FormNXConfig: TFormNXConfig
           TabOrder = 3
           OnClick = OptionChanged
         end
-        object cbDeactivateSkillQueue: TCheckBox
+        object cbNoSkillQueue: TCheckBox
           Left = 19
           Top = 68
           Width = 193
