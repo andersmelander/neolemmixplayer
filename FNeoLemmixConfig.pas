@@ -14,7 +14,7 @@ type
     btnOK: TButton;
     btnCancel: TButton;
     btnApply: TButton;
-    GroupBox4: TGroupBox;
+    gbReplayNamingOptions: TGroupBox;
     TabSheet2: TTabSheet;
     TabSheet3: TTabSheet;
     TabSheet4: TTabSheet;
@@ -22,15 +22,11 @@ type
     Label3: TLabel;
     Label5: TLabel;
     tbMusicVol: TTrackBar;
-    Label6: TLabel;
     cbPostviewJingles: TCheckBox;
-    GroupBox2: TGroupBox;
-    GroupBox3: TGroupBox;
     cbNoBackgrounds: TCheckBox;
-    GroupBox1: TGroupBox;
+    gbInternetOptions: TGroupBox;
     cbEnableOnline: TCheckBox;
     cbUpdateCheck: TCheckBox;
-    GroupBox6: TGroupBox;
     cbZoom: TComboBox;
     Label1: TLabel;
     cbLinearResampleMenu: TCheckBox;
@@ -63,6 +59,21 @@ type
     cbForceDefaultLemmings: TCheckBox;
     cbDisableTestplayMusic: TCheckBox;
     rgWhenNoLemmings: TRadioGroup;
+    cbDeactivateHelpers: TCheckBox;
+    cbDeactivateSkillQueue: TCheckBox;
+    cbReplayAfterRestart: TCheckBox;
+    rgGameLoading: TRadioGroup;
+    gbVolume: TGroupBox;
+    gbReplayOptions: TGroupBox;
+    gbHelperOptions: TGroupBox;
+    gbInterfaceOptions: TGroupBox;
+    gbZoomOptions: TGroupBox;
+    gbResolutionOptions: TGroupBox;
+    gbWindowOptions: TGroupBox;
+    btnResetWindow: TButton;
+    rgSoundScheme: TRadioGroup;
+    gbSoundOptions: TGroupBox;
+    gbMusicOptions: TGroupBox;
     procedure btnApplyClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure btnHotkeysClick(Sender: TObject);
@@ -73,6 +84,7 @@ type
     procedure cbFullScreenClick(Sender: TObject);
     procedure cbAutoSaveReplayClick(Sender: TObject);
     procedure cbReplayPatternEnter(Sender: TObject);
+    procedure btnResetWindowClick(Sender: TObject);
   private
     fIsSetting: Boolean;
     fResetWindowSize: Boolean;
@@ -216,6 +228,12 @@ procedure TFormNXConfig.btnOKClick(Sender: TObject);
 begin
   SaveToParams;
   ModalResult := mrOK;
+end;
+
+procedure TFormNXConfig.btnResetWindowClick(Sender: TObject);
+begin
+  cbResetWindowSize.Checked := True;
+  cbResetWindowPosition.Checked := True;
 end;
 
 procedure TFormNXConfig.SetFromParams;
