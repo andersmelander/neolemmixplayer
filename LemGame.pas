@@ -2561,7 +2561,7 @@ begin
   i := -1;
   AbortChecks := False;
   NeedShiftPosition := 0;
-  WasAttachedToWall := False;
+
   repeat
     Inc(i);
 

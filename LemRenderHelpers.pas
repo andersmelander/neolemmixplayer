@@ -9,7 +9,7 @@ interface
 uses
   LemTypes, LemGadgets, LemLemming, LemCore,
   GR32, GR32_Blend,
-  Contnrs, Classes;
+  Contnrs, Classes, System.Types;
 
 const
   PARTICLE_FRAMECOUNT = 51;
@@ -632,10 +632,10 @@ begin
     LRRegion.Right := aRegion.Right div ResMod;
     LRRegion.Bottom := aRegion.Bottom div ResMod;
 
-    IntersectRect(LRRegion, LRRegion, fPhysicsMap.BoundsRect);
-    IntersectRect(aRegion, aRegion, aDst.BoundsRect);
+    System.Types.IntersectRect(LRRegion, LRRegion, fPhysicsMap.BoundsRect);
+    System.Types.IntersectRect(aRegion, aRegion, aDst.BoundsRect);
   end else begin
-    IntersectRect(aRegion, aRegion, fPhysicsMap.BoundsRect);
+    System.Types.IntersectRect(aRegion, aRegion, fPhysicsMap.BoundsRect);
     LRRegion := aRegion;
   end;
 

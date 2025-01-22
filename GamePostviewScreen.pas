@@ -10,7 +10,7 @@ uses
   LemmixHotkeys,
   Windows, Classes, SysUtils, StrUtils, Controls,
   UMisc, Math,
-  Gr32, Gr32_Image, Gr32_Layers, GR32_Resamplers,
+  GR32, GR32_Image, GR32_Layers, GR32_Resamplers,
   LemCore,
   LemTypes,
   LemStrings,

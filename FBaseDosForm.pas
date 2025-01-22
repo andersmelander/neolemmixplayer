@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, Gr32,
+  Dialogs, GR32,
   GameControl,
   LemStrings;
 
