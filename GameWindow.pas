@@ -448,10 +448,10 @@ begin
 
     if (F.ShowModal = mrOk) and (F.EarliestChange <= Game.CurrentIteration) then
     begin
-      OldClearReplay := not GameParams.AutoReplayMode;
+      OldClearReplay := not GameParams.ReplayAfterBackskip;
       fSaveList.ClearAfterIteration(0);
       GotoSaveState(Game.CurrentIteration);
-      GameParams.AutoReplayMode := not OldClearReplay;
+      GameParams.ReplayAfterBackskip := not OldClearReplay;
     end;
   finally
     F.Free;
@@ -518,7 +518,7 @@ begin
 
   if PanelFrameSkip < 0 then
   begin
-    if not GameParams.AutoReplayMode then Game.CancelReplayAfterSkip := True;
+    if not GameParams.ReplayAfterBackskip then Game.CancelReplayAfterSkip := True;
     GotoSaveState(Max(Game.CurrentIteration-1, 0));
   end;
 
@@ -1322,7 +1322,7 @@ begin
                         fSaveStateReplayStream.Position := 0;
                         Game.ReplayManager.LoadFromStream(fSaveStateReplayStream, True);
                         GotoSaveState(fSaveStateFrame, 1);
-                        if not GameParams.AutoReplayMode then Game.CancelReplayAfterSkip := True;
+                        if not GameParams.ReplayAfterBackskip then Game.CancelReplayAfterSkip := True;
                       end;
       lka_Cheat: Game.Cheat;
       lka_FastForward: begin
@@ -1370,7 +1370,7 @@ begin
       lka_Skip: if Game.Playing then
                   if func.Modifier < 0 then
                   begin
-                    if not GameParams.AutoReplayMode then Game.CancelReplayAfterSkip := True;
+                    if not GameParams.ReplayAfterBackskip then Game.CancelReplayAfterSkip := True;
                     if CurrentIteration > (func.Modifier * -1) then
                       GotoSaveState(CurrentIteration + func.Modifier)
                     else
@@ -1444,7 +1444,7 @@ begin
                           if Game.ReplayManager.HasAnyActionAt(i) then
                             TargetFrame := i;
 
-                      if not GameParams.AutoReplayMode then Game.CancelReplayAfterSkip := True;
+                      if not GameParams.ReplayAfterBackskip then Game.CancelReplayAfterSkip := True;
                       GotoSaveState(Max(TargetFrame - 1, 0));
                    end;
     ssc_NextShrugger: begin

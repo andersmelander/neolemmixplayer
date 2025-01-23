@@ -71,7 +71,7 @@ type
     moEnableOnline,
     moCheckUpdates,
     moLoadNextUnsolvedLevel,
-    moAutoReplayMode,
+    moReplayAfterBackskip,
     moReplayAfterRestart,
     moPauseAfterBackwards,
     moNoBackgrounds,
@@ -102,7 +102,7 @@ type
 const
   DEF_MISCOPTIONS = [
     moAutoReplaySave,
-    moAutoReplayMode,
+    moReplayAfterBackskip,
     moReplayAfterRestart,
     moPauseAfterBackwards,
     moLinearResampleMenu,
@@ -225,7 +225,7 @@ type
     property EnableOnline: Boolean Index moEnableOnline read GetOptionFlag write SetOptionFlag;
     property CheckUpdates: Boolean Index moCheckUpdates read GetOptionFlag write SetOptionFlag;
     property LoadNextUnsolvedLevel: Boolean Index moLoadNextUnsolvedLevel read GetOptionFlag write SetOptionFlag;
-    property AutoReplayMode: Boolean Index moAutoReplayMode read GetOptionFlag write SetOptionFlag;
+    property ReplayAfterBackskip: Boolean Index moReplayAfterBackskip read GetOptionFlag write SetOptionFlag;
     property ReplayAfterRestart: Boolean Index moReplayAfterRestart read GetOptionFlag write SetOptionFlag;
     property PauseAfterBackwardsSkip: Boolean Index moPauseAfterBackwards read GetOptionFlag write SetOptionFlag;
     property NoBackgrounds: Boolean Index moNoBackgrounds read GetOptionFlag write SetOptionFlag;
@@ -434,7 +434,7 @@ begin
   else if (ExitToPostview = etpNever) then
     SaveString('ExitToPostview', 'Never');
 
-  SaveBoolean('AutoReplay', AutoReplayMode);
+  SaveBoolean('ReplayAfterBackskip', ReplayAfterBackskip);
   SaveBoolean('ReplayAfterRestart', ReplayAfterRestart);
   SaveBoolean('PauseAfterBackwardsSkip', PauseAfterBackwardsSkip);
   SaveBoolean('NoBackgrounds', NoBackgrounds);
@@ -620,10 +620,10 @@ begin
     if IngameSaveReplayPattern = '' then IngameSaveReplayPattern := DEFAULT_REPLAY_PATTERN_INGAME;
     if PostviewSaveReplayPattern = '' then PostviewSaveReplayPattern := DEFAULT_REPLAY_PATTERN_POSTVIEW;
 
-    AutoReplayMode := LoadBoolean('AutoReplay', AutoReplayMode);
+    ReplayAfterBackskip := LoadBoolean('ReplayAfterBackskip', ReplayAfterBackskip);
     // Bookmark - Preserve deprecated option (this can be removed later)
-    if SL.Values['AutoReplay'] = '' then
-      AutoReplayMode := not LoadBoolean('NoAutoReplay', AutoReplayMode);
+    if SL.Values['ReplayAfterBackskip'] = '' then
+      ReplayAfterBackskip := not LoadBoolean('NoAutoReplay', ReplayAfterBackskip);
 
     ReplayAfterRestart := LoadBoolean('ReplayAfterRestart', ReplayAfterRestart);
     PauseAfterBackwardsSkip := LoadBoolean('PauseAfterBackwardsSkip', PauseAfterBackwardsSkip);

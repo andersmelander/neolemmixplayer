@@ -1566,7 +1566,7 @@ begin
                 end;
     spbBackOneFrame:
       begin
-        if not GameParams.AutoReplayMode then
+        if not GameParams.ReplayAfterBackskip then
           Game.CancelReplayAfterSkip := True;
 
         if Button = mbLeft then

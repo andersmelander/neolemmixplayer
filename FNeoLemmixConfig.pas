@@ -38,7 +38,7 @@ type
     cbEdgeScrolling: TCheckBox;
     cbSpawnInterval: TCheckBox;
     btnHotkeys: TButton;
-    cbAutoReplay: TCheckBox;
+    cbReplayAfterBackskip: TCheckBox;
     cbPauseAfterBackwards: TCheckBox;
     lblUserName: TLabel;
     ebUserName: TEdit;
@@ -267,7 +267,7 @@ begin
     //// Page 2 (Interface Options) ////
     // Checkboxes
     cbPauseAfterBackwards.Checked := GameParams.PauseAfterBackwardsSkip;
-    cbAutoReplay.Checked := GameParams.AutoReplayMode;
+    cbReplayAfterBackskip.Checked := GameParams.ReplayAfterBackskip;
     cbReplayAfterRestart.Checked := GameParams.ReplayAfterRestart;
 
     cbNoBackgrounds.Checked := GameParams.NoBackgrounds;
@@ -336,7 +336,7 @@ begin
   //// Page 2 (Interface Options) ////
   // Checkboxes
   GameParams.PauseAfterBackwardsSkip := cbPauseAfterBackwards.Checked;
-  GameParams.AutoReplayMode := cbAutoReplay.Checked;
+  GameParams.ReplayAfterBackskip := cbReplayAfterBackskip.Checked;
   GameParams.ReplayAfterRestart := cbReplayAfterRestart.Checked;
 
   GameParams.NoBackgrounds := cbNoBackgrounds.Checked;

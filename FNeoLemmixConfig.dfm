@@ -211,7 +211,7 @@ object FormNXConfig: TFormNXConfig
         Height = 70
         Caption = 'Replay Options'
         TabOrder = 2
-        object cbAutoReplay: TCheckBox
+        object cbReplayAfterBackskip: TCheckBox
           Left = 19
           Top = 20
           Width = 234
