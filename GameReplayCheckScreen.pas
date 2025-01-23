@@ -91,6 +91,8 @@ begin
 
   fScreenText := TStringList.Create;
   fReplays := TReplayCheckEntries.Create;
+
+  GameParams.MainForm.Caption := SProgramName + ' - Mass Replay Check';
 end;
 
 destructor TGameReplayCheckScreen.Destroy;

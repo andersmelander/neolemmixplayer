@@ -279,6 +279,10 @@ $(PreBuildEvent)]]></PreBuildEvent>
         <DCCReference Include="FReplayRename.pas">
             <Form>FReplayNaming</Form>
         </DCCReference>
+        <DCCReference Include="FReplayManager.pas">
+            <Form>FReplayManager</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
@@ -318,6 +322,12 @@ $(PreBuildEvent)]]></PreBuildEvent>
             </Platforms>
             <ModelSupport>False</ModelSupport>
             <Deployment Version="3">
+                <DeployFile LocalName="bin\NeoLemmix.exe" Configuration="Debug" Class="ProjectOutput">
+                    <Platform Name="Win32">
+                        <RemoteName>NeoLemmix.exe</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="bin\NeoLemmix.exe" Configuration="Debug" Class="ProjectOutput"/>
                 <DeployClass Name="AdditionalDebugSymbols">
                     <Platform Name="iOSSimulator">

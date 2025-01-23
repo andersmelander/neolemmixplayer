@@ -9,7 +9,7 @@ uses
   LemTypes,
   PngInterface,
   LemNeoLevelPack,
-  LemmixHotkeys, SharedGlobals,
+  LemmixHotkeys, LemNeoTheme, SharedGlobals,
   Windows, Classes, Controls, Graphics, SysUtils,
   GR32, GR32_Layers, GR32_Resamplers, GR32_Image,
   UMisc, Dialogs,
@@ -39,6 +39,7 @@ type
 
       procedure MakeTalismanOptions;
       procedure HandleTalismanClick;
+      procedure SetWindowCaption;
     protected
       procedure DoAfterConfig; override;
       function GetBackgroundSuffix: String; override;
@@ -179,6 +180,29 @@ begin
   end;
 end;
 
+procedure TGamePreviewScreen.SetWindowCaption;
+var
+  s, Title, Pack: string;
+  CurTheme: TNeoTheme;
+  RescueCount, LemCount, CollectibleCount: Integer;
+begin
+  Title := GameParams.Level.Info.Title;
+  Pack := GameParams.CurrentLevel.Group.ParentBasePack.Name;
+  RescueCount := GameParams.Level.Info.RescueCount;
+  LemCount := GameParams.Level.Info.LemmingsCount;
+  CurTheme := GameParams.Renderer.Theme;
+
+  s := SProgramName + ' - ' + Pack + ' - ' + Title + ' - Save ' + IntToStr(RescueCount)
+       + ' of ' + IntToStr(LemCount) + ' ';
+
+//  if LemCount = 1 then   // Bookmark - for singular/plural lems, not yet implemented
+//    s := s + CurTheme.LemNamesSingular
+//  else
+//    s := s + CurTheme.LemNamesPlural;
+
+  GameParams.MainForm.Caption := s;
+end;
+
 procedure TGamePreviewScreen.BuildScreen;
 var
   W: TBitmap32;
@@ -190,6 +214,8 @@ const
   TEXT_Y_POSITION = 170;
 begin
   CustomAssert(GameParams <> nil, 'GameParams not initialized correctly');
+
+  SetWindowCaption;
 
   W := TBitmap32.Create;
   ScreenImg.BeginUpdate;
