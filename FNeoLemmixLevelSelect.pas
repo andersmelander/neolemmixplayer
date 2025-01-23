@@ -1601,9 +1601,37 @@ begin
 end;
 
 procedure TFLevelSelect.btnReplayManagerClick(Sender: TObject);
+var
+  OpenDlg: TOpenDialog;
+  F: TFReplayNaming;
 begin
-  ModalResult := mrCancel;
-end;                       // Bookmark
+  OpenDlg := TOpenDialog.Create(Self);
+  try
+    OpenDlg.Title := 'Select any file in the folder containing replays';
+    OpenDlg.InitialDir := AppPath + 'Replay\' + MakeSafeForFilename(GameParams.CurrentLevel.Group.ParentBasePack.Name, False);
+    OpenDlg.Filter := SProgramName + ' Replay (*.nxrp)|*.nxrp';
+    OpenDlg.Options := [ofHideReadOnly, ofFileMustExist, ofEnableSizing];
+    if not OpenDlg.Execute then
+      Exit;
+    GameParams.ReplayCheckPath := ExtractFilePath(OpenDlg.FileName);
+  finally
+    OpenDlg.Free;
+  end;
+
+  F := TFReplayNaming.Create(Self);
+  try
+    if F.ShowModal = mrCancel then
+      Exit;
+  finally
+    F.Free;
+  end;
+
+  WriteToParams;
+  ModalResult := mrRetry;
+end;
+
+// Bookmark - replace above procedure with the commented-out one below
+// Also remember to change the button caption back to "Replay Manager"
 
 //procedure TFLevelSelect.btnReplayManagerClick(Sender: TObject);
 //var
