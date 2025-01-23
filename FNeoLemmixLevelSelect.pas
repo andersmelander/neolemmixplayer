@@ -580,20 +580,19 @@ var
   L: TNeoLevelEntry absolute Obj;
   N: TTreeNode;
 begin
-  ModalResult := mrCancel; // Bookmark
-//  N := tvLevelSelect.Selected;
-//  if N = nil then Exit; // Safeguard
-//
-//  Obj := TObject(N.Data);
-//
-//  if Obj is TNeoLevelGroup then Exit;
-//
-//  if MessageDlg('Are you sure you want to reset talismans for the level "' + L.Title + '"?',
-//                  mtCustom, [mbYes, mbNo], 0, mbNo) = mrYes then
-//  begin
-//    L.ResetTalismans; // Bookmark
-//    SetTalismanInfo;
-//  end;
+  N := tvLevelSelect.Selected;
+  if N = nil then Exit; // Safeguard
+
+  Obj := TObject(N.Data);
+
+  if Obj is TNeoLevelGroup then Exit;
+
+  if MessageDlg('Are you sure you want to reset talismans for the level "' + L.Title + '"?',
+                  mtCustom, [mbYes, mbNo], 0, mbNo) = mrYes then
+  begin
+    L.ResetTalismans;
+    SetTalismanInfo;
+  end;
 end;
 
 procedure TFLevelSelect.WriteToParams;
