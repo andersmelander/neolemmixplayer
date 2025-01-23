@@ -1473,7 +1473,7 @@ end;
 
 procedure TFLevelSelect.btnEditLevelClick(Sender: TObject);
 var
-  LevelFile, EditorPath: string;
+  LevelFile, SLXEditorPath, NLEditorPath, EditorPath: string;
 begin
   if GameParams.CurrentLevel = nil then
   begin
@@ -1492,22 +1492,28 @@ begin
     Exit;
   end;
 
-  // Set EditorPath and check it exists                // Bookmark - check also for the NL Editor
-  EditorPath := ExtractFilePath(Application.ExeName) + 'SLXEditor.exe';
+  // Set EditorPath and check it exists
+  SLXEditorPath := ExtractFilePath(Application.ExeName) + 'SLXEditor.exe';
+  NLEditorPath := ExtractFilePath(Application.ExeName) + 'NLEditor.exe';
 
-  if not FileExists(EditorPath) then
+  if FileExists(SLXEditorPath) or FileExists(NLEditorPath) then
   begin
-    ShowMessage('SLXEditor.exe not found in the NeoLemmix directory.');
+    // If both are present, prefer SLX Editor
+    if FileExists(SLXEditorPath) then
+      EditorPath := SLXEditorPath
+    else
+      EditorPath := NLEditorPath;
+
+    // Add double quotes to handle spaces in LevelFile
+    LevelFile := '"' + LevelFile + '"';
+
+    // Launch the editor with the selected level
+    if ShellExecute(0, 'open', PChar(EditorPath), PChar(LevelFile), nil, SW_SHOWNORMAL) <= 32 then
+      ShowMessage('Failed to launch the level editor.');
+
+  end else begin
+    ShowMessage('No Editor found. Please place SLXEditor.exe or NLEditor.exe in the NeoLemmix directory.');
     Exit;
-  end;
-
-  // Add double quotes to handle spaces in LevelFile
-  LevelFile := '"' + LevelFile + '"';
-
-  // Launch SLX Editor with the selected level
-  if ShellExecute(0, 'open', PChar(EditorPath), PChar(LevelFile), nil, SW_SHOWNORMAL) <= 32 then
-  begin
-    ShowMessage('Failed to launch the level editor.');
   end;
 
   fCurrentLevelVersion := GameParams.Level.Info.LevelVersion;
