@@ -206,7 +206,7 @@ object FormNXConfig: TFormNXConfig
       end
       object gbReplayOptions: TGroupBox
         Left = 19
-        Top = 292
+        Top = 284
         Width = 336
         Height = 70
         Caption = 'Replay Options'
@@ -232,7 +232,7 @@ object FormNXConfig: TFormNXConfig
       end
       object gbHelperOptions: TGroupBox
         Left = 19
-        Top = 161
+        Top = 150
         Width = 336
         Height = 119
         Caption = 'Helper Options'
@@ -276,9 +276,9 @@ object FormNXConfig: TFormNXConfig
       end
       object gbInterfaceOptions: TGroupBox
         Left = 19
-        Top = 9
+        Top = 13
         Width = 336
-        Height = 142
+        Height = 124
         Caption = 'Interface Options'
         TabOrder = 0
         object cbNoBackgrounds: TCheckBox
@@ -301,19 +301,10 @@ object FormNXConfig: TFormNXConfig
         end
         object cbSpawnInterval: TCheckBox
           Left = 19
-          Top = 112
+          Top = 89
           Width = 294
           Height = 17
           Caption = 'Use Spawn Interval Instead of Release Rate'
-          TabOrder = 4
-          OnClick = OptionChanged
-        end
-        object cbHideAdvanced: TCheckBox
-          Left = 19
-          Top = 89
-          Width = 234
-          Height = 17
-          Caption = 'Hide Advanced Options in Level Select'
           TabOrder = 3
           OnClick = OptionChanged
         end

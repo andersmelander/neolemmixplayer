@@ -90,7 +90,7 @@ type
     moCompactSkillPanel,
     moEdgeScroll,
     moSpawnInterval,
-    moHideAdvanced,
+    moShowLevelSelectOptions,
     moFileCaching,
     moPostviewJingles,
     moForceDefaultLemmings,
@@ -109,7 +109,8 @@ const
     moFullScreen,
     moMinimapHighQuality,
     moIncreaseZoom,
-    moEdgeScroll
+    moEdgeScroll,
+    moShowLevelSelectOptions
   ];
 
 type
@@ -245,7 +246,7 @@ type
     property ForceDefaultLemmings: Boolean Index moForceDefaultLemmings read GetOptionFlag write SetOptionFlag;
     property DisableMusicInTestplay: Boolean Index moDisableMusicInTestplay read GetOptionFlag write SetOptionFlag;
 
-    property HideAdvancedOptions: Boolean Index moHideAdvanced read GetOptionFlag write SetOptionFlag;
+    property ShowLevelSelectOptions: Boolean Index moShowLevelSelectOptions read GetOptionFlag write SetOptionFlag;
 
     property FileCaching: Boolean Index moFileCaching read GetOptionFlag write SetOptionFlag;
     property MatchBlankReplayUsername: Boolean Index moMatchBlankReplayUsername read GetOptionFlag write SetOptionFlag;
@@ -424,7 +425,7 @@ begin
   SL.Add('AutoSaveReplayPattern=' + AutoSaveReplayPattern);
   SL.Add('IngameSaveReplayPattern=' + IngameSaveReplayPattern);
   SL.Add('PostviewSaveReplayPattern=' + PostviewSaveReplayPattern);
-  SaveBoolean('HideAdvancedOptions', HideAdvancedOptions);
+  SaveBoolean('ShowLevelSelectOptions', ShowLevelSelectOptions);
 
   if (ExitToPostview = etpAlways) then
     SaveString('ExitToPostview', 'Always')
@@ -603,7 +604,10 @@ begin
 
     UserName := SL.Values['UserName'];
 
-    HideAdvancedOptions := LoadBoolean('HideAdvancedOptions', HideAdvancedOptions);
+    ShowLevelSelectOptions := LoadBoolean('ShowLevelSelectOptions', ShowLevelSelectOptions);
+    // Bookmark - Preserve deprecated option (this can be removed later)
+    if SL.Values['ShowLevelSelectOptions'] = '' then
+      ShowLevelSelectOptions := not LoadBoolean('HideAdvancedOptions', ShowLevelSelectOptions);
 
     LoadExitToPostviewOptions;
 

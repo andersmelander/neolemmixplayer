@@ -3,25 +3,26 @@ unit FNeoLemmixLevelSelect;
 interface
 
 uses
-  GameControl,
+  GameControl, GameSound,
   LemNeoLevelPack,
   LemStrings,
   LemTypes,
   LemCore,
   LemTalisman,
   PngInterface,
-  FLevelInfo,
-  GR32, GR32_Resamplers, GR32_Layers,
+  FLevelInfo, //FPlaybackMode, // Bookmark
+  GR32, GR32_Resamplers, GR32_Layers, GR32_Image,
   Generics.Collections,
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, Buttons,
   Dialogs, ComCtrls, StdCtrls, ExtCtrls, ImgList, StrUtils, UMisc, Math, UITypes,
-  ActiveX, ShlObj, ComObj, // for the shortcut creation
-  LemNeoParser, GR32_Image, System.ImageList;
+  Types, IOUtils, Vcl.FileCtrl, // For Playback Mode
+  ActiveX, ShlObj, ComObj, // For the shortcut creation
+  LemNeoParser, System.ImageList,
+  SharedGlobals, ShellAPI, Vcl.WinXCtrls;
 
 type
   TFLevelSelect = class(TForm)
     tvLevelSelect: TTreeView;
-    btnCancel: TButton;
     btnOK: TButton;
     lblName: TLabel;
     pnLevelInfo: TPanel;
@@ -30,58 +31,100 @@ type
     ilStatuses: TImageList;
     lblCompletion: TLabel;
     btnMakeShortcut: TButton;
-    sbAdvancedOptions: TScrollBox;
-    lblAdvancedOptions: TLabel;
+    lblRecordsOptions: TLabel;
     btnSaveImage: TButton;
-    btnMassReplay: TButton;
+    btnReplayManager: TButton;
     btnCleanseLevels: TButton;
     btnCleanseOne: TButton;
     btnClearRecords: TButton;
+    btnResetTalismans: TBitBtn;
+    btnPlaybackMode: TButton;
+    lblAdvancedOptions: TLabel;
+    lblReplayOptions: TLabel;
+    btnShowHideOptions: TButton;
+    sbSearchLevels: TSearchBox;
+    lblSearchLevels: TLabel;
+    pbSearchProgress: TProgressBar;
+    lbSearchResults: TListBox;
+    btnCloseSearch: TButton;
+    lblEditingOptions: TLabel;
+    btnEditLevel: TButton;
+    btnClose: TButton;
     procedure FormCreate(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
-    procedure tvLevelSelectClick(Sender: TObject);
+    procedure LoadCurrentLevelToPlayer;
     procedure FormShow(Sender: TObject);
     procedure btnMakeShortcutClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure btnSaveImageClick(Sender: TObject);
-    procedure btnMassReplayClick(Sender: TObject);
+    procedure btnReplayManagerClick(Sender:TObject);
     procedure btnCleanseLevelsClick(Sender: TObject);
     procedure btnCleanseOneClick(Sender: TObject);
     procedure btnClearRecordsClick(Sender: TObject);
+    procedure tvLevelSelectChange(Sender: TObject; Node: TTreeNode);
+    procedure tvLevelSelectKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure btnResetTalismansClick(Sender: TObject);
+    procedure tvLevelSelectExpanded(Sender: TObject; Node: TTreeNode);
+    procedure btnShowHideOptionsClick(Sender: TObject);
+    procedure SetOptionButtons;
+    procedure ShowOptionButtons;
+    procedure HideOptionButtons;
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+
+    procedure SearchLevels;
+    procedure CloseSearchResultsPanel;
+    procedure sbSearchLevelsKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure sbSearchLevelsInvokeSearch(Sender: TObject);
+    procedure lbSearchResultsClick(Sender: TObject);
+    procedure btnCloseSearchClick(Sender: TObject);
+    procedure btnEditLevelClick(Sender: TObject);
+    procedure btnPlaybackModeClick(Sender: TObject);
+    procedure btnCloseClick(Sender: TObject);
   private
     fLastLevelPath: String;
-
+    fLastGroup: TNeoLevelGroup;
     fLoadAsPack: Boolean;
     fInfoForm: TLevelInfoPanel;
     fIconBMP: TBitmap32;
-
     fPackTalBox: TScrollBox;
-
     fTalismanButtons: TObjectList<TSpeedButton>;
     fDisplayRecords: TRecordDisplay;
+    fSearchingLevels: Boolean;
+    fCurrentLevelVersion: Int64; // Used to check if we need to re-load the current level info
+    fIsHandlingActivation: Boolean;
 
     procedure InitializeTreeview;
     procedure SetInfo;
+    procedure LoadNodeLabels;
     procedure WriteToParams;
 
-    procedure DisplayLevelInfo;
+    function GetCompletedLevelString(G: TNeoLevelGroup): String;
+    function GetPackResultsString(G: TNeoLevelGroup): String;
+
+    procedure DisplayLevelInfo(RefreshLevel: Boolean = False);
     procedure SetTalismanInfo;
     procedure DrawTalismanButtons;
     procedure ClearTalismanButtons;
     procedure TalButtonClick(Sender: TObject);
     procedure PackListTalButtonClick(Sender: TObject);
-
-    procedure DisplayPackTalismanInfo;
+    procedure DisplayPackTalismanInfo(Group: TNeoLevelGroup);
 
     procedure DrawSpeedButton(aButton: TSpeedButton; aIconIndex: Integer; aOverlayIndex: Integer = -1);
 
     procedure DrawIcon(aIconIndex: Integer; aDst: TBitmap32; aEraseColor: TColor);
     procedure OverlayIcon(aIconIndex: Integer; aDst: TBitmap32);
 
-    procedure SetAdvancedOptionsGroup;
-    procedure SetAdvancedOptionsLevel;
+    procedure SetAdvancedOptionsGroup(G: TNeoLevelGroup);
+    procedure SetAdvancedOptionsLevel(L: TNeoLevelEntry);
+    procedure WMActivate(var Msg: TWMActivate); message WM_ACTIVATE;
+    procedure MaybeReloadLevelInfo;
+
+    property SearchingLevels: Boolean read fSearchingLevels write fSearchingLevels;
   public
     property LoadAsPack: Boolean read fLoadAsPack;
+    procedure LoadIcons;
+
+    function GetCurrentlySelectedPack: String;
   end;
 
 const // Icon indexes
@@ -142,6 +185,7 @@ implementation
 
 uses
   FReplayRename,
+  //FReplayManager, // Bookmark
   LemLevel;
 
 const
@@ -219,14 +263,14 @@ procedure TFLevelSelect.InitializeTreeview;
     MaskBMP := TBitmap.Create;
     try
       Load('level_not_attempted.png');
-      Load('level_not_attempted.png');  // Load('level_attempted.png'); // We use the same image here!
+      Load('level_attempted.png');
       Load('level_completed_outdated.png');
       Load('level_completed.png');
 
-      Load('level_not_attempted.png', 'level_talisman.png');
-      Load('level_not_attempted.png', 'level_talisman.png'); // Load('level_attempted.png', 'level_talisman.png');
-      Load('level_completed_outdated.png', 'level_talisman.png');
-      Load('level_completed.png', 'level_talisman.png');
+      Load('level_talisman.png', 'level_not_attempted.png');
+      Load('level_talisman.png', 'level_attempted.png',);
+      Load('level_talisman.png', 'level_completed_outdated.png');
+      Load('level_talisman.png', 'level_completed.png');
     finally
       TempBMP.Free;
       BMP32.Free;
@@ -236,6 +280,7 @@ procedure TFLevelSelect.InitializeTreeview;
   end;
 begin
   MakeImages;
+
   tvLevelSelect.Items.BeginUpdate;
   try
     tvLevelSelect.Items.Clear;
@@ -246,13 +291,70 @@ begin
   end;
 end;
 
+procedure TFLevelSelect.LoadCurrentLevelToPlayer;
+begin
+  WriteToParams;
+
+//  if GameParams.MenuSounds then // Bookmark
+//    SoundManager.PlaySound(SFX_OK);
+
+  ModalResult := mrOk;
+end;
+
+procedure TFLevelSelect.LoadIcons;
+var
+  IconsImg, aStyle, aStylePath, aPath: String;
+begin
+  IconsImg := 'levelinfo_icons.png';
+  aStyle := GameParams.Level.Info.GraphicSetName;   // Bookmark
+  //aStylePath := AppPath + SFStyles + aStyle + SFIcons;
+  aPath := GameParams.CurrentLevel.Group.ParentBasePack.Path;
+
+  //if FileExists(aStylePath + IconsImg) then // Check styles folder first
+  //  TPNGInterface.LoadPngFile(aStylePath + IconsImg, fIconBMP)
+  //else
+  if FileExists(GameParams.CurrentLevel.Group.FindFile(IconsImg)) then // Then levelpack folder
+    TPNGInterface.LoadPngFile(aPath + IconsImg, fIconBMP)
+  else
+    TPNGInterface.LoadPngFile(AppPath + SFGraphicsMenu + IconsImg, fIconBMP); // Then default
+end;
+
+procedure TFLevelSelect.MaybeReloadLevelInfo;
+var
+  NewVersion: Int64;
+begin
+  GameParams.LoadCurrentLevel;
+  NewVersion := GameParams.Level.Info.LevelVersion;
+  if (NewVersion <> fCurrentLevelVersion) then
+  begin
+    DisplayLevelInfo(True);
+    fCurrentLevelVersion := NewVersion;
+  end;
+end;
+
+procedure TFLevelSelect.WMActivate(var Msg: TWMActivate);
+begin
+  inherited;
+
+  if fIsHandlingActivation then Exit; // Prevent overload
+
+  fIsHandlingActivation := True;
+  try
+    if Msg.Active = WA_ACTIVE then
+      MaybeReloadLevelInfo;
+  finally
+    fIsHandlingActivation := False;
+  end;
+end;
+
 procedure TFLevelSelect.FormCreate(Sender: TObject);
 begin
   fTalismanButtons := TObjectList<TSpeedButton>.Create;
 
   fIconBMP := TBitmap32.Create;
-  TPNGInterface.LoadPngFile(AppPath + SFGraphicsMenu + 'levelinfo_icons.png', fIconBMP);
+  LoadIcons;
   fIconBMP.DrawMode := dmBlend;
+  fIconBMP.CombineMode := cmMerge;
 
   fInfoForm := TLevelInfoPanel.Create(Self, fIconBMP);
   fInfoForm.Parent := Self;
@@ -267,14 +369,13 @@ begin
 
   pnLevelInfo.Visible := False;
 
-  if GameParams.HideAdvancedOptions then
-  begin
-    lblAdvancedOptions.Visible := False;
-    sbAdvancedOptions.Visible := False;
-    ClientWidth := sbAdvancedOptions.Left;
-  end;
+  btnResetTalismans.Enabled := False;
+  btnOK.Enabled := False;
+
+  SearchingLevels := False;
 
   InitializeTreeview;
+  SetOptionButtons;
 end;
 
 procedure TFLevelSelect.FormShow(Sender: TObject);
@@ -282,12 +383,49 @@ begin
   SetInfo;
 end;
 
+function TFLevelSelect.GetCurrentlySelectedPack: String;
+var
+  G: TNeoLevelGroup;
+  N: TTreeNode;
+  Obj: TObject;
+begin
+  Result := '';
+
+  N := tvLevelSelect.Selected;
+  if N = nil then Exit;
+
+  Obj := TObject(N.Data);
+
+  if Obj is TNeoLevelGroup then
+    G := TNeoLevelGroup(Obj).ParentBasePack
+  else if Obj is TNeoLevelEntry then
+    G := TNeoLevelEntry(Obj).Group.ParentBasePack
+  else
+    Exit;
+
+  Result := G.PackTitle;
+
+  if Result = '' then
+    Result := StringReplace(G.Name, '_', ' ', [rfReplaceAll]);
+end;
+
 procedure TFLevelSelect.FormDestroy(Sender: TObject);
 begin
   fIconBMP.Free;
 
-  fTalismanButtons.OwnsObjects := False; // because TFLevelSelect itSelf will take care of any that remain
+  fTalismanButtons.OwnsObjects := False; // Because TFLevelSelect itself will take care of any that remain
   fTalismanButtons.Free;
+
+  GameParams.Save(scImportant);
+end;
+
+procedure TFLevelSelect.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if Key = VK_ESCAPE then
+  begin
+    Close;
+  end;
 end;
 
 procedure TFLevelSelect.btnCleanseOneClick(Sender: TObject);
@@ -324,7 +462,7 @@ var
 
   Dlg: TSaveDialog;
 
-  // Source: http://delphiexamples.com/others/createlnk.html
+  // Source: delphiexamples.com/others/createlnk.html
   procedure CreateLink(const PathObj, PathLink, Desc, Param: string);
   var
     IObject: IUnknown;
@@ -393,8 +531,69 @@ end;
 
 procedure TFLevelSelect.btnOKClick(Sender: TObject);
 begin
-  WriteToParams;
-  ModalResult := mrOk;
+  LoadCurrentLevelToPlayer;
+end;
+
+procedure TFLevelSelect.btnPlaybackModeClick(Sender: TObject);
+begin
+  ModalResult := mrCancel;
+end;                      // Bookmark
+
+//procedure TFLevelSelect.btnPlaybackModeClick(Sender: TObject);
+//var
+//  PlaybackModeForm: TFPlaybackMode;
+//  ReplayFiles: TStringDynArray;
+//  ReplayFile: string;
+//begin
+//  PlaybackModeForm := TFPlaybackMode.Create(nil);
+//
+//  try
+//    // Populate the form with the currently selected pack
+//    PlaybackModeForm.CurrentlySelectedPack := GetCurrentlySelectedPack;
+//    PlaybackModeForm.UpdatePackNameText;
+//
+//    if PlaybackModeForm.ShowModal = mrOk then
+//    begin
+//      if PlaybackModeForm.SelectedFolder = '' then
+//        Exit;
+//
+//      // Get list of replay files
+//      ReplayFiles := TDirectory.GetFiles(PlaybackModeForm.SelectedFolder, '*.nxrp');
+//
+//      // Add replay file names to ReplayVerifyList
+//      for ReplayFile in ReplayFiles do
+//        GameParams.ReplayVerifyList.Add(ReplayFile); // Storing full path for easier access later
+//
+//      GameParams.PlaybackModeActive := True;
+//      GameParams.Save(scImportant);
+//      WriteToParams;
+//      ModalResult := mrRetry;
+//    end;
+//  finally
+//    PlaybackModeForm.Free;
+//  end;
+//end;
+
+procedure TFLevelSelect.btnResetTalismansClick(Sender: TObject);
+var
+  Obj: TObject;
+  L: TNeoLevelEntry absolute Obj;
+  N: TTreeNode;
+begin
+  ModalResult := mrCancel; // Bookmark
+//  N := tvLevelSelect.Selected;
+//  if N = nil then Exit; // Safeguard
+//
+//  Obj := TObject(N.Data);
+//
+//  if Obj is TNeoLevelGroup then Exit;
+//
+//  if MessageDlg('Are you sure you want to reset talismans for the level "' + L.Title + '"?',
+//                  mtCustom, [mbYes, mbNo], 0, mbNo) = mrYes then
+//  begin
+//    L.ResetTalismans; // Bookmark
+//    SetTalismanInfo;
+//  end;
 end;
 
 procedure TFLevelSelect.WriteToParams;
@@ -405,7 +604,7 @@ var
   N: TTreeNode;
 begin
   N := tvLevelSelect.Selected;
-  if N = nil then Exit; // safeguard
+  if N = nil then Exit; // Safeguard
 
   Obj := TObject(N.Data);
 
@@ -436,7 +635,7 @@ var
   GroupWord: String;
 begin
   N := tvLevelSelect.Selected;
-  if N = nil then Exit; // safeguard
+  if N = nil then Exit; // Safeguard
 
   Obj := TObject(N.Data);
 
@@ -457,12 +656,173 @@ begin
 
     if fDisplayRecords <> rdNone then
       fInfoForm.PrepareEmbedRecords(fDisplayRecords);
+
+    SetTalismanInfo;
   end;
 end;
 
-procedure TFLevelSelect.tvLevelSelectClick(Sender: TObject);
+procedure TFLevelSelect.tvLevelSelectChange(Sender: TObject; Node: TTreeNode);
 begin
   SetInfo;
+end;
+
+procedure TFLevelSelect.tvLevelSelectExpanded(Sender: TObject; Node: TTreeNode);
+begin
+  SetInfo;
+end;
+
+// When treeview is active, pressing return loads the currently selected level
+procedure TFLevelSelect.tvLevelSelectKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if Key = VK_RETURN then
+    LoadCurrentLevelToPlayer;
+end;
+
+function TFLevelSelect.GetCompletedLevelString(G: TNeoLevelGroup): String;
+var
+  i, j, CompletedCount: Integer;
+  SubGroup: TNeoLevelGroup;
+//  ProgressDialog: TForm;
+//  ProgressBar: TProgressBar;
+begin
+  Result := '';
+  CompletedCount := 0;
+
+//    // Create the progress dialog
+//  ProgressDialog := TForm.Create(nil);
+//  try
+//    ProgressDialog.Caption := 'Processing Completion Data...';
+//    ProgressDialog.Position := poScreenCenter;
+//    ProgressDialog.BorderStyle := bsDialog;
+//    ProgressDialog.Width := 300;
+//    ProgressDialog.Height := 100;
+//
+//    // Create a progress bar
+//    ProgressBar := TProgressBar.Create(ProgressDialog);
+//    ProgressBar.Parent := ProgressDialog;
+//    ProgressBar.Left := 10;
+//    ProgressBar.Top := 10;
+//    ProgressBar.Width := ProgressDialog.Width - 20;
+//    ProgressBar.Max := G.LevelCount;
+//    ProgressBar.Position := 0;
+
+//    // Show the progress dialog
+//    ProgressDialog.Show;
+
+    for i := 0 to G.Children.Count -1 do
+    begin
+      SubGroup := G.Children[i];
+
+      for j := 0 to SubGroup.Levels.Count -1 do
+      if SubGroup.Levels[j].Status = lst_Completed then
+      begin
+        // Update progress
+        Inc(CompletedCount);
+//          ProgressBar.Position := CompletedCount;
+//          Application.ProcessMessages; // Ensure UI updates are processed
+      end;
+    end;
+
+    Result := IntToStr(CompletedCount) + ' of ' + IntToStr(G.LevelCount) + ' levels ';
+
+//    // Close the progress dialog when finished
+//    ProgressDialog.Close;
+//  finally
+//    ProgressDialog.Free;
+//  end;
+end;
+
+
+function TFLevelSelect.GetPackResultsString(G: TNeoLevelGroup): String;
+begin
+  Result := '';
+
+  if G.LevelCount > 0 then
+    Result := GetCompletedLevelString(G);
+
+  if Result <> '' then
+    Result := Result + 'completed';
+
+  if G.Talismans.Count > 0 then
+  begin
+    if Result <> '' then
+      Result := Result + '; ';
+
+    Result := Result + IntToStr(G.TalismansUnlocked) + ' of ' + IntToStr(G.Talismans.Count) + ' talismans unlocked';
+  end;
+end;
+
+procedure TFLevelSelect.LoadNodeLabels;
+var
+  i: Integer;
+  L: TNeoLevelEntry;
+  S: String;
+//  ProgressDialog: TForm;
+//  ProgressBar: TProgressBar;
+//  CurrentNode: Integer;
+begin
+  tvLevelSelect.Items.BeginUpdate;
+//  CurrentNode := 0;
+
+  //    // Create the progress dialog
+//  ProgressDialog := TForm.Create(nil);
+
+  try
+//    ProgressDialog.Caption := 'Processing Level Data...';
+//    ProgressDialog.Position := poScreenCenter;
+//    ProgressDialog.BorderStyle := bsDialog;
+//    ProgressDialog.Width := 300;
+//    ProgressDialog.Height := 100;
+//
+//    // Create a progress bar
+//    ProgressBar := TProgressBar.Create(ProgressDialog);
+//    ProgressBar.Parent := ProgressDialog;
+//    ProgressBar.Left := 10;
+//    ProgressBar.Top := 10;
+//    ProgressBar.Width := ProgressDialog.Width - 20;
+//    ProgressBar.Max := 100; // This will need to be the number of visible Nodes
+//    ProgressBar.Position := 0;
+
+//    // Show the progress dialog
+//    ProgressDialog.Show;
+
+    for i := 0 to tvLevelSelect.Items.Count-1 do
+    begin
+      if not tvLevelSelect.Items[i].IsVisible then Continue;
+      if tvLevelSelect.Items[i].Text <> '' then Continue;
+
+      if TObject(tvLevelSelect.Items[i].Data) is TNeoLevelEntry then
+      begin
+        L := TNeoLevelEntry(tvLevelSelect.Items[i].Data);
+        S := '';
+        if L.Group.IsOrdered then
+          S := '(' + IntToStr(L.GroupIndex + 1) + ') ';
+        S := S + L.Title;
+        tvLevelSelect.Items[i].Text := S;
+
+        if (L.UnlockedTalismanList.Count < L.Talismans.Count)
+          and (tvLevelSelect.Items[i].ImageIndex < 4) {just in case}
+            and not SearchingLevels then
+              with tvLevelSelect.Items[i] do
+              begin
+                ImageIndex := ImageIndex + 4;
+                SelectedIndex := ImageIndex;
+              end;
+      end;
+
+//      // Update progress
+//      Inc(CurrentNode);
+//          ProgressBar.Position := CurrentNode;
+//          Application.ProcessMessages; // Ensure UI updates are processed
+    end;
+
+//    // Close the progress dialog when finished
+//    ProgressDialog.Close;
+  finally
+//    ProgressDialog.Free;
+    tvLevelSelect.Items.EndUpdate;
+  end;
 end;
 
 procedure TFLevelSelect.SetInfo;
@@ -471,9 +831,6 @@ var
   G: TNeoLevelGroup;
   L: TNeoLevelEntry;
   N: TTreeNode;
-  i: Integer;
-  S: String;
-  CompletedCount: Integer;
 
   function GetGroupPositionText: String;
   begin
@@ -490,50 +847,12 @@ var
     else
       Result := 'Level ' + IntToStr(L.GroupIndex + 1) + ' of ' + L.Group.Name;
   end;
-
-  procedure LoadNodeLabels;
-  var
-    i: Integer;
-    L: TNeoLevelEntry;
-    S: String;
-  begin
-    tvLevelSelect.Items.BeginUpdate;
-    try
-      for i := 0 to tvLevelSelect.Items.Count-1 do
-      begin
-        if not tvLevelSelect.Items[i].IsVisible then Continue;
-        if tvLevelSelect.Items[i].Text <> '' then Continue;
-        if TObject(tvLevelSelect.Items[i].Data) is TNeoLevelEntry then
-        begin
-          L := TNeoLevelEntry(tvLevelSelect.Items[i].Data);
-          S := '';
-          if L.Group.IsOrdered then
-            S := '(' + IntToStr(L.GroupIndex + 1) + ') ';
-          S := S + L.Title;
-          tvLevelSelect.Items[i].Text := S;
-
-          if (L.UnlockedTalismanList.Count < L.Talismans.Count) and (tvLevelSelect.Items[i].ImageIndex < 4 {just in case}) then
-            with tvLevelSelect.Items[i] do
-            begin
-              ImageIndex := ImageIndex + 4;
-              SelectedIndex := ImageIndex;
-            end;
-        end;
-      end;
-    finally
-      tvLevelSelect.Items.EndUpdate;
-    end;
-  end;
-
 begin
   LoadNodeLabels;
+  if SearchingLevels then Exit;
 
   N := tvLevelSelect.Selected;
-  if N = nil then
-  begin
-    btnOk.Enabled := False;
-    Exit;
-  end;
+  if N = nil then Exit;
 
   Obj := TObject(N.Data);
 
@@ -548,49 +867,17 @@ begin
     if G.PackVersion <> '' then
       lblAuthor.Caption := lblAuthor.Caption + ' | Version: ' + G.PackVersion;
 
-    S := '';
-    CompletedCount := 0;
-    if G.Children.Count > 0 then
-    begin
-      for i := 0 to G.Children.Count-1 do
-        if G.Children[i].Status = lst_Completed then
-          Inc(CompletedCount);
-      S := S + IntToStr(CompletedCount) + ' of ' + IntToStr(G.Children.Count) + ' subgroups ';
-    end;
-
-    CompletedCount := 0;
-    if G.Levels.Count > 0 then
-    begin
-      for i := 0 to G.Levels.Count-1 do
-        if G.Levels[i].Status = lst_Completed then
-          Inc(CompletedCount);
-      if S <> '' then
-        S := S + 'and ';
-      S := S + IntToStr(CompletedCount) + ' of ' + IntToStr(G.Levels.Count) + ' levels ';
-    end;
-
-    if S <> '' then
-      S := S + 'completed';
-
-    if G.Talismans.Count > 0 then
-    begin
-      if S <> '' then
-        S := S + '; ';
-
-      S := S + IntToStr(G.TalismansUnlocked) + ' of ' + IntToStr(G.Talismans.Count) + ' talismans unlocked';
-    end;
-
-    lblCompletion.Caption := S;
+    lblCompletion.Caption := GetPackResultsString(G);
     lblCompletion.Visible := True;
 
-    DisplayPackTalismanInfo;
-
-    fInfoForm.Visible := False;
-
-    btnOk.Enabled := G.LevelCount > 0; // note: Levels.Count is not recursive; LevelCount is
+    // Set the first unsolved level in the pack as the current level (or first level if pack is completed)
+    WriteToParams;
+    GameParams.LoadCurrentLevel(False);
 
     ClearTalismanButtons;
-    SetAdvancedOptionsGroup;
+    DisplayPackTalismanInfo(G);
+    fInfoForm.Visible := False;
+    SetAdvancedOptionsGroup(G);
   end else if Obj is TNeoLevelEntry then
   begin
     L := TNeoLevelEntry(Obj);
@@ -598,7 +885,7 @@ begin
     lblPosition.Caption := GetLevelPositionText;
 
     if L.Author <> '' then
-      lblAuthor.Caption := 'By ' + L.Author
+      lblAuthor.Caption := 'Author: ' + L.Author
     else
       lblAuthor.Caption := '';
 
@@ -606,87 +893,97 @@ begin
     lblCompletion.Visible := False;
 
     DisplayLevelInfo;
-
     fPackTalBox.Visible := False;
+    SetAdvancedOptionsLevel(L);
 
-    btnOk.Enabled := True;
-
-    SetAdvancedOptionsLevel;
+    fCurrentLevelVersion := GameParams.Level.Info.LevelVersion;
   end;
 end;
 
-procedure TFLevelSelect.DisplayLevelInfo;
+procedure TFLevelSelect.ShowOptionButtons;
+begin
+  { Resizes and recenters the main form to show the option buttons }
+
+  Self.Width := btnClearRecords.Left + btnClearRecords.Width + 20;
+
+  btnOK.Width := pnLevelInfo.Width - btnClose.Width;
+  btnClose.Left := btnClearRecords.Left;
+
+  btnShowHideOptions.Caption := '< Hide Options';
+
+  Self.Left := (Application.MainForm.Left + (Application.MainForm.Width div 2)) - (Self.Width div 2);
+  Self.Top := (Application.MainForm.Top + (Application.MainForm.Height div 2)) - (Self.Height div 2);
+end;
+
+procedure TFLevelSelect.HideOptionButtons;
+begin
+  { Resizes and recenters the main form to hide the option buttons }
+
+  Self.Width := btnClearRecords.Left - 5;
+  btnShowHideOptions.Caption := 'Show Options >';
+
+  btnOK.Width := pnLevelInfo.Width - (btnClose.Width * 2) - 20;
+  btnClose.Left := btnOK.Left + btnOK.Width + 10;
+
+  Self.Left := (Application.MainForm.Left + (Application.MainForm.Width div 2)) - (Self.Width div 2);
+  Self.Top := (Application.MainForm.Top + (Application.MainForm.Height div 2)) - (Self.Height div 2);
+end;
+
+procedure TFLevelSelect.SetOptionButtons;
+begin
+  if GameParams.ShowLevelSelectOptions then
+    ShowOptionButtons
+  else
+    HideOptionButtons;
+end;
+
+procedure TFLevelSelect.DisplayLevelInfo(RefreshLevel: Boolean = False);
 var
-  NeedRedraw: Boolean;
+  LevelChanged: Boolean;
 begin
   WriteToParams;
   GameParams.LoadCurrentLevel(False);
 
-  NeedRedraw := (GameParams.CurrentLevel.Path <> fLastLevelPath);
+  LevelChanged := (GameParams.CurrentLevel.Path <> fLastLevelPath);
   fLastLevelPath := GameParams.CurrentLevel.Path;
 
   fInfoForm.Visible := True;
-  fInfoForm.BoundsRect := pnLevelInfo.BoundsRect; // Delphi 10.4 bugfix
+  fInfoForm.BoundsRect := pnLevelInfo.BoundsRect;
   fInfoForm.Level := GameParams.Level;
   fInfoForm.Talisman := nil;
   fDisplayRecords := rdNone;
 
-  fInfoForm.PrepareEmbed(NeedRedraw);
+  LoadIcons;
+  fInfoForm.PrepareEmbed(LevelChanged or RefreshLevel);
 
   SetTalismanInfo;
 end;
 
-procedure TFLevelSelect.DisplayPackTalismanInfo;
-  function GetGroup: TNeoLevelGroup;
-  var
-    N: TTreeNode;
-    Obj: TObject;
-  begin
-    Result := nil;
-
-    N := tvLevelSelect.Selected;
-    if N <> nil then
-    begin
-      Obj := TObject(N.Data);
-      if Obj is TNeoLevelGroup then
-        Result := TNeoLevelGroup(Obj);
-    end;
-  end;
+procedure TFLevelSelect.DisplayPackTalismanInfo(Group: TNeoLevelGroup);
 var
-  Group: TNeoLevelGroup;
+//  ProgressDialog: TForm;
+//  ProgressBar: TProgressBar;
+//  TotalTalismans, CurrentTalisman: Integer;
+//  Group: TNeoLevelGroup;
   Level: TNeoLevelEntry;
   Talismans: TObjectList<TTalisman>;
-  i: Integer;
-  TotalHeight: Integer;
-
-  NewButton: TSpeedButton;
-  TitleLabel, LevLabel, ReqLabel: TLabel;
   Tal: TTalisman;
+  i, TotalHeight: Integer;
 
-  LabelStartY: Integer;
-  LabelTotalHeight: Integer;
-begin
-  fPackTalBox.VertScrollBar.Position := 0;
-
-  Group := GetGroup;
-  TotalHeight := 8;
-  Talismans := Group.Talismans;
-
-  for i := fPackTalBox.ControlCount-1 downto 0 do
-    fPackTalBox.Controls[i].Free;
-
-  for i := 0 to Talismans.Count-1 do
+  procedure CreateUIElements;
+  var
+    TitleLabel, LevLabel, ReqLabel: TLabel;
+    NewButton: TSpeedButton;
+    LabelStartY, LabelTotalHeight: Integer;
   begin
-    Tal := Talismans[i];
-    Level := Group.GetLevelForTalisman(Tal);
-
     if Trim(Tal.Title) <> '' then
     begin
       TitleLabel := TLabel.Create(Self);
       TitleLabel.Parent := fPackTalBox;
       TitleLabel.Font.Style := [fsBold];
       TitleLabel.Caption := Tal.Title;
-    end else
+    end
+    else
       TitleLabel := nil;
 
     LevLabel := TLabel.Create(Self);
@@ -720,7 +1017,8 @@ begin
     begin
       TitleLabel.Left := 48;
       LevLabel.Left := 60;
-    end else
+    end
+    else
       LevLabel.Left := 48;
     ReqLabel.Left := 48;
     NewButton.Left := 8 - SPEEDBUTTON_PADDING_SIZE;
@@ -735,7 +1033,9 @@ begin
       LabelStartY := TotalHeight + ((NewButton.Height - LabelTotalHeight) div 2);
 
       TotalHeight := TotalHeight + NewButton.Height + 8;
-    end else begin
+    end
+    else
+    begin
       LabelStartY := TotalHeight;
       NewButton.Top := TotalHeight + ((LabelTotalHeight - NewButton.Height) div 2);
 
@@ -746,15 +1046,74 @@ begin
     begin
       TitleLabel.Top := LabelStartY;
       LevLabel.Top := TitleLabel.Top + TitleLabel.Height;
-    end else
+    end
+    else
       LevLabel.Top := LabelStartY;
     ReqLabel.Top := LevLabel.Top + LevLabel.Height;
   end;
-
+begin
   fPackTalBox.VertScrollBar.Position := 0;
-  fPackTalBox.VertScrollBar.Range := Max(0, TotalHeight);
-  fPackTalBox.Visible := True;
+
+  if Group = fLastGroup then
+  begin
+    fPackTalBox.Visible := True;
+    Exit;
+  end;
+  fLastGroup := Group;
+
+  TotalHeight := 8;
+  Talismans := Group.Talismans;
+//  TotalTalismans := Talismans.Count;
+//  CurrentTalisman := 0;
+
+//  // Create the progress dialog
+//  ProgressDialog := TForm.Create(nil);
+//  try
+//    ProgressDialog.Caption := 'Processing Talismans...';
+//    ProgressDialog.Position := poScreenCenter;
+//    ProgressDialog.BorderStyle := bsDialog;
+//    ProgressDialog.Width := 300;
+//    ProgressDialog.Height := 100;
+//
+//    // Create a progress bar
+//    ProgressBar := TProgressBar.Create(ProgressDialog);
+//    ProgressBar.Parent := ProgressDialog;
+//    ProgressBar.Left := 10;
+//    ProgressBar.Top := 10;
+//    ProgressBar.Width := ProgressDialog.Width - 20;
+//    ProgressBar.Max := TotalTalismans;
+//    ProgressBar.Position := 0;
+//
+//    // Show the progress dialog
+//    ProgressDialog.Show;
+
+    for i := fPackTalBox.ControlCount - 1 downto 0 do
+      fPackTalBox.Controls[i].Free;
+
+    for i := 0 to Talismans.Count - 1 do
+    begin
+      Tal := Talismans[i];
+      Level := Group.GetLevelForTalisman(Tal);
+      CreateUIElements;
+
+//      // Update progress
+//      Inc(CurrentTalisman);
+//      ProgressBar.Position := CurrentTalisman;
+//
+//      Application.ProcessMessages; // Ensure UI updates are processed
+    end;
+
+    fPackTalBox.VertScrollBar.Position := 0;
+    fPackTalBox.VertScrollBar.Range := Max(0, TotalHeight);
+    fPackTalBox.Visible := True;
+
+//    // Close the progress dialog when finished
+//    ProgressDialog.Close;
+//  finally
+//    ProgressDialog.Free;
+//  end;
 end;
+
 
 procedure TFLevelSelect.SetTalismanInfo;
 var
@@ -792,6 +1151,9 @@ begin
   begin
     MakeButton(-1);
     MakeButton(-2);
+                                  // Bookmark - remove
+//    if (GameParams.Level.Info.CollectibleCount > 0) then
+//      MakeButton(-3);
   end else if GameParams.CurrentLevel.WorldRecords.LemmingsRescued.Value > 0 then
     MakeButton(-2);
 
@@ -876,7 +1238,6 @@ begin
     raise Exception.Create('TFLevelSelect.PackListTalButtonClick couldn''t match the level.');
 
   tvLevelSelect.Select(NodeRef);
-  tvLevelSelectClick(tvLevelSelect);
 end;
 
 procedure TFLevelSelect.ClearTalismanButtons;
@@ -902,7 +1263,7 @@ end;
 
 procedure TFLevelSelect.OverlayIcon(aIconIndex: Integer; aDst: TBitmap32);
 begin
-  fIconBMP.DrawTo(aDst, 0, 0, SizedRect((aIconIndex mod 4) * 32, (aIconIndex div 4) * 32, 32, 32));
+  fIconBMP.DrawTo(aDst, 0, 0, SizedRect((aIconIndex mod 6) * 32, (aIconIndex div 6) * 32, 32, 32));
 end;
 
 procedure TFLevelSelect.DrawSpeedButton(aButton: TSpeedButton; aIconIndex,
@@ -935,6 +1296,7 @@ begin
     if fTalismanButtons[i].Tag < 0 then
     begin
       RecordType := rdWorld;
+
       if fTalismanButtons[i].Tag = -1 then
         RecordType := rdUser;
 
@@ -965,30 +1327,212 @@ begin
   end;
 end;
 
-//////////////////////
-// Advanced options //
-//////////////////////
-
-procedure TFLevelSelect.SetAdvancedOptionsGroup;
+procedure TFLevelSelect.sbSearchLevelsInvokeSearch(Sender: TObject);
 begin
-  if not GameParams.HideAdvancedOptions then
+  SearchLevels;
+end;
+
+procedure TFLevelSelect.sbSearchLevelsKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if Key = VK_RETURN then
+    SearchLevels;
+end;
+
+procedure TFLevelSelect.SearchLevels;
+  procedure ExpandAllNodes(TreeView: TTreeView; Node: TTreeNode; var Progress: Integer);
+  var
+    ChildNode: TTreeNode;
   begin
-    btnSaveImage.Caption := 'Save Level Images';
-    btnMassReplay.Enabled := True;
-    btnCleanseLevels.Enabled := True;
-    btnCleanseOne.Enabled := False;
+    while Node <> nil do
+    begin
+      Node.Expand(False);
+
+      // Update progress bar
+      Inc(Progress);
+      pbSearchProgress.Position := Progress;
+
+      if Node.HasChildren then
+      begin
+        ChildNode := Node.GetFirstChild;
+        ExpandAllNodes(TreeView, ChildNode, Progress);
+      end;
+
+      Node := Node.GetNextSibling;
+    end;
+  end;
+
+  procedure CollapseAllNodes(TreeView: TTreeView; Node: TTreeNode);
+  begin
+    while Node <> nil do
+    begin
+      Node.Collapse(False);
+      Node := Node.GetNextSibling;
+    end;
+  end;
+
+var
+  SearchText: string;
+  i: Integer;
+  Node: TTreeNode;
+  Progress: Integer;
+begin
+  SearchingLevels := True;
+  tvLevelSelect.Visible := False;
+
+  // Prepare search results list
+  lbSearchResults.Clear;
+  SearchText := Trim(sbSearchLevels.Text);
+
+  if SearchText = '' then
+  begin
+    lbSearchResults.Visible := False;
+    Exit;
+  end;
+
+  // Initialize progress bar and counter
+  pbSearchProgress.Position := 0;
+  pbSearchProgress.Max := tvLevelSelect.Items.Count;
+  pbSearchProgress.Visible := True;
+
+  Progress := 0;
+
+  // Expand all nodes for searchability
+  tvLevelSelect.Items.BeginUpdate;
+  try
+    ExpandAllNodes(tvLevelSelect, tvLevelSelect.Items.GetFirstNode, Progress); // Start expanding from the root
+  finally
+    tvLevelSelect.Items.EndUpdate;
+  end;
+
+  // Perform search
+  tvLevelSelect.Items.BeginUpdate;
+  try
+    for i := 0 to tvLevelSelect.Items.Count - 1 do
+    begin
+      Node := tvLevelSelect.Items[i];
+
+       // Add matching nodes to the list
+      if AnsiContainsText(Node.Text, SearchText) then
+        lbSearchResults.Items.AddObject(Node.Text, Node);
+    end;
+  finally
+    tvLevelSelect.Items.EndUpdate;
+  end;
+
+  // Collapse all nodes after search
+  CollapseAllNodes(tvLevelSelect, tvLevelSelect.Items.GetFirstNode);
+
+  // Hide progress bar and show search results
+  pbSearchProgress.Visible := False;
+  lbSearchResults.Visible := lbSearchResults.Items.Count > 0;
+  btnCloseSearch.Visible := lbSearchResults.Visible;
+
+  SearchingLevels := False;
+end;
+
+procedure TFLevelSelect.lbSearchResultsClick(Sender: TObject);
+var
+  SelectedNode: TTreeNode;
+begin
+  if lbSearchResults.ItemIndex = -1 then Exit;
+
+  // Get the associated TreeNode object from the clicked search result
+  SelectedNode := TTreeNode(lbSearchResults.Items.Objects[lbSearchResults.ItemIndex]);
+
+  if Assigned(SelectedNode) then
+  begin
+    // Select the node and refocus the treeview
+    tvLevelSelect.Selected := SelectedNode;
+    SelectedNode.MakeVisible;
+
+    // Reset Search panel visibility
+    CloseSearchResultsPanel;
+    tvLevelSelect.SetFocus;
   end;
 end;
 
-procedure TFLevelSelect.SetAdvancedOptionsLevel;
+procedure TFLevelSelect.CloseSearchResultsPanel;
 begin
-  if not GameParams.HideAdvancedOptions then
+  // Close and reset search panel
+  lbSearchResults.Clear;
+  lbSearchResults.Visible := False;
+  btnCloseSearch.Visible := False;
+  sbSearchLevels.Text := '';
+
+  tvLevelSelect.Visible := True;
+end;
+
+procedure TFLevelSelect.btnCloseClick(Sender: TObject);
+begin
+  ModalResult := mrCancel;
+end;
+
+procedure TFLevelSelect.btnCloseSearchClick(Sender: TObject);
+begin
+  CloseSearchResultsPanel;
+end;
+
+procedure TFLevelSelect.btnEditLevelClick(Sender: TObject);
+var
+  LevelFile, EditorPath: string;
+begin
+  if GameParams.CurrentLevel = nil then
   begin
-    btnSaveImage.Caption := 'Save Image';
-    btnMassReplay.Enabled := TNeoLevelEntry(tvLevelSelect.Selected.Data).Group.ParentBasePack <> GameParams.BaseLevelPack;
-    btnCleanseLevels.Enabled := btnMassReplay.Enabled;
-    btnCleanseOne.Enabled := True;
+    ShowMessage('Please select a level file to edit.');
+    Exit;
   end;
+
+  // Set LevelFile and check it exists
+  LevelFile := GameParams.CurrentLevel.Path;
+
+  if not FileExists(LevelFile) then
+  begin
+    ShowMessage('The selected level file' + #13#10 + #13#10 +
+                LevelFile + #13#10 + #13#10 +
+                'does not exist.');
+    Exit;
+  end;
+
+  // Set EditorPath and check it exists                // Bookmark - check also for the NL Editor
+  EditorPath := ExtractFilePath(Application.ExeName) + 'SLXEditor.exe';
+
+  if not FileExists(EditorPath) then
+  begin
+    ShowMessage('SLXEditor.exe not found in the NeoLemmix directory.');
+    Exit;
+  end;
+
+  // Add double quotes to handle spaces in LevelFile
+  LevelFile := '"' + LevelFile + '"';
+
+  // Launch SLX Editor with the selected level
+  if ShellExecute(0, 'open', PChar(EditorPath), PChar(LevelFile), nil, SW_SHOWNORMAL) <= 32 then
+  begin
+    ShowMessage('Failed to launch the level editor.');
+  end;
+
+  fCurrentLevelVersion := GameParams.Level.Info.LevelVersion;
+end;
+
+// --- Advanced options --- //
+procedure TFLevelSelect.SetAdvancedOptionsGroup(G: TNeoLevelGroup);
+begin
+    btnSaveImage.Caption := 'Save Level Images';
+    btnReplayManager.Enabled := True;
+    btnCleanseLevels.Enabled := True;
+    btnCleanseOne.Enabled := False;
+    btnResetTalismans.Enabled := False;
+    btnOk.Enabled := G.LevelCount > 0; // N.B: Levels.Count is not recursive; LevelCount is
+end;
+
+procedure TFLevelSelect.SetAdvancedOptionsLevel(L: TNeoLevelEntry);
+begin
+    btnSaveImage.Caption := 'Save Image';
+    btnReplayManager.Enabled := TNeoLevelEntry(tvLevelSelect.Selected.Data).Group.ParentBasePack <> GameParams.BaseLevelPack;
+    btnCleanseLevels.Enabled := btnReplayManager.Enabled;
+    btnCleanseOne.Enabled := True;
+    btnResetTalismans.Enabled := L.Talismans.Count <> 0;
+    btnOK.Enabled := True;
 end;
 
 procedure TFLevelSelect.btnSaveImageClick(Sender: TObject);
@@ -1045,41 +1589,50 @@ begin
     Exit;
 end;
 
-procedure TFLevelSelect.btnMassReplayClick(Sender: TObject);
-var
-  OpenDlg: TOpenDialog;
-  F: TFReplayNaming;
+procedure TFLevelSelect.btnShowHideOptionsClick(Sender: TObject);
 begin
-  OpenDlg := TOpenDialog.Create(Self);
-  try
-    OpenDlg.Title := 'Select any file in the folder containing replays';
-    OpenDlg.InitialDir := AppPath + 'Replay\' + MakeSafeForFilename(GameParams.CurrentLevel.Group.ParentBasePack.Name, False);
-    OpenDlg.Filter := SProgramName + ' Replay (*.nxrp)|*.nxrp';
-    OpenDlg.Options := [ofHideReadOnly, ofFileMustExist, ofEnableSizing];
-    if not OpenDlg.Execute then
-      Exit;
-    GameParams.ReplayCheckPath := ExtractFilePath(OpenDlg.FileName);
-  finally
-    OpenDlg.Free;
+  if GameParams.ShowLevelSelectOptions then
+  begin
+    HideOptionButtons;
+    GameParams.ShowLevelSelectOptions := False;
+  end else begin
+    ShowOptionButtons;
+    GameParams.ShowLevelSelectOptions := True;
   end;
-
-  F := TFReplayNaming.Create(Self);
-  try
-    if F.ShowModal = mrCancel then
-      Exit;
-  finally
-    F.Free;
-  end;
-
-  WriteToParams;
-  ModalResult := mrRetry;
 end;
+
+procedure TFLevelSelect.btnReplayManagerClick(Sender: TObject);
+begin
+  ModalResult := mrCancel;
+end;                       // Bookmark
+
+//procedure TFLevelSelect.btnReplayManagerClick(Sender: TObject);
+//var
+//  ReplayManagerForm: TFReplayManager;
+//begin
+//  ReplayManagerForm := TFReplayManager.Create(nil);
+//
+//  try
+//    // Populate the form with the currently selected pack
+//    ReplayManagerForm.CurrentlySelectedPack := GetCurrentlySelectedPack;
+//    ReplayManagerForm.UpdatePackNameText;
+//
+//    if ReplayManagerForm.ShowModal = mrOk then
+//    begin
+//      WriteToParams;
+//      ModalResult := mrRetry;
+//    end;
+//  finally
+//    ReplayManagerForm.Free;
+//  end;
+//end;
 
 procedure TFLevelSelect.btnCleanseLevelsClick(Sender: TObject);
 var
   Group: TNeoLevelGroup;
   N: TTreeNode;
   Obj: TObject;
+  AlreadyExistsMsg: String;
 begin
   N := tvLevelSelect.Selected;
   if N = nil then Exit;
@@ -1094,10 +1647,11 @@ begin
     Exit;
 
   Group := Group.ParentBasePack;
+  AlreadyExistsMsg := 'Folder "Cleanse\' + MakeSafeForFilename(Group.Name)
+                    + '\" already exists. Continuing will erase it. Continue?';
 
-  if DirectoryExists(AppPath + 'Cleanse\' + MakeSafeForFilename(Group.Name) + '\') then
-    if MessageDlg('Folder "Cleanse\' + MakeSafeForFilename(Group.Name) + '\" already exists. Continuing will erase it. Continue?',
-                  mtCustom, [mbYes, mbNo], 0) = mrNo then
+  if SysUtils.DirectoryExists(AppPath + 'Cleanse\' + MakeSafeForFilename(Group.Name) + '\') then
+    if MessageDlg(AlreadyExistsMsg, mtCustom, [mbYes, mbNo], 0) = mrNo then
       Exit;
 
   Group.CleanseLevels(AppPath + 'Cleanse\' + MakeSafeForFilename(Group.Name) + '\');

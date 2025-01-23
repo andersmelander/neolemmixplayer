@@ -47,7 +47,6 @@ type
     cbResetWindowSize: TCheckBox;
     cbResetWindowPosition: TCheckBox;
     cbHideShadows: TCheckBox;
-    cbHideAdvanced: TCheckBox;
     cbAutoSaveReplay: TCheckBox;
     cbAutoSaveReplayPattern: TComboBox;
     lblIngameSaveReplay: TLabel;
@@ -278,7 +277,6 @@ begin
     cbNoSkillQueue.Checked := GameParams.NoSkillQueue;
     cbEdgeScrolling.Checked := GameParams.EdgeScroll;
     cbSpawnInterval.Checked := GameParams.SpawnInterval;
-    cbHideAdvanced.Checked := GameParams.HideAdvancedOptions;
 
     rgWhenNoLemmings.ItemIndex := Ord(GameParams.ExitToPostview);
 
@@ -348,7 +346,6 @@ begin
   GameParams.NoSkillQueue := cbNoSkillQueue.Checked;
   GameParams.EdgeScroll := cbEdgeScrolling.Checked;
   GameParams.SpawnInterval := cbSpawnInterval.Checked;
-  GameParams.HideAdvancedOptions := cbHideAdvanced.Checked;
 
   if (rgWhenNoLemmings.ItemIndex >= Ord(Low(TExitToPostview)))
     and (rgWhenNoLemmings.ItemIndex <= Ord(High(TExitToPostview))) then
