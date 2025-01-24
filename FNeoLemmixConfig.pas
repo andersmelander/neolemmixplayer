@@ -5,7 +5,7 @@ interface
 uses
   GameControl, GameSound, FEditHotkeys, FStyleManager, Math,
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ComCtrls, StdCtrls, Vcl.ExtCtrls;
+  Dialogs, ComCtrls, StdCtrls, Vcl.ExtCtrls, Vcl.Samples.Spin;
 
 type
   TFormNXConfig = class(TForm)
@@ -59,7 +59,6 @@ type
     cbDisableTestplayMusic: TCheckBox;
     rgWhenNoLemmings: TRadioGroup;
     cbHideHelpers: TCheckBox;
-    cbNoSkillQueue: TCheckBox;
     cbReplayAfterRestart: TCheckBox;
     rgGameLoadingOptions: TRadioGroup;
     gbVolume: TGroupBox;
@@ -73,6 +72,8 @@ type
     rgSoundScheme: TRadioGroup;
     gbSoundOptions: TGroupBox;
     gbMusicOptions: TGroupBox;
+    lblSkillQFrames: TLabel;
+    seSkillQFrames: TSpinEdit;
     procedure btnApplyClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure btnHotkeysClick(Sender: TObject);
@@ -272,9 +273,11 @@ begin
 
     cbNoBackgrounds.Checked := GameParams.NoBackgrounds;
     cbForceDefaultLemmings.Checked := GameParams.ForceDefaultLemmings;
+
     cbHideShadows.Checked := GameParams.HideShadows;
     cbHideHelpers.Checked := GameParams.HideHelpers;
-    cbNoSkillQueue.Checked := GameParams.NoSkillQueue;
+    seSkillQFrames.Value := GameParams.SkillQFrames;
+
     cbEdgeScrolling.Checked := GameParams.EdgeScroll;
     cbSpawnInterval.Checked := GameParams.SpawnInterval;
 
@@ -341,9 +344,11 @@ begin
 
   GameParams.NoBackgrounds := cbNoBackgrounds.Checked;
   GameParams.ForceDefaultLemmings := cbForceDefaultLemmings.Checked;
+
   GameParams.HideShadows := cbHideShadows.Checked;
   GameParams.HideHelpers := cbHideHelpers.Checked;
-  GameParams.NoSkillQueue := cbNoSkillQueue.Checked;
+  GameParams.SkillQFrames := seSkillQFrames.Value;
+
   GameParams.EdgeScroll := cbEdgeScrolling.Checked;
   GameParams.SpawnInterval := cbSpawnInterval.Checked;
 

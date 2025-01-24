@@ -206,7 +206,7 @@ object FormNXConfig: TFormNXConfig
       end
       object gbReplayOptions: TGroupBox
         Left = 19
-        Top = 284
+        Top = 288
         Width = 336
         Height = 70
         Caption = 'Replay Options'
@@ -232,11 +232,18 @@ object FormNXConfig: TFormNXConfig
       end
       object gbHelperOptions: TGroupBox
         Left = 19
-        Top = 150
+        Top = 156
         Width = 336
         Height = 119
         Caption = 'Helper Options'
         TabOrder = 1
+        object lblSkillQFrames: TLabel
+          Left = 35
+          Top = 92
+          Width = 158
+          Height = 13
+          Caption = 'Number of Skill Queue Frames:'
+        end
         object cbPauseAfterBackwards: TCheckBox
           Left = 19
           Top = 22
@@ -248,19 +255,10 @@ object FormNXConfig: TFormNXConfig
         end
         object cbHideHelpers: TCheckBox
           Left = 19
-          Top = 91
+          Top = 68
           Width = 177
           Height = 17
           Caption = 'Deactivate Helper Overlays'
-          TabOrder = 3
-          OnClick = OptionChanged
-        end
-        object cbNoSkillQueue: TCheckBox
-          Left = 19
-          Top = 68
-          Width = 193
-          Height = 17
-          Caption = 'Deactivate Skill Queueing'
           TabOrder = 2
           OnClick = OptionChanged
         end
@@ -273,6 +271,17 @@ object FormNXConfig: TFormNXConfig
           TabOrder = 1
           OnClick = OptionChanged
         end
+        object seSkillQFrames: TSpinEdit
+          Left = 205
+          Top = 89
+          Width = 52
+          Height = 22
+          MaxValue = 15
+          MinValue = 0
+          TabOrder = 3
+          Value = 15
+          OnChange = OptionChanged
+        end
       end
       object gbInterfaceOptions: TGroupBox
         Left = 19
@@ -283,7 +292,7 @@ object FormNXConfig: TFormNXConfig
         TabOrder = 0
         object cbNoBackgrounds: TCheckBox
           Left = 19
-          Top = 66
+          Top = 68
           Width = 193
           Height = 17
           Caption = 'Disable Background Images'
@@ -292,7 +301,7 @@ object FormNXConfig: TFormNXConfig
         end
         object cbEdgeScrolling: TCheckBox
           Left = 19
-          Top = 20
+          Top = 22
           Width = 221
           Height = 17
           Caption = 'Enable Edge Scrolling and Trap Cursor'
@@ -301,7 +310,7 @@ object FormNXConfig: TFormNXConfig
         end
         object cbSpawnInterval: TCheckBox
           Left = 19
-          Top = 89
+          Top = 91
           Width = 294
           Height = 17
           Caption = 'Use Spawn Interval Instead of Release Rate'
@@ -310,7 +319,7 @@ object FormNXConfig: TFormNXConfig
         end
         object cbForceDefaultLemmings: TCheckBox
           Left = 19
-          Top = 43
+          Top = 45
           Width = 173
           Height = 17
           Caption = 'Force Default Lemming Sprites'

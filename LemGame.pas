@@ -1902,7 +1902,7 @@ const
   PermSkillSet = [baSliding, baClimbing, baFloating, baGliding, baFixing, baSwimming];
 var
   L, LQueue: TLemming;
-  OldHTAF, MayQueueSkill: Boolean;
+  OldHTAF: Boolean;
 begin
   Result := False;
 
@@ -1919,15 +1919,10 @@ begin
   // Queue skill assignment if current assignment is impossible
   if not Assigned(L) or not CheckSkillAvailable(Skill) then
   begin
-    MayQueueSkill := (not GameParams.NoSkillQueue) or (Skill = baShimmying);
-
-    if MayQueueSkill then
+    if Assigned(LQueue) and not (Skill in PermSkillSet) then
     begin
-      if Assigned(LQueue) and not (Skill in PermSkillSet) then
-      begin
-        LQueue.LemQueueAction := Skill;
-        LQueue.LemQueueFrame := 0;
-      end;
+      LQueue.LemQueueAction := Skill;
+      LQueue.LemQueueFrame := 0;
     end;
   end
 
@@ -6251,7 +6246,7 @@ end;
 
 procedure TLemmingGame.CheckForQueuedAction;
 var
-  i: Integer;
+  i, QueueFrameLimit: Integer;
   L: TLemming;
   NewSkill: TBasicLemmingAction;
 begin
@@ -6274,6 +6269,12 @@ begin
 
     NewSkill := L.LemQueueAction;
 
+    // Set queue frame limit
+    if (NewSkill = baShimmying) and (GameParams.SkillQFrames < 15) then
+      QueueFrameLimit := 15
+    else
+      QueueFrameLimit := GameParams.SkillQFrames;
+
     // Try assigning the skill
     if NewSkillMethods[NewSkill](L) and CheckSkillAvailable(NewSkill) then
       // Record skill assignment, so that we apply it in CheckForReplayAction
@@ -6281,8 +6282,8 @@ begin
     else
     begin;
       Inc(L.LemQueueFrame);
-      // Delete queued action after 16 frames
-      if L.LemQueueFrame > 15 then
+      // Delete queued action when the limit is reached
+      if L.LemQueueFrame > QueueFrameLimit then
       begin
         L.LemQueueAction := baNone;
         L.LemQueueFrame := 0;

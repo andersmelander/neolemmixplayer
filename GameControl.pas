@@ -77,7 +77,6 @@ type
     moNoBackgrounds,
     moHideShadows,
     moHideHelpers,
-    moNoSkillQueue,
     moDisableWineWarnings,
     moHighResolution,
     moLinearResampleMenu,
@@ -133,6 +132,7 @@ type
     fCursorResize: Double;
     fZoomLevel: Integer;
     fPanelZoomLevel: Integer;
+    fSkillQFrames: Integer;
     fWindowLeft: Integer;
     fWindowTop: Integer;
     fWindowWidth: Integer;
@@ -231,7 +231,6 @@ type
     property NoBackgrounds: Boolean Index moNoBackgrounds read GetOptionFlag write SetOptionFlag;
     property HideShadows: Boolean Index moHideShadows read GetOptionFlag write SetOptionFlag;
     property HideHelpers: Boolean Index moHideHelpers read GetOptionFlag write SetOptionFlag;
-    property NoSkillQueue: Boolean Index moNoSkillQueue read GetOptionFlag write SetOptionFlag;
     property DisableWineWarnings: Boolean Index moDisableWineWarnings read GetOptionFlag write SetOptionFlag;
     property HighResolution: Boolean Index moHighResolution read GetOptionFlag write SetOptionFlag;
     property LinearResampleMenu: Boolean Index moLinearResampleMenu read GetOptionFlag write SetOptionFlag;
@@ -262,6 +261,8 @@ type
     property CursorResize: Double read fCursorResize write fCursorResize;
     property ZoomLevel: Integer read fZoomLevel write fZoomLevel;
     property PanelZoomLevel: Integer read fPanelZoomLevel write fPanelZoomLevel;
+
+    property SkillQFrames: Integer read fSkillQFrames write fSkillQFrames;
 
     property WindowLeft: Integer read fWindowLeft write fWindowLeft;
     property WindowTop: Integer read fWindowTop write fWindowTop;
@@ -441,12 +442,12 @@ begin
   SaveBoolean('ForceDefaultLemmings', ForceDefaultLemmings);
   SaveBoolean('HideShadows', HideShadows);
   SaveBoolean('HideHelpers', HideHelpers);
-  SaveBoolean('NoSkillQueue', NoSkillQueue);
   SaveBoolean('CompactSkillPanel', CompactSkillPanel);
   SaveBoolean('HighQualityMinimap', MinimapHighQuality);
   SaveBoolean('EdgeScrolling', EdgeScroll);
   SaveBoolean('UseSpawnInterval', SpawnInterval);
 
+  SL.Add('SkillQFrames=' + IntToStr(SkillQFrames));
   SL.Add('ZoomLevel=' + IntToStr(ZoomLevel));
   SL.Add('PanelZoomLevel=' + IntToStr(PanelZoomLevel));
   SL.Add('CursorResize=' + FloatToStr(CursorResize));
@@ -586,6 +587,12 @@ var
     else // Set default if the string is anything else
       ExitToPostview := etpIfPassed;
   end;
+
+  procedure ValidateSkillQFrames;
+  begin
+    if (SkillQFrames < 0) or (SkillQFrames > 20) then
+      SkillQFrames := 15;
+  end;
 begin
   SL := TStringList.Create;
   try
@@ -631,7 +638,6 @@ begin
     ForceDefaultLemmings := LoadBoolean('ForceDefaultLemmings', ForceDefaultLemmings);
     HideShadows := LoadBoolean('HideShadows', HideShadows);
     HideHelpers := LoadBoolean('HideHelpers', HideHelpers);
-    NoSkillQueue := LoadBoolean('NoSkillQueue', NoSkillQueue);
     CompactSkillPanel := LoadBoolean('CompactSkillPanel', CompactSkillPanel);
     MinimapHighQuality := LoadBoolean('HighQualityMinimap', MinimapHighQuality);
     EdgeScroll := LoadBoolean('EdgeScrolling', EdgeScroll);
@@ -649,6 +655,9 @@ begin
 
     ZoomLevel := StrToIntDef(SL.Values['ZoomLevel'], -1);
     PanelZoomLevel := StrToIntDef(SL.Values['PanelZoomLevel'], -1);
+
+    SkillQFrames := StrToIntDef(SL.Values['SkillQFrames'], 15);
+    ValidateSkillQFrames;
 
     CursorResize := StrToFloatDef(SL.Values['CursorResize'], CursorResize);
 
@@ -874,6 +883,7 @@ begin
   fZoomLevel := Min(Screen.Width div 320, Screen.Height div 200);
   fPanelZoomLevel := Min(fZoomLevel, Screen.Width div 416);
   fCursorResize := 1;
+  fSkillQFrames := 15;
 
   LemDataInResource := True;
   LemSoundsInResource := True;
