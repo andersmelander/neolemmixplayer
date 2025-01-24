@@ -1150,9 +1150,6 @@ begin
   begin
     MakeButton(-1);
     MakeButton(-2);
-                                  // Bookmark - remove
-//    if (GameParams.Level.Info.CollectibleCount > 0) then
-//      MakeButton(-3);
   end else if GameParams.CurrentLevel.WorldRecords.LemmingsRescued.Value > 0 then
     MakeButton(-2);
 
@@ -1262,7 +1259,7 @@ end;
 
 procedure TFLevelSelect.OverlayIcon(aIconIndex: Integer; aDst: TBitmap32);
 begin
-  fIconBMP.DrawTo(aDst, 0, 0, SizedRect((aIconIndex mod 6) * 32, (aIconIndex div 6) * 32, 32, 32));
+  fIconBMP.DrawTo(aDst, 0, 0, SizedRect((aIconIndex mod 4) * 32, (aIconIndex div 4) * 32, 32, 32));
 end;
 
 procedure TFLevelSelect.DrawSpeedButton(aButton: TSpeedButton; aIconIndex,
@@ -1295,7 +1292,6 @@ begin
     if fTalismanButtons[i].Tag < 0 then
     begin
       RecordType := rdWorld;
-
       if fTalismanButtons[i].Tag = -1 then
         RecordType := rdUser;
 
