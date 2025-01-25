@@ -215,6 +215,7 @@ type
       procedure Form_MouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
       procedure Img_MouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer; Layer: TCustomLayer);
       procedure Img_MouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer; Layer: TCustomLayer);
+      procedure Img_Resized(Sender: TObject);
 
       procedure HandleKeyboardInput(Key: Word);
       procedure HandleMouseMove;
@@ -383,11 +384,14 @@ begin
 
 {$ifdef TILE_BACKGROUND}
 
+  ScreenImg.Bitmap.SetSize(INTERNAL_SCREEN_WIDTH, INTERNAL_SCREEN_HEIGHT);
+
   if not GetGraphic('background_' + GetBackgroundSuffix + '.png', ScreenImg.Bitmap, true) then
     GetGraphic('background.png', ScreenImg.Bitmap, true);
 
-  ScreenImg.ScaleMode := smScale;
   ScreenImg.BitmapAlign := baTile;
+  ScreenImg.ScaleMode := smScale; // Scale set in OnResize
+  ScreenImg.OnResize := Img_Resized;
 
   r := Rect(0, 0, INTERNAL_SCREEN_WIDTH-1, INTERNAL_SCREEN_HEIGHT-1);
   OffsetRect(r, (ScreenImg.Width - INTERNAL_SCREEN_WIDTH) div 2, (ScreenImg.Height - INTERNAL_SCREEN_HEIGHT) div 2);
@@ -983,6 +987,21 @@ procedure TGameBaseMenuScreen.Img_MouseUp(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer; Layer: TCustomLayer);
 begin
   HandleMouseClick(Button);
+end;
+
+procedure TGameBaseMenuScreen.Img_Resized(Sender: TObject);
+var
+  r: TRect;
+begin
+  r := ScreenImg.GetViewportRect;
+  ScreenImg.Scale := Min(r.Width / INTERNAL_SCREEN_WIDTH, r.Height / INTERNAL_SCREEN_HEIGHT);
+
+  r := Rect(0, 0, INTERNAL_SCREEN_WIDTH-1, INTERNAL_SCREEN_HEIGHT-1);
+  OffsetRect(r, (ScreenImg.Width - INTERNAL_SCREEN_WIDTH) div 2, (ScreenImg.Height - INTERNAL_SCREEN_HEIGHT) div 2);
+  GameRect := r;
+
+  ScreenImg.OffsetHorz := -GameRect.Left;
+  ScreenImg.OffsetVert := -GameRect.Top;
 end;
 
 procedure TGameBaseMenuScreen.Img_MouseMove(Sender: TObject; Shift: TShiftState;
