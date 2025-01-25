@@ -495,7 +495,18 @@ begin
 end;
 
 procedure TGameMenuScreen.LoadScrollerGraphics;
-  var
+
+  function MaxFontHeight(Font: TMenuFont): integer;
+var
+    i: integer;
+  begin
+    Result := 0;
+    for i := 0 to High(Font.fBitmaps) do
+      if (Font.fBitmaps[i] <> nil) then
+        Result := Max(Result, Font.fBitmaps[i].Height);
+  end;
+
+var
   ScrollerLemmings: TBitmap32;
   r: TRect;
 begin
@@ -551,8 +562,9 @@ begin
   FLayerBannerText.Location := FLayerScroller.Location;
   FLayerBannerText.Scaled := True;
   FLayerBannerText.Visible := True;
-
-end;
+  // Center text vertically
+  FLayerBannerText.OffsetY := Round((FLayerBannerText.Location.Height - MaxFontHeight(MenuFont)) / 2);
+  end;
 
 procedure TGameMenuScreen.PrepareScrollerTextList;
 var
@@ -678,12 +690,12 @@ begin
 
     MenuFont.DrawText(FLayerBannerText.Bitmap, S, 0, 0);
 
-    if (fReelForceDirection < 0) then
-        fReelTextPos := -FLayerBannerText.Bitmap.Width
-    else
-      fReelTextPos := LayoutInfo.ScrollerWidth;
+  if (fReelForceDirection < 0) then
+      fReelTextPos := -FLayerBannerText.Bitmap.Width
+  else
+    fReelTextPos := LayoutInfo.ScrollerWidth;
 
-    FLayerBannerText.Offset := fReelTextPos;
+    FLayerBannerText.OffsetX := fReelTextPos;
   finally
     FLayerBannerText.EndUpdate;
   end;
@@ -706,8 +718,8 @@ end;
 
 procedure TGameMenuScreen.DrawReelText;
 begin
-  FLayerBannerText.Offset := fReelTextPos;
-end;
+  FLayerBannerText.OffsetX := fReelTextPos;
+  end;
 
 procedure TGameMenuScreen.DrawWorkerLemmings;
 var

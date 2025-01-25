@@ -115,10 +115,12 @@ type
   private
     FOffsetX: integer;
     FOffsetY: integer;
-    procedure SetOffsetX(Value: integer);
-    procedure SetOffsetY(Value: integer);
   protected
     procedure Paint(Buffer: TBitmap32); override;
+    procedure SetOffsetX(Value: integer); virtual;
+    procedure SetOffsetY(Value: integer); virtual;
+    procedure DoSetOffsetX(Value: integer);
+    procedure DoSetOffsetY(Value: integer);
   public
     constructor Create(ALayerCollection: TLayerCollection); override;
 
@@ -127,16 +129,13 @@ type
   end;
 
 type
-  TBannerTextLayer = class(TBitmapLayer)
+  TBannerTextLayer = class(TBannerLayer)
   private
-    FOffset: integer;
-    procedure SetOffset(Value: integer);
   protected
     procedure Paint(Buffer: TBitmap32); override;
+    procedure SetOffsetX(Value: integer); override;
+    procedure SetOffsetY(Value: integer); override;
   public
-    constructor Create(ALayerCollection: TLayerCollection); override;
-
-    property Offset: integer read FOffset write SetOffset;
   end;
 
 type
@@ -1524,6 +1523,24 @@ begin
   end;
 end;
 
+procedure TBannerLayer.DoSetOffsetX(Value: integer);
+begin
+  if (Value = FOffsetX) then
+    exit;
+
+  FOffsetX := Value;
+  Changed;
+end;
+
+procedure TBannerLayer.DoSetOffsetY(Value: integer);
+begin
+  if (Value = FOffsetY) then
+    exit;
+
+  FOffsetY := Value;
+  Changed;
+end;
+
 procedure TBannerLayer.SetOffsetX(Value: integer);
 begin
   if (Bitmap.Width <> 0) then
@@ -1531,11 +1548,7 @@ begin
   else
     Value := 0;
 
-  if (Value = FOffsetX) then
-    exit;
-
-  FOffsetX := Value;
-  Changed;
+  DoSetOffsetX(Value);
 end;
 
 procedure TBannerLayer.SetOffsetY(Value: integer);
@@ -1545,21 +1558,10 @@ begin
   else
     Value := 0;
 
-  if (Value = FOffsetY) then
-    exit;
-
-  FOffsetY := Value;
-  Changed;
+  DoSetOffsetY(Value);
 end;
 
 { TBannerTextLayer }
-
-constructor TBannerTextLayer.Create(ALayerCollection: TLayerCollection);
-begin
-  inherited;
-
-  TCustomResamplerClass(TCustomImage32(LayerCollection.Owner).Bitmap.Resampler.ClassType).Create(Bitmap);
-end;
 
 procedure TBannerTextLayer.Paint(Buffer: TBitmap32);
 var
@@ -1571,19 +1573,30 @@ begin
 
   UpdateRect := MakeRect(GetAdjustedLocation);
   BitmapRect := MakeRect(0, 0, Round(Location.Width), Round(Location.Height));
-  OffsetRect(BitmapRect, -Offset, 0);
+  OffsetRect(BitmapRect, -OffsetX, -OffsetY);
 
   StretchTransfer(Buffer, UpdateRect, Buffer.ClipRect, Bitmap, BitmapRect, Bitmap.Resampler, Bitmap.DrawMode, Bitmap.OnPixelCombine);
 end;
 
-procedure TBannerTextLayer.SetOffset(Value: integer);
+procedure TBannerTextLayer.SetOffsetX(Value: integer);
 begin
   Value := EnsureRange(Value, -Bitmap.Width, Trunc(Location.Width));
 
-  if (Value = FOffset) then
+  if (Value = FOffsetX) then
     exit;
 
-  FOffset := Value;
+  FOffsetX := Value;
+  Changed;
+end;
+
+procedure TBannerTextLayer.SetOffsetY(Value: integer);
+begin
+  Value := EnsureRange(Value, -Bitmap.Height, Trunc(Location.Height));
+
+  if (Value = FOffsetY) then
+    exit;
+
+  FOffsetY := Value;
   Changed;
 end;
 
