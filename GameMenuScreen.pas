@@ -412,7 +412,7 @@ begin
 
   Layer := ScreenImg.Layers.Add<TTextLayer>;
   Layer.Scaled := True;
-  r := ScreenImg.Bitmap.BoundsRect;
+  r := GameRect;
   r.Top := LayoutInfo.FooterTextY;
   Layer.Location := MakeRect(r);
   Layer.Text := PackInfoText+#13#13+NLInfoText;
