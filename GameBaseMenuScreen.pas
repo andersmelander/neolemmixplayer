@@ -46,8 +46,8 @@ type
   private type
     TShortcuts = TList<TShortCut>;
   private const
-    HOVER_COLOR: TColor32 = $00A0A0A0; // White-ish
-    CLICK_COLOR: TColor32 = $00A0A040; // Yellow-ish
+    HOVER_COLOR: TColor32 = $00C0C0C0; // White-ish
+    CLICK_COLOR: TColor32 = $00F0F040; // Yellow-ish
   private
     FAction: TRegionAction;
     FShortCuts: TShortcuts;
